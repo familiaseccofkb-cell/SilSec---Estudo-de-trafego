@@ -12,6 +12,7 @@ Sistema de estudo de tráfego de elevadores (ABNT NBR 5665 e ISO 8100-32) que fu
 | 4 | [Lista de compras](docs/04-lista-de-compras.md) | Equipamentos, serviços e programas (com faixas de custo) |
 | 5 | [Proteção de dados](docs/05-protecao-de-dados.md) | Camadas de segurança, LGPD, rotina e plano de incidente |
 | 6 | [Normas](docs/06-normas.md) | NBR 5665, 16858-3/-4/-6/-7, 16083 e demais referências do projeto |
+| 7 | [Teste na nuvem](docs/07-teste-na-nuvem.md) | Túnel temporário, VPS com sslip.io e roteiro de testes |
 | — | [Relé em nuvem](servidor-nuvem/README.md) | Acesso pelo navegador de qualquer lugar, inclusive com CGNAT |
 
 ## Estrutura

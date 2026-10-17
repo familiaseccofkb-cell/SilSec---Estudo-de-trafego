@@ -1,0 +1,12 @@
+export const emptyCustomer=()=>({companyName:'',address:'',phone:'',email:'',contact:''});
+export const emptyProjectDetails=()=>({name:'',address:'',contact:'',phone:''});
+export const emptyBrand=()=>({companyName:'',phone:'',email:'',address:'',contactPlacement:'header',logoPlacement:'header',logoDataUri:''});
+export const emptyAccount=()=>({name:'',contactEmail:'',phone:'',address:''});
+export const emptyAnnex=()=>({owner:'',author:'',builder:'',engineer:'',installer:'',notes:''});
+const text=(v,max=2000)=>{if(typeof v!=='string'||v.length>max)throw Error('Dados de cadastro inválidos ou texto muito longo.');return v.trim();};
+export function validateAccount(source){const data={...emptyAccount(),...source};for(const k of Object.keys(emptyAccount()))data[k]=text(data[k],k==='name'?200:2000);if(!data.name)throw Error('Informe o nome do usuário.');if(data.contactEmail&&(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.contactEmail)||data.contactEmail.length>254))throw Error('Informe um email de contato válido.');return Object.fromEntries(Object.keys(emptyAccount()).map(k=>[k,data[k]]));}
+export function validateCustomer(source){const data={...emptyCustomer(),...source};return Object.fromEntries(Object.keys(emptyCustomer()).map(k=>[k,text(data[k],k==='companyName'?200:2000)]));}
+export function validateBrand(source){const data={...emptyBrand(),...source};for(const k of ['companyName','phone','email','address'])data[k]=text(data[k]);for(const k of ['contactPlacement','logoPlacement'])if(!['header','footer'].includes(data[k]))throw Error('Escolha cabeçalho ou rodapé.');if(typeof data.logoDataUri!=='string'||data.logoDataUri.length>800000||data.logoDataUri&&!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(data.logoDataUri))throw Error('Use uma logomarca PNG, JPEG ou WebP de até 600 KB.');return Object.fromEntries(Object.keys(emptyBrand()).map(k=>[k,data[k]]));}
+export function normalizeStudyRecords(study){study.customer={...emptyCustomer(),companyName:study.client||'',...study.customer};study.projectDetails={...emptyProjectDetails(),name:study.building||study.name||'',address:study.address||'',...study.projectDetails};study.annex={...emptyAnnex(),...study.annex};return study;}
+export function validateStudyRecords(study){validateCustomer(study.customer||emptyCustomer());for(const data of [study.projectDetails||emptyProjectDetails(),study.annex||emptyAnnex()])for(const value of Object.values(data))text(value);}
+export const reportReady=(dirty,result)=>!dirty&&!!result;

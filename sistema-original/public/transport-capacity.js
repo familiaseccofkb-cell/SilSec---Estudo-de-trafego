@@ -1,0 +1,2 @@
+// Relação de vazão comum aos equipamentos de transporte contínuo.
+export function transportCapacity({capacityHourly,count=1,periodMinutes,utilizationPercent,population=null,demandPercent}){const hourly=capacityHourly*count,capacity=hourly*periodMinutes/60*utilizationPercent/100,demand=population===null?null:population*demandPercent/100;return {hourly,capacity,demand,pass:demand===null?null:Number.isFinite(capacity)&&Number.isFinite(demand)&&demand<=capacity+1e-8};}

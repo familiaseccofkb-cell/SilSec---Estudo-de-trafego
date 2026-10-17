@@ -1,0 +1,34 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1791813220619,
+      "tag": "0000_small_red_wolf",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1792012938431,
+      "tag": "0001_goofy_rawhide_kid",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792168059009,
+      "tag": "0002_gigantic_miss_america",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1792208825665,
+      "tag": "0003_cuddly_lady_mastermind",
+      "breakpoints": true
+    }
+  ]
+}

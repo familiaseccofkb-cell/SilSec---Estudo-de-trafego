@@ -1,0 +1,2 @@
+import {defaultTractionSpec} from '../public/traction-energy.js';
+export function supplierSpec(overrides={}){return {...defaultTractionSpec(),enabled:true,suspension:'belt',sheaveDiameterMm:150,motorPowerKw:8,movingKw:4,suspensionRatio:2,supplier:'Fornecedor Teste',model:'Máquina e acionamento X',document:'Ficha técnica revisão 2',alternativeReference:'Certificado de aplicação específico',recoveryPercent:20,...overrides};}

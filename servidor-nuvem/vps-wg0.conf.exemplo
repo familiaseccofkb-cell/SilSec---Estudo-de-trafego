@@ -1,0 +1,10 @@
+# /etc/wireguard/wg0.conf no VPS (relé).
+[Interface]
+Address = 10.66.0.1/24
+ListenPort = 51820
+PrivateKey = CHAVE_PRIVADA_DO_VPS
+
+# Servidor local (inicia a conexão; não precisa de Endpoint aqui).
+[Peer]
+PublicKey = CHAVE_PUBLICA_DO_SERVIDOR_LOCAL
+AllowedIPs = 10.66.0.2/32

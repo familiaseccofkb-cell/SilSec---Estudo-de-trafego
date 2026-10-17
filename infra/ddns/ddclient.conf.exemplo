@@ -1,0 +1,27 @@
+# /etc/ddclient.conf — atualiza o DNS quando o IP da operadora muda.
+# Escolha UM dos provedores abaixo e apague os outros.
+daemon=300
+syslog=yes
+ssl=yes
+# Descobre o IP público consultando um serviço externo (funciona atrás do roteador).
+usev4=webv4, webv4=ipify-ipv4
+# Se a operadora entrega IPv6 público, ative também:
+# usev6=webv6, webv6=ipify-ipv6
+
+## Opção 1 — Cloudflare (domínio próprio, recomendado). Token com permissão "Zone.DNS:Edit" só desta zona.
+protocol=cloudflare
+zone=seudominio.com.br
+login=token
+password=COLE_AQUI_O_TOKEN_DA_API
+silsec.seudominio.com.br
+
+## Opção 2 — DuckDNS (gratuito, subdomínio xxx.duckdns.org)
+# protocol=duckdns
+# password=COLE_AQUI_O_TOKEN_DUCKDNS
+# meusilsec
+
+## Opção 3 — No-IP (gratuito com confirmação mensal)
+# protocol=noip
+# login=usuario
+# password=senha
+# meusilsec.ddns.net

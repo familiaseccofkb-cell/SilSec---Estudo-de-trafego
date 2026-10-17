@@ -1,0 +1,21 @@
+# /etc/wireguard/wg0.conf no SERVIDOR LOCAL.
+# Gere chaves:  wg genkey | tee privada | wg pubkey > publica
+# Serve para dois fins:
+#  - modo B: túnel até o VPS (relé), que alcança o SilSec em 10.66.0.2:8080;
+#  - administração remota (SSH) pelo celular/notebook com o app WireGuard.
+[Interface]
+Address = 10.66.0.2/24
+PrivateKey = CHAVE_PRIVADA_DO_SERVIDOR_LOCAL
+ListenPort = 51820
+
+# VPS do relé. O servidor local é quem inicia a conexão: funciona mesmo atrás de CGNAT.
+[Peer]
+PublicKey = CHAVE_PUBLICA_DO_VPS
+Endpoint = IP_PUBLICO_DO_VPS:51820
+AllowedIPs = 10.66.0.1/32
+PersistentKeepalive = 25
+
+# Notebook do administrador (opcional; acesso via VPS quando houver CGNAT).
+# [Peer]
+# PublicKey = CHAVE_PUBLICA_DO_NOTEBOOK
+# AllowedIPs = 10.66.0.10/32

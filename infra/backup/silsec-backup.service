@@ -1,0 +1,9 @@
+[Unit]
+Description=SilSec - backup externo criptografado
+After=network-online.target silsec.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/silsec/infra/backup/backup-externo.sh
+Nice=10
+IOSchedulingClass=idle

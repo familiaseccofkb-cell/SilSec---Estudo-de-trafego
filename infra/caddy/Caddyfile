@@ -1,0 +1,33 @@
+# Caddy no servidor local: HTTPS automático (Let's Encrypt) e repasse ao SilSec.
+# Copie para /etc/caddy/Caddyfile e troque o domínio.
+
+{
+	email seu-email@exemplo.com.br
+	# Sem painel administrativo exposto.
+	admin off
+}
+
+# Modo A — acesso pela internet via DDNS (precisa de IP público e portas 80/443 encaminhadas no roteador).
+silsec.seudominio.com.br {
+	encode zstd gzip
+	request_body {
+		max_size 4MB
+	}
+	reverse_proxy 127.0.0.1:8080
+	log {
+		output file /var/log/caddy/silsec.log {
+			roll_size 20MiB
+			roll_keep 10
+		}
+	}
+}
+
+# Rede local (Wi-Fi do escritório) sem depender da internet.
+# Certificado da autoridade interna do Caddy: instale a raiz uma vez em cada aparelho
+# (arquivo /var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt).
+# Cadastre "silsec.lan" no DNS do roteador apontando para o IP fixo do servidor.
+silsec.lan {
+	tls internal
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:8080
+}

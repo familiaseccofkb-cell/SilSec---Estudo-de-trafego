@@ -1,0 +1,27 @@
+# Caddy no VPS: HTTPS público e repasse pelo túnel WireGuard até o servidor local.
+{
+	email seu-email@exemplo.com.br
+	admin off
+}
+
+silsec.seudominio.com.br {
+	encode zstd gzip
+	request_body {
+		max_size 4MB
+	}
+	reverse_proxy 10.66.0.2:8080 {
+		# Servidor local fora do ar: resposta rápida em vez de espera longa.
+		transport http {
+			dial_timeout 5s
+		}
+	}
+	handle_errors 502 503 504 {
+		respond "Servidor local SilSec indisponível no momento. Os estudos abertos continuam salvos no seu aparelho; tente novamente mais tarde." 503
+	}
+	log {
+		output file /var/log/caddy/silsec.log {
+			roll_size 20MiB
+			roll_keep 5
+		}
+	}
+}

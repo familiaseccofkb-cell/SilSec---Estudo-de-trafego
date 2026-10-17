@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Atalho de administração: sudo silsec-cli criar-conta email@exemplo.com "Nome"
+set -euo pipefail
+set -a; source /etc/silsec/silsec.env; set +a
+cd /opt/silsec/servidor-local
+exec sudo -u silsec --preserve-env node --disable-warning=ExperimentalWarning src/cli.mjs "$@"

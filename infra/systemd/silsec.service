@@ -1,0 +1,35 @@
+[Unit]
+Description=SilSec - servidor local de estudos de tráfego
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=silsec
+Group=silsec
+EnvironmentFile=/etc/silsec/silsec.env
+WorkingDirectory=/opt/silsec/servidor-local
+ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning src/server.mjs
+Restart=on-failure
+RestartSec=5
+
+# Isolamento: o processo só escreve na pasta de dados.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+ReadWritePaths=/var/lib/silsec
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

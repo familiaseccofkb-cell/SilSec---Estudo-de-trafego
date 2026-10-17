@@ -1,0 +1,16 @@
+{
+  "name": "silsec-servidor-local",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Servidor local SilSec: hospeda o aplicativo (PWA) e armazena os estudos em SQLite. Os cálculos são feitos no navegador do computador ou celular.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/server.mjs",
+    "cli": "node --disable-warning=ExperimentalWarning src/cli.mjs",
+    "backup": "node --disable-warning=ExperimentalWarning src/cli.mjs backup",
+    "test": "node --disable-warning=ExperimentalWarning --test test/*.test.mjs"
+  }
+}

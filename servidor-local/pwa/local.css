@@ -1,0 +1,30 @@
+/* Estilos das páginas do servidor local e dos elementos acrescentados ao aplicativo. */
+.local-page{margin:0;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;background:#f4f6f7;color:#142c38;font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:24px 16px;box-sizing:border-box}
+.local-card{width:100%;max-width:420px;background:#fff;border:1px solid #d8dee2;border-radius:12px;padding:24px;box-sizing:border-box}
+.local-card.wide{max-width:880px}
+.local-card h1{font-size:1.35rem;margin:.5rem 0}
+.local-card h2{font-size:1.1rem;margin:1.5rem 0 .5rem}
+.local-card label{display:block;margin:.75rem 0;font-weight:600}
+.local-card input{display:block;width:100%;box-sizing:border-box;margin-top:.25rem;padding:.65rem .75rem;border:1px solid #9aa8b0;border-radius:8px;font:inherit}
+.local-card button{padding:.65rem 1rem;border:0;border-radius:8px;background:#142c38;color:#fff;font:inherit;font-weight:600;cursor:pointer;margin:.25rem .25rem .25rem 0}
+.local-card button.danger{background:#a4262c}
+.local-card button:disabled{opacity:.6;cursor:wait}
+.local-card table{width:100%;border-collapse:collapse;font-size:.9rem}
+.local-card th,.local-card td{text-align:left;padding:.4rem;border-bottom:1px solid #e3e8eb;vertical-align:top}
+.local-card .table-wrap{overflow-x:auto}
+.local-card code{font-size:1.05rem;letter-spacing:.05em;word-break:break-all}
+.local-muted{color:#53656f}
+.small{font-size:.85rem}
+#message{min-height:1.5em;font-weight:600}
+.local-account-link{position:fixed;right:12px;bottom:12px;z-index:50;background:#142c38;color:#fff;padding:.4rem .8rem;border-radius:999px;font:600 .85rem system-ui,sans-serif;text-decoration:none;opacity:.85}
+.local-account-link:hover,.local-account-link:focus{opacity:1}
+.local-offline{position:fixed;left:0;right:0;top:0;z-index:60;background:#8a5a00;color:#fff;padding:.5rem 1rem;font:600 .9rem system-ui,sans-serif;text-align:center}
+@media print{.local-account-link,.local-offline{display:none!important}}
+@media (prefers-color-scheme:dark){
+ .local-page{background:#0f1a20;color:#e6edf1}
+ .local-card{background:#16242c;border-color:#2b3d47}
+ .local-card input{background:#0f1a20;color:#e6edf1;border-color:#4a5d68}
+ .local-muted{color:#a9b8c1}
+ .local-card th,.local-card td{border-color:#2b3d47}
+ .local-card button{background:#3b7ea1}
+}

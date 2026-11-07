@@ -1,0 +1,25 @@
+{
+  "id": "/sistema",
+  "name": "SilSec Engenharia · Estudo de tráfego de elevadores",
+  "short_name": "SilSec",
+  "description": "Estudo de tráfego de elevadores pela NBR 5665 e ISO 8100-32, vistorias e relatórios.",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": "/sistema?origem=app",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "any",
+  "background_color": "#142c38",
+  "theme_color": "#142c38",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    {"src": "/icones/icone-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "/icones/icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "/icones/icone-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ],
+  "shortcuts": [
+    {"name": "Estudos", "url": "/sistema", "icons": [{"src": "/icones/icone-192.png", "sizes": "192x192"}]},
+    {"name": "Vistorias", "url": "/vistorias", "icons": [{"src": "/icones/icone-192.png", "sizes": "192x192"}]}
+  ]
+}

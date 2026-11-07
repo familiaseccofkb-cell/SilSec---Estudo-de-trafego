@@ -1,0 +1,65 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>SilSec — Descritivo</title><style>body{max-width:960px;margin:40px auto;padding:24px;font:16px/1.6 system-ui}pre{white-space:pre-wrap;font:inherit}</style><pre># SilSec — Descritivo funcional e técnico
+
+Data: 17/10/2026. Código-base: commit 3cef23437e9653b8dc7e02d122d6df69185d2ca8, repositório atual do sistema hospedado (versão salva indicada pelo serviço: 41).
+
+## Objetivo
+Sistema para consultores e empresas elaborarem estudos de tráfego em elevadores, organizarem informações de edificações e compararem alternativas técnicas e propostas de fornecedores. A proposta de evolução é acrescentar relatórios de campo e operação local no Android e no Windows, com armazenamento do próprio usuário.
+
+## Recursos presentes no código exportado
+- Módulo Básico: formulário de estudo NBR, população declarada, até 20 grupos, cálculos e relatório.
+- Módulo Avançado: composição populacional, pavimentos, grupos e unidades individuais, atendimento por elevador e parâmetros de movimento e portas.
+- Motores independentes NBR e ISO conforme as referências e premissas implementadas; comparação entre informações normativas e do fabricante, com indicação de pendências.
+- Gráficos de viagem, estimativas de performance, partidas e energia; cadastro dimensional, área de cabina e referências de caixa, portas, poço e última altura.
+- Escadas e esteiras rolantes: configuração, continuidade de atendimento e capacidade adotada.
+- Cadastros de clientes, projetos, empresa e identidade visual SilSec, relatórios HTML imprimíveis e apresentação PowerPoint no módulo Avançado.
+- Propostas, catálogo de fornecedores, documentos, avaliação comparativa e controles de acesso no servidor.
+- Licenciamento e solicitações demonstrativas; cobrança real não integrada.
+- Integração de análise contratual por API prevista no servidor: exige chave e modelo configurados e revisão humana.
+
+## Arquitetura atual
+Frontend HTML/CSS/JavaScript em public/, com aplicação React e estrutura Vinext/Vite. APIs e regras de servidor em server/. Persistência D1 e arquivos R2; esquema e migrações em db/ e drizzle/. Núcleos de cálculo modulares em public/. Testes automatizados em tests/. Node.js &gt;=22.13 e pnpm definidos no package.json; versões fixadas no pnpm-lock.yaml.
+
+A aplicação atual depende de identidade e serviços da hospedagem para projetos, documentos e autorização. Não é um APK Android nem um instalador Windows. Abrir public/index.html diretamente não reproduz o sistema completo. O ZIP contém código-fonte, não dados reais do banco ou anexos dos usuários, nem chaves de integração.
+
+## Como desenvolver e executar
+1. Instalar Node.js compatível e a versão de pnpm informada em package.json.
+2. Extrair codigo-fonte/ e instalar as dependências com pnpm install --frozen-lockfile.
+3. Consultar README.md, scripts/ e vite.config.ts; configurar ambiente de desenvolvimento, identidade e bindings DB/BUCKET. Fora da hospedagem original, estes adaptadores precisam ser configurados ou substituídos.
+4. Rodar pnpm test para os testes; pnpm dev para desenvolvimento e pnpm build para compilação no ambiente configurado.
+5. Aplicar as migrações em banco de teste antes da homologação. Não usar o identificador da hospedagem original para criar outra instalação por engano.
+
+As instruções originais e o histórico estão preservados. Há trechos antigos no README e na descrição histórica que citam pendências já alteradas; para comportamento efetivo, verificar o código e os testes atuais. Esta exportação não modifica o sistema publicado.
+
+## Evolução proposta: edição local Android e computador
+Ainda a implementar e homologar:
+- Camada de persistência local com banco e diretório de anexos, reutilizando os núcleos de cálculo existentes.
+- Projetos, fotos, comentários, documentos e PDF disponíveis sem internet; edição compatível no computador.
+- Backup completo em arquivo versionado contendo manifest.json, dados estruturados e todos os anexos, com hashes de integridade e identificação da versão do esquema.
+- Exportação e restauração por seleção de arquivo; usuário pode guardar cópias no Drive, OneDrive ou outro serviço. Backup manual não implica sincronização automática nem edição simultânea.
+- Restauração transacional: conferir arquivo inteiro antes de substituir dados, oferecer cópia prévia e tratar colisões e versões incompatíveis.
+- Indicador de espaço usado no dispositivo e data do último backup; alertas de espaço insuficiente e falha de gravação.
+- Testar estudos com 200 anexos, arquivos grandes, backup interrompido, troca de dispositivo e recuperação no Android e Windows.
+- Integração de anúncios e licença anual sem anúncios, restauração de compras e validação de assinatura. Não existem integrações ativas de AdMob ou Play Billing nesta exportação.
+- Serviços de equipe, propostas compartilhadas e IA continuarão exigindo internet; definir claramente quais funções pertencem à edição local.
+
+## Modelo comercial proposto, ainda não ativado
+Gratuito com anúncios e até cinco novos relatórios por mês; Profissional com relatórios ilimitados, personalização e remoção de anúncios. Valores discutidos como hipótese de lançamento: Profissional R$99,90/ano, primeiro ano promocional R$79,90, módulo técnico de tráfego R$249,90/ano. Não são preços validados nem uma alteração dos valores demonstrativos do código atual. Manutenção e atualizações incluídas no período anual; IA com franquia própria. Não cobrar por estudo ou armazenamento no serviço do desenvolvedor quando os arquivos forem mantidos pelo usuário.
+
+Na versão gratuita, anúncios devem ficar fora dos documentos finais e não impedir salvamento ou trabalho sem internet. Definir política de expiração que preserve leitura, exportação e recuperação dos arquivos do cliente. Publicação em loja, faturamento e anúncios exigem contas e configuração próprias.
+
+## Prioridades de implantação
+1. Separar a camada local das APIs e preservar os motores de cálculo.
+2. Implementar anexos e backup completo; validar ida e volta entre Android e Windows.
+3. Pilotar com profissionais, observar conclusão de relatórios, restauração e suporte.
+4. Integrar assinatura e anúncios em ambiente de teste, homologar e distribuir.
+5. Evoluir sincronização e equipes após validação da demanda.
+
+## Conteúdo do pacote
+codigo-fonte/: arquivos versionados do repositório, incluindo testes, ativos, configurações e licenças de terceiros. Sem .git, node_modules, bancos reais ou segredos de execução.
+DESCRITIVO_SILSEC.md e DESCRITIVO_SILSEC.html: este documento em formatos editável e legível no navegador.
+MANIFESTO.json: origem e hashes dos arquivos exportados.
+VALIDACAO.txt: saída da execução de testes nesta exportação; não representa conferência visual nem certificação normativa.
+
+## Verificação desta exportação
+470 testes passaram. A suíte de apresentações não foi executada por ausência da dependência pptxgenjs no ambiente. Não houve compilação completa nem conferência visual nesta entrega. O registro integral está em VALIDACAO.txt.
+</pre></html>

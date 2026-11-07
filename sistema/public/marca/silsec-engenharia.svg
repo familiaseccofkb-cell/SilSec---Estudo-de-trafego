@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 200" role="img" aria-label="SilSec Engenharia">
+  <rect width="480" height="200" rx="18" fill="#ffffff"/>
+  <g transform="translate(34 46)">
+    <rect x="0" y="0" width="22" height="108" rx="4" fill="#142c38"/>
+    <rect x="30" y="0" width="22" height="108" rx="4" fill="#087e79"/>
+    <rect x="4" y="58" width="44" height="8" rx="2" fill="#ffffff"/>
+  </g>
+  <text x="112" y="104" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="62" font-weight="750" fill="#142c38" letter-spacing="-1">SilSec</text>
+  <text x="114" y="146" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="25" font-weight="650" fill="#087e79" letter-spacing="7.5">ENGENHARIA</text>
+</svg>

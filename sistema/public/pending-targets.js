@@ -1,0 +1,17 @@
+import {WALKWAY_FIELDS} from './transport-config.js';
+import {SITE_FIELDS} from './dimensions.js';
+const normalize=s=>String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+export function resolvePending(s,section,message){
+ const text=normalize(message),title=section.title,groupMatch=title.match(/Grupo (\d+)/i)||message.match(/Grupo (\d+)/i),group=section.groupIndex??(groupMatch?Number(groupMatch[1])-1:Math.max(0,s.groups.findIndex(g=>title.startsWith(g.label)))),base={view:section.view,parameterTab:'traffic',group};
+ const keys=[['entrada e saida de passageiros','transferPerStop'],['antecipacao','preOpening'],['lotacao','capacity'],['quantidade de elevadores','count'],['paradas','stops'],['percurso','travel'],['velocidade','speed'],['abertura livre','width'],['tipo de porta','door'],['aceleracao','acceleration'],['jerk','jerk'],['abertura da porta','open'],['fechamento','close'],['transferencia','passenger'],['adicional de partida','start'],['pph','startsLimit'],['fc da cabina','iso.occupancy']];
+ if(title==='Cadastro do estudo')return {...base,view:'study',path:'name'};
+ if(title==='Geometria e atendimento'){const mark=message.split('andar ').at(-1),index=s.floorTable.rows.findIndex(r=>r.mark===mark);return {...base,id:'building-height-'+index};}
+ if(title==='Cálculo populacional'){let row=Number(message.match(/Composição (\d+)/i)?.[1]||0)-1;if(row<0)row=s.populationCalc.rows.findIndex(r=>message.startsWith(r.label));if(row<0)row=0;const key=/participa|participacao|destinacao|incompativel/.test(text)?'participation':/declarada.*inteiro/.test(text)?'declaredPopulation':/confirme|confirmacao/.test(text)?'conditionsConfirmed':/distancia|percurso/.test(text)?s.populationCalc.rows[row]?.schoolDiscountPercent>0?'schoolDistance':'distance':/observ|descreva|justific/.test(text)?'notes':/desconto/.test(text)?'discount':/repet/.test(text)?'repeat':'amount';return {...base,view:'population',row,path:`populationCalc.rows.${row}.${key}`};}
+ if(title==='Dimensões e condição de fornecimento'){if(text.includes('condicao de fornecimento'))return {...base,path:'supplyCondition.type'};const key=SITE_FIELDS.find(([,label])=>text.includes(normalize(label)))?.[0]||(text.includes('tipo de porta')?'doorType':'doorCount');return {...base,parameterTab:'dimensions',path:`groups.${group}.siteDimensions.${key}`};}
+ if(title==='Consumo de energia')return {...base,view:'performance',analysisTab:'energy',path:text.includes('dias')?'energy.daysPerYear':'energy.dailyStarts'};
+ if(title==='Perfis e horários'){if(/expediente|almoco.*hor|hor.*almoco|horario|cinco minutos/.test(text))return {...base,path:'operation.schedule.'+(text.includes('almoco')?'lunchStart':text.includes('fim')?'end':'start')};return {...base,view:'performance',analysisTab:'operation',path:'operation.'+(text.includes('permanencia')?'dwell':text.includes('fretado')?'charter':text.includes('almoco')?'lunch':text.includes('contag')?'measurements.0.entry':'profile')};}
+ if(title==='Equipamentos previstos')return {...base,id:'transport-rolling'};
+ if(title==='Esteiras rolantes')return {...base,parameterTab:'escalators',id:'add-walkway'};
+ if(title.startsWith('Esteira ')){const i=Number(title.match(/\d+/)[0])-1,key=['label','length','speed','width','count','capacity','document'].find(k=>text.includes(normalize(WALKWAY_FIELDS[k])))||'label';return {...base,parameterTab:'escalators',id:`walkway-${i}-${key}`};}
+ const key=keys.find(([label])=>text.includes(label))?.[1]||'capacity';return {...base,path:`groups.${group}.${key}`};
+}

@@ -1,0 +1,107 @@
+{
+  "source": "Valores de fórmula salvos em Estudo_de_Trafego_Revisado_v3.xlsx e ESTUDO DE TRAFEGO.xlsx; PDFs fornecidos pelo usuário.",
+  "v3": {
+    "groups": [
+      {
+        "stops": 5.69,
+        "manufacturer": {
+          "acceleration": 3.8333333333333335,
+          "door": 3.9,
+          "passenger": 2.4,
+          "t1": 60.0,
+          "t2": 10.905833333333334,
+          "t3": 22.191000000000003,
+          "t4": 14.399999999999999,
+          "total": 111.15593333333334,
+          "capacityPerCar": 16.193467555188235,
+          "capacity": 16.193467555188235
+        },
+        "normative": {
+          "acceleration": 3.0,
+          "door": 5.5,
+          "passenger": 2.4,
+          "t1": 60.0,
+          "t2": 8.535,
+          "t3": 31.295,
+          "t4": 14.399999999999999,
+          "total": 118.7995,
+          "capacityPerCar": 15.151578920786704,
+          "capacity": 15.151578920786704
+        }
+      },
+      {
+        "stops": 6.7,
+        "manufacturer": {
+          "acceleration": 4.458333333333334,
+          "door": 3.9,
+          "passenger": 2.4,
+          "t1": 48.0,
+          "t2": 14.935416666666669,
+          "t3": 26.13,
+          "t4": 19.2,
+          "total": 112.79841666666667,
+          "capacityPerCar": 21.276894400852257,
+          "capacity": 42.55378880170451
+        },
+        "normative": {
+          "acceleration": 3.0,
+          "door": 5.5,
+          "passenger": 2.4,
+          "t1": 48.0,
+          "t2": 10.05,
+          "t3": 36.85,
+          "t4": 19.2,
+          "total": 119.705,
+          "capacityPerCar": 20.049287832588448,
+          "capacity": 40.098575665176895
+        }
+      }
+    ],
+    "system": {
+      "F54": 58.74725635689275,
+      "F55": 55.2501545859636,
+      "F56": 47.519999999999996,
+      "F57": 37.416974074074076,
+      "F58": 39.80105555555556,
+      "F59": 50.0
+    }
+  },
+  "original": {
+    "capacity": 55.24881554397497,
+    "interval": 39.80222222222223
+  },
+  "annexB": [
+    {
+      "population": 1400,
+      "group": {
+        "count": 5,
+        "capacity": 20,
+        "stops": 15,
+        "travel": 45,
+        "speed": 3.5,
+        "door": "central",
+        "width": 1100
+      },
+      "stops": 11.82,
+      "total": 155.86,
+      "capacity": 192.48,
+      "interval": 31.17
+    },
+    {
+      "population": 1200,
+      "group": {
+        "count": 5,
+        "capacity": 20,
+        "stops": 13,
+        "travel": 82.8,
+        "speed": 4,
+        "door": "central",
+        "width": 1100
+      },
+      "stops": 10.89,
+      "total": 164.78,
+      "capacity": 182.06,
+      "interval": 32.95
+    }
+  ]
+}

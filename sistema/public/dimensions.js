@@ -49,6 +49,12 @@ export function setCarSiteDimension(study,i,j,key,value){
  const s=copy(study),g=s.groups[i];
  if(!g)throw Error('Grupo não encontrado.');
  if(!SITE_FIELDS.some(([k])=>k===key)&&!['doorType','doorCount'].includes(key))throw Error('Campo dimensional inválido.');
+ if(value!==null&&value!==undefined&&value!==''){
+  if(key==='doorType'){if(!DOOR_TYPES[value])throw Error('Tipo de porta existente inválido.');}
+  else if(key==='doorCount'){if(!Number.isInteger(value)||value<1||value>4)throw Error('Informar de 1 a 4 portas da cabina.');}
+  else if(key==='doorWidth'){if(!Number.isFinite(value)||value<300||value>4000)throw Error('A abertura em mm deve estar entre 300 e 4000.');}
+  else if(!Number.isFinite(value)||value<0||value>50000)throw Error('A medida em mm deve estar entre 0 e 50000.');
+ }
  const cars=fleetCars(s,g);
  if(!cars[j])throw Error('Elevador não encontrado.');
  g.dimensionCars=g.dimensionCars||[];
@@ -82,7 +88,7 @@ function carDimensionTable(g,i,study){
   const attrs=r.k==='doorCount'?'min="1" max="4" step="1"':'min="0" max="50000"';
   return `<input type="number" ${attrs} data-dim-group="${i}" data-dim-car="${j}" data-dim-key="${r.k}" aria-label="${escapeText(label)}" value="${escapeText(vals[r.k]??'')}">`;
  };
- return `<div class="table-wrap"><table class="car-dimension-table"><thead><tr><th scope="col">Parâmetro</th>${cars.map((c,j)=>`<th scope="col">Elevador ${j+1}<div class="buttons"><button class="btn" data-action="dim-copy-car" data-group="${i}" data-car="${j}">Copiar coluna para os demais</button></div></th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr><th scope="row">${escapeText(r.l)}</th>${cars.map((c,j)=>`<td>${cell(r,j,carSiteDimensionValues(g,j))}</td>`).join('')}</tr>`).join('')}</tbody></table></div><p class="timing-source">Cada coluna é um elevador. Enquanto um campo não for preenchido para um elevador, ele usa o valor do grupo; use “Copiar coluna para os demais” para espelhar um elevador nos outros.</p>`;
+ return `<div class="table-wrap"><table class="car-dimension-table"><thead><tr><th scope="col">Parâmetro</th>${cars.map((c,j)=>`<th scope="col">Elevador ${j+1}<div class="buttons"><button class="btn" data-action="dim-copy-car" data-group="${i}" data-car="${j}">Copiar coluna para os demais</button></div></th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr><th scope="row">${escapeText(r.l)}</th>${cars.map((c,j)=>`<td>${cell(r,j,carSiteDimensionValues(g,j,study))}</td>`).join('')}</tr>`).join('')}</tbody></table></div><p class="timing-source">Cada coluna é um elevador. Enquanto um campo não for preenchido para um elevador, ele usa o valor do grupo; use “Copiar coluna para os demais” para espelhar um elevador nos outros.</p>`;
 }
 export function siteDimensionsForm(study,h){
  const existing=['retrofit','existing'].includes(study.supplyCondition?.type);

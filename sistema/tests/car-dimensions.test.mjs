@@ -110,3 +110,14 @@ test('melhoria: reduzir a quantidade de elevadores descarta as medidas das unida
   s=resizeFleet(s,0,3);
   assert.equal(s.groups[0].dimensionCars?.[2]?.siteDimensions?.cabinHeight,undefined);
 });
+
+test('tela: medida fora da faixa é recusada na digitação',()=>{
+  const s=fleet3();
+  assert.throws(()=>setCarSiteDimension(s,0,1,'shaftWidth',-50),/entre 0 e 50000/);
+  assert.throws(()=>setCarSiteDimension(s,0,1,'doorWidth',200),/entre 300 e 4000/);
+  assert.throws(()=>setCarSiteDimension(s,0,1,'doorCount',9),/1 a 4/);
+  const ok=setCarSiteDimension(s,0,1,'shaftWidth',2000);
+  assert.equal(carSiteDimensionValues(ok.groups[0],1).shaftWidth,2000);
+  const apagado=setCarSiteDimension(ok,0,1,'shaftWidth',null);
+  assert.equal(apagado.groups[0].dimensionCars[1].siteDimensions.shaftWidth,null);
+});

@@ -1,0 +1,23 @@
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#142c38">
+  <meta name="description" content="Protótipo privado para estudo de tráfego em elevadores. Cálculos, cenários e premissas em uma interface simples.">
+  <title>Teste completo SilSec</title>
+  <script type="importmap">{"imports":{"node:crypto":"./shims/node-crypto.js"}}</script>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+  #offline-bar{position:fixed;left:0;right:0;bottom:0;z-index:60;background:#fff4d6;color:#4a3a00;font:600 13px/1.4 system-ui,sans-serif;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px));border-top:1px solid #e8d48a;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
+  #offline-bar label{display:flex;gap:6px;align-items:center;font-weight:600}#offline-bar select,#offline-bar button{font:600 13px system-ui,sans-serif;padding:5px 9px;border:1px solid #c9b35a;border-radius:6px;background:#fff;color:#4a3a00;cursor:pointer}
+  #offline-vistorias-panel{position:fixed;inset:0;z-index:70;background:rgba(20,44,56,.55);display:flex;flex-direction:column;padding:16px}
+  #offline-vistorias-panel[hidden]{display:none}
+  #offline-vistorias-panel .ov-head{background:#142c38;color:#fff;border-radius:12px 12px 0 0;padding:10px 16px;display:flex;gap:14px;align-items:center;font:600 14px system-ui,sans-serif}
+  #offline-vistorias-panel .ov-note{font-weight:400;color:#c9d6d8;flex:1}#offline-vistorias-panel .ov-close{font:600 13px system-ui,sans-serif;padding:6px 12px;border:1px solid #c9d6d8;border-radius:6px;background:transparent;color:#fff;cursor:pointer}
+  #offline-vistorias-panel iframe{flex:1;border:0;background:#fff;border-radius:0 0 12px 12px;width:100%}
+  </style>
+<div id="offline-bar" role="note"><span id="offline-status">Iniciando o servidor de teste neste navegador…</span></div>
+  <a class="skip" href="#main">Ir para o conteúdo</a>
+  <div id="app"></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <input type="file" id="import-file" accept=".json,application/json" hidden>
+  <script src="offline-boot.js"></script>
+  <script type="module" src="app.js"></script>
+  <noscript>Ative o JavaScript para usar o estudo de tráfego. Os cálculos são apresentados no navegador e os projetos são armazenados por conta.</noscript>

@@ -2,7 +2,7 @@
 import {randomBytes, createHash, createHmac, randomUUID, timingSafeEqual} from 'node:crypto';
 import {BRAND} from '../../public/brand.js';
 import {resolveLicenses, addCalendarMonths} from '../../public/licensing.js';
-import {homePage, consolePage, notice, esc, fmtDate, fmtDateTime, brl, perMonth} from '../site/pages.mjs';
+import {homePage, servicesPage, modulesPage, quotePage, consolePage, notice, esc, fmtDate, fmtDateTime, brl, perMonth} from '../site/pages.mjs';
 import {APP_HOME} from './auth.mjs';
 
 const now = () => new Date().toISOString();
@@ -75,17 +75,22 @@ export function createCommerce({db, config, mailer, auth, log = console, fetcher
   // ---------- Contato ----------
   async function contact(request) {
     const f = await form(request);
-    if (!auth.sameOrigin(request)) return redirect('/?contato=erro#contato');
-    if (f.get('site')) return redirect('/?contato=enviado#contato'); // robô preencheu o campo oculto
-    if (!contactLimiter(ipOf(request))) return redirect('/?contato=limite#contato');
+    const back = f.get('origem') === 'orcamento' ? flag => '/orcamento?contato=' + flag : flag => '/?contato=' + flag + '#contato';
+    if (!auth.sameOrigin(request)) return redirect(back('erro'));
+    if (f.get('site')) return redirect(back('enviado')); // robô preencheu o campo oculto
+    if (!contactLimiter(ipOf(request))) return redirect(back('limite'));
     const name = String(f.get('nome') || '').trim().slice(0, 200), email = String(f.get('email') || '').trim().toLowerCase();
     const phone = String(f.get('telefone') || '').trim().slice(0, 40), company = String(f.get('empresa') || '').trim().slice(0, 200);
-    const subject = String(f.get('assunto') || '').trim().slice(0, 80), message = String(f.get('mensagem') || '').trim().slice(0, 5000);
-    if (!name || !validEmail(email) || message.length < 3) return redirect('/?contato=invalido#contato');
+    const services = f.getAll('servicos').map(v => String(v).trim().slice(0, 80)).filter(Boolean).slice(0, 8);
+    const profile = String(f.get('perfil') || '').trim().slice(0, 80), floors = String(f.get('pavimentos') || '').trim().slice(0, 6), cars = String(f.get('elevadores') || '').trim().slice(0, 6);
+    const subject = (services.length ? 'Orçamento · ' + services.join(', ') : String(f.get('assunto') || '').trim()).slice(0, 80);
+    const context = [profile && 'Perfil: ' + profile, floors && 'Pavimentos: ' + floors, cars && 'Elevadores: ' + cars].filter(Boolean).join(' · ');
+    const message = ((context ? context + '\n\n' : '') + String(f.get('mensagem') || '').trim()).slice(0, 5000);
+    if (!name || !validEmail(email) || String(f.get('mensagem') || '').trim().length < 3) return redirect(back('invalido'));
     await q('INSERT INTO contact_messages (id,name,email,phone,company,subject,message,ip,created_at) VALUES (?,?,?,?,?,?,?,?,?)', randomUUID(), name, email, phone, company, subject, message, ipOf(request).slice(0, 64), now()).run();
     await mailer.send({to: BRAND.email, replyTo: email, subject: `Contato pelo site · ${subject || 'mensagem'} · ${name}`,
       text: `Nome: ${name}\nE-mail: ${email}\nTelefone: ${phone || '—'}\nEmpresa/edifício: ${company || '—'}\nAssunto: ${subject || '—'}\n\n${message}`});
-    return redirect('/?contato=enviado#contato');
+    return redirect(back('enviado'));
   }
 
   // ---------- Ativação da chave ----------
@@ -402,12 +407,12 @@ ${history}`;
   // ---------- Roteamento ----------
   async function handle(request) {
     const url = new URL(request.url), path = url.pathname, method = request.method;
-    const site = ['/', '/ativar', '/experimentar', '/contato', '/assinatura', '/assinatura/pagar', '/assinatura/retorno', '/webhooks/mercadopago', '/painel', '/robots.txt', '/sitemap.xml'];
+    const site = ['/', '/servicos', '/modulos', '/orcamento', '/ativar', '/experimentar', '/contato', '/assinatura', '/assinatura/pagar', '/assinatura/retorno', '/webhooks/mercadopago', '/painel', '/robots.txt', '/sitemap.xml'];
     if (!site.includes(path) && !path.startsWith('/painel/')) return null;
 
     if (path === '/webhooks/mercadopago') return method === 'POST' ? webhook(request) : new Response('ok');
-    if (path === '/robots.txt') return new Response(`User-agent: *\nAllow: /$\nDisallow: /sistema\nDisallow: /api/\nDisallow: /painel\nDisallow: /assinatura\nSitemap: ${auth.baseUrl(request)}/sitemap.xml\n`, {headers: {'Content-Type': 'text/plain; charset=utf-8'}});
-    if (path === '/sitemap.xml') return new Response(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${esc(auth.baseUrl(request))}/</loc></url><url><loc>${esc(auth.baseUrl(request))}/experimentar</loc></url></urlset>`, {headers: {'Content-Type': 'application/xml; charset=utf-8'}});
+    if (path === '/robots.txt') return new Response(`User-agent: *\nAllow: /$\nAllow: /servicos\nAllow: /modulos\nAllow: /orcamento\nDisallow: /sistema\nDisallow: /api/\nDisallow: /painel\nDisallow: /assinatura\nSitemap: ${auth.baseUrl(request)}/sitemap.xml\n`, {headers: {'Content-Type': 'text/plain; charset=utf-8'}});
+    if (path === '/sitemap.xml') return new Response(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${esc(auth.baseUrl(request))}/</loc></url><url><loc>${esc(auth.baseUrl(request))}/servicos</loc></url><url><loc>${esc(auth.baseUrl(request))}/modulos</loc></url><url><loc>${esc(auth.baseUrl(request))}/orcamento</loc></url><url><loc>${esc(auth.baseUrl(request))}/experimentar</loc></url></urlset>`, {headers: {'Content-Type': 'application/xml; charset=utf-8'}});
 
     const session = await auth.sessionUser(request);
     if (path === '/' && config.desktop) return redirect(APP_HOME, 302);
@@ -418,7 +423,14 @@ ${history}`;
       const message = {enviado: {kind: 'ok', text: 'Mensagem enviada. Obrigado pelo contato!'}, invalido: {kind: 'error', text: 'Preencha nome, e-mail e mensagem.'}, limite: {kind: 'error', text: 'Muitas mensagens seguidas. Tente novamente em alguns minutos ou chame no WhatsApp.'}, erro: {kind: 'error', text: 'Não foi possível enviar. Tente pelo WhatsApp ou e-mail.'}}[flag];
       return html(homePage({plans, session, message}), 200, {'X-Robots-Tag': 'index, follow', 'Cache-Control': session || message ? 'no-store' : 'public, max-age=300'});
     }
-    if (path === '/contato') return method === 'POST' ? contact(request) : redirect('/#contato');
+    if (path === '/servicos') return html(servicesPage({session}), 200, {'X-Robots-Tag': 'index, follow', 'Cache-Control': session ? 'no-store' : 'public, max-age=300'});
+    if (path === '/modulos') return html(modulesPage({plans, session}), 200, {'X-Robots-Tag': 'index, follow', 'Cache-Control': session ? 'no-store' : 'public, max-age=300'});
+    if (path === '/orcamento') {
+      const flag = url.searchParams.get('contato');
+      const message = {enviado: {kind: 'ok', text: 'Solicitação enviada. Retornamos em até dois dias úteis com escopo, prazo e valor.'}, invalido: {kind: 'error', text: 'Preencha nome, e-mail e a descrição do caso.'}, limite: {kind: 'error', text: 'Muitas mensagens seguidas. Tente novamente em alguns minutos.'}, erro: {kind: 'error', text: 'Não foi possível enviar. Tente novamente.'}}[flag] || null;
+      return html(quotePage({session, message, preset: url.searchParams.get('assunto') || ''}), 200, {'X-Robots-Tag': 'index, follow', 'Cache-Control': 'no-store'});
+    }
+    if (path === '/contato') return method === 'POST' ? contact(request) : redirect('/orcamento');
     if (path === '/ativar') return activate(request, session);
     if (path === '/experimentar') return startTrial(request, session);
 

@@ -81,7 +81,7 @@ test('plataforma: cadastro, criação de senha pelo link, sessão e API autentic
   const t = await boot();
   try {
     let r = await t.req('/');
-    assert.equal(r.status, 200); assert.match(r.text, /Estudo de tráfego de elevadores em minutos/);
+    assert.equal(r.status, 200); assert.match(r.text, /Decisões sobre elevadores com base em engenharia/);
     r = await t.req('/sistema');
     assert.equal(r.status, 303); assert.equal(r.location, '/entrar?volta=%2Fsistema');
     r = await t.req('/entrar'); assert.equal(r.status, 200); assert.match(r.text, /<h1>Entrar<\/h1>/); assert.match(r.text, /\(11\) 98313-0055/); assert.match(r.text, /contato@silsec-engenharia\.com\.br/);

@@ -15,23 +15,24 @@ ${canonical ? `<link rel="canonical" href="${esc(canonical)}">` : ''}
 <link rel="icon" href="/favicon.svg"><link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="SilSec"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><script src="/pwa.js" defer></script>${FONTS}<link rel="stylesheet" href="/site.css"></head>`;
 }
 
-function header({session, minimal = false}) {
-  const area = session ? `<a class="button small teal" href="/sistema">Abrir o programa</a>` : `<a href="/entrar?volta=%2Fsistema">Entrar</a><a class="button small teal" href="/experimentar">Testar grátis</a>`;
+function header({session, minimal = false, active = ''}) {
+  const area = session ? `<a class="button small ghost" href="/sistema">Acessar o sistema</a>` : `<a class="button small ghost" href="/entrar?volta=%2Fsistema">Acessar o sistema</a>`;
+  const link = (href, label, key) => `<a href="${href}"${active === key ? ' aria-current="page"' : ''}>${label}</a>`;
   return `<a class="skip" href="#conteudo">Ir para o conteúdo</a><header class="site-head"><div class="wrap">
 <a class="logo" href="/" aria-label="${esc(BRAND.name)} · início"><img src="${BRAND.logo}" alt="${esc(BRAND.name)}" width="480" height="200"></a>
 ${minimal ? `<nav class="site-nav" aria-label="Principal">${session ? '<a href="/vistorias">Vistorias</a><a href="/assinatura">Assinatura</a><a href="/sair">Sair</a>' : ''}${area}</nav>` :
 `<button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu">Menu</button>
-<nav class="site-nav" id="menu" aria-label="Principal"><a href="/#plataforma">Plataforma</a>${BRAND.videos.length ? '<a href="/#videos">Vídeos</a>' : ''}<a href="/#planos">Planos</a><a href="/#estudantes">Estudantes</a><a href="/#contato">Contato</a>${area}</nav>`}
+<nav class="site-nav" id="menu" aria-label="Principal">${link('/servicos', 'Serviços', 'servicos')}${link('/modulos', 'Módulos de software', 'modulos')}${link('/#sobre', 'Sobre', 'sobre')}${link('/orcamento', 'Contato', 'orcamento')}${area}<a class="button small teal" href="/orcamento">Solicite um orçamento</a></nav>`}
 </div></header>`;
 }
 
 function footer() {
   return `<footer class="site-foot"><div class="wrap">
-<div><strong>${esc(BRAND.name)}</strong>Plataforma on-line de estudos de tráfego de elevadores.</div>
-<div><a href="${BRAND.phoneHref}">${esc(BRAND.phone)}</a><br><a href="mailto:${esc(BRAND.email)}">${esc(BRAND.email)}</a></div>
-<div><a href="/experimentar">Testar 30 dias grátis</a><br><a href="/entrar?volta=%2Fsistema">Entrar</a><br><a href="/ativar">Ativar chave de acesso</a></div>
-<div>© ${new Date().getFullYear()} ${esc(BRAND.name)}</div>
-${BRAND.credit ? `<p class="credit">${esc(BRAND.credit)}</p>` : ''}
+<div><strong>${esc(BRAND.name)}</strong>Consultoria, vistorias, projetos e software para transporte vertical.</div>
+<div><small>Serviços</small><a href="/servicos#consultoria">Consultoria estratégica</a><br><a href="/servicos#vistorias">Vistorias e laudos</a><br><a href="/servicos#projetos">Projetos e adequações</a></div>
+<div><small>Módulos de software</small><a href="/modulos">Sistema de estudo de tráfego</a><br><a href="/entrar?volta=%2Fsistema">Acessar o sistema</a><br><a href="/ativar">Ativar chave de acesso</a></div>
+<div><small>Contato</small><a href="${BRAND.phoneHref}">${esc(BRAND.phone)}</a><br><a href="mailto:${esc(BRAND.email)}">${esc(BRAND.email)}</a><br>São Paulo · SP</div>
+<div class="foot-base">© ${new Date().getFullYear()} ${esc(BRAND.name)}${BRAND.credit ? ` · ${esc(BRAND.credit)}` : ''}</div>
 </div></footer>`;
 }
 
@@ -65,88 +66,154 @@ ${rest.length ? `<ul class="video-list">${rest.map(v => `<li><a href="https://ww
 </div></section>`;
 }
 
+const CTA = (label = 'Solicite um orçamento', cls = 'button teal') => `<a class="${cls}" href="/orcamento">${label}</a>`;
+const icon = {
+  consult: '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>',
+  survey: '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>',
+  project: '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>',
+  traffic: '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h16v16H4zM4 9h16M9 9v11"/></svg>',
+};
+function ctaBand(title, text, label = 'Solicite um orçamento') {
+  return `<section class="cta-band"><div class="wrap"><div><h2>${title}</h2><p>${text}</p></div>${CTA(label, 'button amber')}</div></section>`;
+}
+const planList = plans => Array.isArray(plans) ? plans : Object.values(plans || {});
+function moduleCards(plans, {prices = false} = {}) {
+  const list = planList(plans), basic = list.find(p => p.id === 'basic'), full = list.find(p => p.id === 'advanced');
+  const price = p => prices ? `<div class="price"><strong>${brl(p.annualCents)}</strong><span>por ano</span></div>` : '';
+  return `<div class="modules">
+<article class="module"><span class="kicker">Módulo</span><h3>Sistema de estudo de tráfego Básico</h3><p>${esc(basic.summary)}</p>${price(basic)}<a class="button ghost" href="/modulos#comparar">Detalhes do módulo</a></article>
+<article class="module featured"><span class="kicker">Módulo · mais completo</span><h3>Sistema de estudo de tráfego Completo</h3><p>${esc(full.summary)}</p>${price(full)}<a class="button amber" href="/modulos#comparar">Detalhes do módulo</a></article>
+<article class="module soon"><span class="kicker">Em preparação</span><h3>Cursos e capacitação</h3><p>Aulas on-line sobre normas ABNT, legislação, análise de sistemas de elevadores, gestão de contratos e atualizações tecnológicas.</p><p class="muted">Turmas e datas serão anunciadas aqui.</p><a class="button ghost" href="/orcamento?assunto=cursos">Quero ser avisado</a></article>
+</div>`;
+}
+
 export function homePage({plans, session, message}) {
-  const plan = p => `<article class="plan${p.id === 'advanced' ? ' featured' : ''}"><h3>${esc(p.name)}${p.id === 'advanced' ? '<span class="tag">Mais escolhido</span>' : ''}</h3>
-<div class="price"><strong>${brl(p.annualCents)}</strong><span>por ano</span></div><div class="per">Equivale a ${perMonth(p.annualCents)} por mês</div>
-<p>${esc(p.summary)}</p><ul>${p.features.map(f => `<li>${esc(f)}</li>`).join('')}</ul>
-<a class="button${p.id === 'advanced' ? ' teal' : ' ghost'}" href="/experimentar">Começar teste grátis</a></article>`;
   const msg = message ? `<p class="notice ${message.kind}" role="status">${esc(message.text)}</p>` : '';
-  return `${head({title: `${BRAND.name} · estudo de tráfego de elevadores on-line (NBR 5665 e ISO 8100-32)`, description: 'Plataforma on-line de estudo de tráfego de elevadores: população, intervalo e capacidade pela NBR 5665 e ISO 8100-32, relatório e PowerPoint. Teste 30 dias grátis.', index: true})}
+  return `${head({title: `${BRAND.name} · engenharia de transporte vertical: consultoria, vistorias, projetos e estudo de tráfego`, description: 'Consultoria para compra, contrato de manutenção e modernização de elevadores, vistorias técnicas com laudo, projetos de adequação e o sistema de estudo de tráfego (NBR 5665 e ISO 8100-32).', index: true, canonical: BRAND.site + '/'})}
 <body>${header({session})}
-<main id="conteudo">
-<section class="hero"><div class="wrap">
-<div><h1>Estudo de tráfego de elevadores em minutos, não em dias.</h1>
-<p class="lead">Plataforma on-line para calcular população, intervalo e capacidade de transporte pela NBR 5665 e pela ISO 8100-32, com memória de cálculo, relatório em PDF e apresentação em PowerPoint. Para engenheiros, arquitetos, construtoras e estudantes.</p>
-<div class="hero-actions"><a class="button teal" href="/experimentar">Testar 30 dias grátis</a><a class="button ghost" href="#plataforma">Ver o que a plataforma faz</a></div>
-<p class="hero-contact">Ou ligue: <a href="${BRAND.phoneHref}">${esc(BRAND.phone)}</a> · <a href="mailto:${esc(BRAND.email)}">${esc(BRAND.email)}</a></p></div>
-${shaftDiagram()}
+<main id="conteudo">${msg}
+<section class="hero company"><div class="wrap">
+<div class="hero-copy"><span class="kicker">Engenharia de transporte vertical</span>
+<h1>Decisões sobre elevadores com base em engenharia, não em opinião.</h1>
+<p class="lead">Consultoria para compra, contrato de manutenção e modernização de elevadores, vistorias técnicas com laudo e projetos de adequação — com o apoio dos nossos módulos de software de estudo de tráfego.</p>
+<div class="hero-actions">${CTA('Solicite um orçamento', 'button amber')}<a class="button ghost light" href="/servicos">Conhecer os serviços</a></div>
+<p class="hero-contact">Atendimento a condomínios, construtoras, escritórios de projeto e administradoras · São Paulo e região</p></div>
+<aside class="hero-steps" aria-label="Como atuamos"><span class="kicker">Como atuamos</span>
+<ol><li><strong>Diagnóstico</strong><span>Visita técnica, leitura dos contratos e do histórico de ocorrências.</span></li>
+<li><strong>Análise de engenharia</strong><span>Estudo de tráfego, conformidade normativa e comparação de propostas.</span></li>
+<li><strong>Recomendação e acompanhamento</strong><span>Parecer objetivo e apoio na negociação e na execução.</span></li></ol></aside>
 </div></section>
 
-<section class="section platform" id="plataforma"><div class="wrap">
-<div class="section-head"><h2>A plataforma de estudo de tráfego</h2><p>Você mesmo faz o estudo: cadastra o edifício, calcula a população andar por andar, testa quantidade, capacidade e velocidade dos elevadores e compara cenários e propostas de fabricantes com os mesmos critérios técnicos.</p></div>
-<div class="platform-grid">
-<div class="screen"><div class="bar" aria-hidden="true"><i></i><i></i><i></i></div><img src="/site/plataforma.png" alt="Tela da plataforma com as etapas do estudo: cadastro, parâmetros, cálculo populacional, gráficos e cálculo de tráfego" width="1366" height="860" loading="lazy"></div>
-<ul class="features">
-<li><strong>Cálculo pela NBR 5665 e pela ISO 8100-32</strong><span>Os dois métodos rodam de forma independente, com a memória de cálculo de cada um.</span></li>
-<li><strong>População por andar e ambiente</strong><span>Escritórios, apartamentos, hotéis, hospitais, escolas, lojas e garagens, com os descontos da norma.</span></li>
-<li><strong>Propostas de fornecedores</strong><span>Fornecedores convidados preenchem a proposta, e a comparação técnica e comercial sai pronta.</span></li>
-<li><strong>Relatório e apresentação</strong><span>Relatório para imprimir ou salvar em PDF e apresentação editável em PowerPoint.</span></li>
-</ul></div>
+<section class="section" id="servicos"><div class="wrap">
+<div class="section-head split"><div><span class="kicker">Serviços</span><h2>O que a SilSec faz pelo seu edifício</h2></div><a class="more" href="/servicos">Ver todos os serviços →</a></div>
+<div class="services four">
+<article class="service"><span class="service-icon">${icon.consult}</span><h3>Consultoria estratégica</h3><p>Compra de elevadores, contrato de manutenção e modernização: o que especificar, o que exigir e quanto é razoável pagar.</p></article>
+<article class="service"><span class="service-icon">${icon.survey}</span><h3>Vistorias técnicas e laudos</h3><p>Inspeção do equipamento e da casa de máquinas, registro fotográfico e laudo assinado por engenheiro com ART.</p></article>
+<article class="service"><span class="service-icon">${icon.project}</span><h3>Projetos e adequações</h3><p>Projeto elétrico e adequações de obra para instalação ou troca de elevadores, com equipe parceira para as disciplinas mecânica e civil.</p></article>
+<article class="service"><span class="service-icon">${icon.traffic}</span><h3>Estudo de tráfego</h3><p>Dimensionamento pela NBR 5665 e pela ISO 8100-32, entregue como serviço ou pelos nossos módulos de software.</p></article>
+</div></div></section>
+
+<section class="section alt" id="modulos"><div class="wrap">
+<div class="section-head"><div><span class="kicker">Módulos de software</span><h2>Serviços adicionais que você usa quando quiser</h2></div><p>A mesma engenharia que aplicamos na consultoria, em forma de plataforma on-line. Contrate como módulo adicional, por assinatura anual, com 30 dias para testar. Planos e valores na página do sistema.</p></div>
+${moduleCards(plans)}
 </div></section>
 
-${videosSection()}
-<section class="section" id="acesso"><div class="wrap">
-<div class="section-head"><h2>Como começar</h2><p class="lead">Você faz o cadastro, testa e só paga se quiser continuar. Sem contrato e sem fidelidade.</p></div>
-<ol class="steps">
-<li><h3>Crie sua conta</h3><p>Em <a href="/experimentar">Testar grátis</a>, informe nome e e-mail. Você recebe um link para criar a senha. Não pedimos cartão.</p></li>
-<li><h3>Use 30 dias o plano Completo</h3><p>NBR 5665, ISO 8100-32, população por andar, gráficos, propostas de fornecedores, relatório e PowerPoint.</p></li>
-<li><h3>Continue com a anuidade</h3><p>Se quiser continuar, pague a anuidade pelo Mercado Pago, com Pix ou cartão. A liberação é automática.</p></li>
-</ol>
-</div></section>
+<section class="section" id="para-quem"><div class="wrap about">
+<div><span class="kicker">Para quem</span><h2>Quem decide sobre elevadores — e precisa decidir bem</h2></div>
+<div class="audience">
+<div><strong>Síndicos e administradoras</strong><span>Contratos de manutenção, modernização e laudos para assembleias.</span></div>
+<div><strong>Construtoras e incorporadoras</strong><span>Especificação, estudo de tráfego e comparação de propostas de fornecedores.</span></div>
+<div><strong>Escritórios de arquitetura e engenharia</strong><span>Dimensionamento normativo integrado ao projeto, com memória de cálculo.</span></div>
+<div><strong>Estudantes e professores</strong><span>Módulos de software para turmas, com as premissas explicadas passo a passo. <a href="/modulos#ensino">Acesso educacional</a>.</span></div>
+</div></div></section>
 
-<section class="section" id="planos"><div class="wrap">
-<div class="section-head"><h2>Planos</h2><p class="lead">Um pagamento por ano, sem fidelidade. Se a anuidade vencer, seus estudos continuam guardados e o último relatório pode ser baixado.</p></div>
-<div class="plans">${plan(plans.basic)}${plan(plans.advanced)}</div>
-<p class="plans-note">Pagamento com Pix ou cartão de crédito pelo Mercado Pago. Precisa de acessos para a sua equipe, empresa ou turma de faculdade? <a href="#contato">Fale com a gente</a>.</p>
-</div></section>
-
-<section class="section" id="estudantes"><div class="wrap">
-<div class="section-head"><h2>Para estudantes de engenharia e arquitetura</h2><p class="lead">Aprenda estudo de tráfego fazendo: a plataforma mostra cada passo do cálculo, da população ao intervalo, com a memória de cálculo da NBR 5665 e da ISO 8100-32.</p></div>
-<ol class="steps">
-<li><h3>6 meses grátis</h3><p>Crie sua conta e envie o comprovante de matrícula em Assinatura → Acesso educacional. Renova enquanto você estiver matriculado.</p></li>
-<li><h3>Para TCC e trabalhos</h3><p>Relatório com memória de cálculo, premissas e referências normativas, pronto para anexar ou apresentar em PowerPoint.</p></li>
-<li><h3>Para professores</h3><p>Acessos para turmas inteiras, com chave de ativação por aluno. <a href="#contato">Fale com a gente</a>.</p></li>
-</ol>
-</div></section>
-
-<section class="section" id="aplicativo"><div class="wrap about">
-<h2>No computador e no celular</h2>
-<div><p class="lead">O SilSec funciona como aplicativo no Windows, no Android e no iPhone, sempre com os mesmos dados: comece o estudo no escritório e faça a vistoria no celular.</p>
-<ul><li><strong>Computador:</strong> no Edge ou Chrome, clique em <em>Instalar aplicativo</em> na barra de endereço.</li><li><strong>Android:</strong> no Chrome, menu ⋮ → <em>Instalar aplicativo</em>.</li><li><strong>iPhone e iPad:</strong> no Safari, Compartilhar → <em>Adicionar à Tela de Início</em>.</li></ul></div>
-</div></section>
-
-<section class="section" id="sobre"><div class="wrap about">
-<h2>Sobre a SilSec</h2>
-<div><p class="lead">A ${esc(BRAND.name)} foi criada para tornar o estudo de tráfego de elevadores acessível a quem projeta, especifica e compra elevadores: engenheiros, arquitetos, construtoras e estudantes.</p>
+<section class="section alt" id="sobre"><div class="wrap about">
+<div><span class="kicker">Sobre a SilSec</span><h2>Engenharia independente dos fabricantes</h2>
+<p class="lead">A ${esc(BRAND.name)} nasceu para tornar o estudo de tráfego de elevadores acessível a quem projeta, especifica e compra elevadores. Hoje reúne consultoria, vistorias, projetos e a plataforma de estudos — sem vender equipamentos nem manutenção, para que o parecer seja só de engenharia.</p>
 <p>Cada resultado vem com a memória de cálculo e as premissas usadas, para que você entenda e possa conferir a decisão.</p></div>
+<div class="stats"><div><strong>NBR 5665</strong><span>Cálculo de tráfego brasileiro</span></div><div><strong>ISO 8100-32</strong><span>Edição 2020, com proveniência</span></div><div><strong>ART</strong><span>Responsabilidade técnica registrada</span></div></div>
+</div></section>
+${videosSection()}
+${ctaBand('Conte o caso do seu edifício', 'Respondemos com o escopo recomendado e o orçamento do serviço. Vistorias e laudos são serviços à parte, com valor informado antes da visita.')}
+</main>${footer()}${NAV_SCRIPT}</body></html>`;
+}
+
+export function servicesPage({session}) {
+  return `${head({title: `Serviços de engenharia · ${BRAND.name}`, description: 'Consultoria estratégica para compra, contrato de manutenção e modernização de elevadores; vistorias técnicas com laudo e ART; projetos elétricos e adequações de obra.', index: true, canonical: BRAND.site + '/servicos'})}
+<body>${header({session, active: 'servicos'})}
+<main id="conteudo">
+<section class="page-head"><div class="wrap"><span class="kicker">Serviços de engenharia</span><h1>Consultoria, vistorias e projetos para elevadores e escadas rolantes</h1><p class="lead">Atuamos do lado de quem contrata: condomínios, construtoras e escritórios. Não vendemos equipamentos nem manutenção, e isso nos permite dizer o que o fabricante não diz.</p></div></section>
+
+<section class="section alt"><div class="wrap stack-lg">
+<article class="service-block" id="consultoria"><div><span class="kicker">01 · Consultoria estratégica</span><h2>Compra, contrato de manutenção e modernização</h2><p>Parecer de engenharia para as três decisões mais caras da vida de um elevador. Comparamos propostas, apontamos cláusulas de risco e indicamos o que é essencial e o que é supérfluo.</p>${CTA()}</div>
+<div class="minis three"><div><strong>Compra de elevadores</strong><span>Especificação técnica, estudo de tráfego e equalização das propostas dos fabricantes.</span></div><div><strong>Contrato de manutenção</strong><span>Escopo, peças incluídas, prazos de atendimento e indicadores para cobrar da mantenedora.</span></div><div><strong>Modernização</strong><span>O que trocar, em que ordem e com que ganho real de desempenho, segurança e consumo.</span></div></div></article>
+
+<article class="service-block" id="vistorias"><div><span class="kicker">02 · Vistorias técnicas e laudos</span><h2>Inspeção presencial com laudo assinado</h2><p>Visita ao equipamento, à casa de máquinas e ao poço; verificação de itens de segurança e conservação; registro fotográfico; laudo com responsabilidade técnica (ART). Serviço cobrado à parte, com valor informado antes da visita.</p>${CTA()}</div>
+<div><strong class="kicker">Quando pedir uma vistoria</strong><ul class="two-col"><li>Antes de renovar ou trocar a mantenedora</li><li>Para decidir entre reparo e modernização</li><li>Após ocorrência com usuário preso ou acidente</li><li>Para assembleia aprovar investimento</li><li>Na entrega da obra ou no recebimento de elevador novo</li><li>Em disputa com fabricante ou mantenedora</li></ul></div></article>
+
+<article class="service-block" id="projetos"><div><span class="kicker">03 · Projetos e adequações</span><h2>Projeto elétrico e adequações de obra</h2><p>Projeto e acompanhamento das instalações elétricas de elevadores e das adequações necessárias à instalação ou troca. Disciplinas mecânica e civil com engenheiros parceiros, cada um com a própria ART vinculada.</p>${CTA()}</div>
+<div class="minis three"><div><strong>Instalações elétricas</strong><span>Alimentação, quadro, aterramento e iluminação de casa de máquinas e poço.</span></div><div><strong>Gestão da intervenção</strong><span>Cronograma, interface com a mantenedora e aceite técnico ao final.</span></div><div><strong>Estudo de tráfego</strong><span>NBR 5665 e ISO 8100-32, entregue como laudo ou pelo módulo de software.</span></div></div></article>
 </div></section>
 
-<section class="section" id="contato"><div class="wrap contact">
-<div><h2>Fale com a SilSec</h2><p class="lead">Dúvidas sobre a plataforma, planos para equipes e empresas, turmas de faculdade ou parcerias. Respondemos pelo e-mail ou telefone informado.</p>
-<ul class="contact-list">
-<li><small>WhatsApp e telefone</small><a href="${waLink('Olá! Vim pelo site da ' + BRAND.name + '.')}">${esc(BRAND.phone)}</a></li>
-<li><small>E-mail</small><a href="mailto:${esc(BRAND.email)}">${esc(BRAND.email)}</a></li>
-</ul></div>
-<div>${msg}<form class="stack" method="post" action="/contato">
-<div class="row2"><label class="field">Nome<input name="nome" required maxlength="200" autocomplete="name"></label><label class="field">Empresa ou instituição<input name="empresa" maxlength="200" autocomplete="organization"></label></div>
-<div class="row2"><label class="field">E-mail<input name="email" type="email" required maxlength="254" autocomplete="email"></label><label class="field">Telefone<input name="telefone" maxlength="40" autocomplete="tel" inputmode="tel"></label></div>
-<label class="field">Assunto<select name="assunto"><option>Dúvida sobre a plataforma</option><option>Plano para equipe ou empresa</option><option>Turma de faculdade</option><option>Pagamento e assinatura</option><option>Parceria</option><option>Outro</option></select></label>
-<label class="field">Mensagem<textarea name="mensagem" required maxlength="5000"></textarea></label>
+<section class="section"><div class="wrap about"><div><span class="kicker">Como contratar</span><h2>Três passos, sem surpresa no valor</h2></div>
+<ol class="steps three"><li><strong>Você descreve o caso</strong><span>Pelo formulário, e-mail ou WhatsApp. Quanto mais contexto, melhor.</span></li><li><strong>Recebe escopo e orçamento</strong><span>Proposta por escrito, com o que está incluído e os prazos.</span></li><li><strong>Execução e entrega</strong><span>Visita, análise e documento final assinado pelo engenheiro responsável.</span></li></ol></div></section>
+${ctaBand('Precisa de um parecer para a próxima assembleia?', 'Envie o caso e retornamos com escopo, prazo e valor.')}
+</main>${footer()}${NAV_SCRIPT}</body></html>`;
+}
+
+export function modulesPage({plans, session}) {
+  const list = planList(plans), basic = list.find(p => p.id === 'basic'), full = list.find(p => p.id === 'advanced');
+  const plan = (p, featured) => `<article class="plan${featured ? ' featured' : ''}"><span class="kicker">Módulo ${featured ? 'Completo' : 'Básico'}</span><h3>Sistema de estudo de tráfego ${featured ? 'Completo · NBR + ISO' : 'Básico · NBR 5665'}</h3>
+<div class="price"><strong>${brl(p.annualCents)}</strong><span>por ano</span></div><div class="per">Equivale a ${perMonth(p.annualCents)} por mês</div>
+<ul>${p.features.map(f => `<li>${esc(f)}</li>`).join('')}</ul>
+<a class="button${featured ? ' amber' : ' ghost'}" href="/experimentar">Começar o teste de 30 dias</a></article>`;
+  return `${head({title: `Módulos de software · sistema de estudo de tráfego · ${BRAND.name}`, description: 'Sistema de estudo de tráfego de elevadores pela NBR 5665 e ISO 8100-32, como módulo adicional aos serviços da SilSec: Básico e Completo, por assinatura anual, com 30 dias de teste.', index: true, canonical: BRAND.site + '/modulos'})}
+<body>${header({session, active: 'modulos'})}
+<main id="conteudo">
+<section class="page-head split"><div class="wrap"><div><span class="kicker">Módulos de software · serviços adicionais</span><h1>A engenharia da SilSec, em forma de plataforma</h1><p class="lead">Estudo de tráfego de elevadores pela NBR 5665 e pela ISO 8100-32, no navegador e no celular, com memória de cálculo e relatório. Contrate como módulo adicional aos serviços ou use de forma independente, por assinatura anual.</p>
+<div class="hero-actions"><a class="button teal" href="/experimentar">Testar 30 dias grátis</a><a class="button ghost" href="#comparar">Comparar os módulos</a></div></div>
+<aside class="result-card" aria-label="Exemplo de resultado"><span class="kicker">Resultado de um estudo</span><div class="kpis"><div><small>Intervalo</small><strong>31 s</strong></div><div><small>Capacidade 5 min</small><strong>13,2 %</strong></div><div><small>Classificação</small><strong class="amber">Bom</strong></div></div><dl><div><dt>Grupo 1 · 4 elevadores</dt><dd>1.000 kg · 2,5 m/s</dd></div><div><dt>Paradas prováveis</dt><dd>8,46</dd></div><div><dt>Tempo total de viagem</dt><dd>124 s</dd></div></dl><small>Valores ilustrativos de um estudo-exemplo da plataforma.</small></aside></div></section>
+
+<section class="section alt" id="comparar"><div class="wrap">
+<div class="section-head"><div><span class="kicker">Planos</span><h2>Dois módulos, uma assinatura anual</h2></div><p>Os dois incluem 30 dias de teste. Equipes, empresas e turmas de faculdade têm condições próprias — fale com a SilSec.</p></div>
+<div class="plans two">${plan(basic, false)}${plan(full, true)}</div>
+</div></section>
+
+<section class="section"><div class="wrap">
+<div class="section-head"><span class="kicker">Como se encaixa nos serviços</span><h2>Do laudo à plataforma, ou da plataforma ao laudo</h2></div>
+<div class="services three"><article class="service"><h3>Com a consultoria</h3><p>O estudo de tráfego da consultoria é entregue dentro da plataforma: você acompanha, altera premissas e reemite o relatório quando precisar.</p></article><article class="service"><h3>Para escritórios</h3><p>Dimensione sozinho no dia a dia e chame a SilSec só para a revisão assinada ou para os casos fora do comum.</p></article><article class="service"><h3>Para o ensino</h3><p>Turmas com acesso por período letivo, exemplos prontos e a explicação de cada cálculo passo a passo.</p></article></div>
+</div></section>
+
+<section class="section" id="ensino"><div class="wrap">
+<div class="section-head"><div><span class="kicker">Estudantes e professores</span><h2>Acesso educacional ao sistema</h2></div><p>Aprenda estudo de tráfego fazendo: a plataforma mostra cada passo do cálculo, da população ao intervalo, com a memória de cálculo da NBR 5665 e da ISO 8100-32.</p></div>
+<ol class="steps three"><li><strong>6 meses grátis</strong><span>Crie sua conta e envie o comprovante de matrícula em Assinatura → Acesso educacional. Renova enquanto você estiver matriculado.</span></li><li><strong>Para TCC e trabalhos</strong><span>Relatório com memória de cálculo, premissas e referências normativas, pronto para anexar ou apresentar em PowerPoint.</span></li><li><strong>Para professores</strong><span>Acessos para turmas inteiras, com chave de ativação por aluno. <a href="/orcamento?assunto=cursos">Fale com a SilSec</a>.</span></li></ol>
+</div></section>
+
+<section class="section alt"><div class="wrap"><div class="minis four"><div><strong>No computador e no celular</strong><span>Aplicativo instalável, funciona sem conexão e sincroniza ao voltar.</span></div><div><strong>Memória de cálculo</strong><span>Cada número com a fórmula, a premissa e a referência normativa.</span></div><div><strong>Compartilhamento</strong><span>Link de leitura para cliente ou fornecedor, sem precisar de conta.</span></div><div><strong>Manual e explicação dos cálculos</strong><span>Documentação completa dentro do sistema, em português.</span></div></div></div></section>
+</main>${footer()}${NAV_SCRIPT}</body></html>`;
+}
+
+export function quotePage({session, message, preset = ''}) {
+  const msg = message ? `<p class="notice ${message.kind}" role="status">${esc(message.text)}</p>` : '';
+  const check = (value, label, on = false) => `<label class="check"><input type="checkbox" name="servicos" value="${value}"${on ? ' checked' : ''}> ${label}</label>`;
+  return `${head({title: `Solicite um orçamento · ${BRAND.name}`, description: 'Descreva o edifício e o que precisa decidir. A SilSec retorna com o escopo recomendado, o prazo e o valor do serviço.', index: true, canonical: BRAND.site + '/orcamento'})}
+<body>${header({session, active: 'orcamento'})}
+<main id="conteudo">
+<section class="section"><div class="wrap quote">
+<div class="quote-side"><span class="kicker">Contato</span><h1>Solicite um orçamento</h1><p class="lead">Descreva o edifício e o que você precisa decidir. Retornamos em até dois dias úteis com o escopo recomendado, o prazo e o valor do serviço.</p>
+<ul class="contact-list card"><li><small>WhatsApp e telefone</small><a href="${waLink('Olá! Vim pelo site da ' + BRAND.name + ' e quero um orçamento.')}">${esc(BRAND.phone)}</a></li><li><small>E-mail</small><a href="mailto:${esc(BRAND.email)}">${esc(BRAND.email)}</a></li><li><small>Atendimento</small>São Paulo, ABC e região metropolitana; outras cidades sob consulta</li></ul>
+<div class="dark-note"><strong>Como funciona o orçamento</strong><p>A proposta de consultoria é enviada por escrito, com escopo e prazo. Vistorias técnicas e laudos são serviços cobrados à parte, com o valor informado antes da visita.</p></div></div>
+<div>${msg}<form class="stack card" method="post" action="/contato"><input type="hidden" name="origem" value="orcamento">
+<div class="row2"><label class="field">Seu nome<input name="nome" required maxlength="200" autocomplete="name"></label><label class="field">Você é<select name="perfil"><option>Síndico ou conselheiro</option><option>Administradora de condomínios</option><option>Construtora ou incorporadora</option><option>Escritório de arquitetura ou engenharia</option><option>Estudante ou professor</option><option>Outro</option></select></label></div>
+<div class="row2"><label class="field">E-mail<input name="email" type="email" required maxlength="254" autocomplete="email"></label><label class="field">Telefone ou WhatsApp<input name="telefone" maxlength="40" autocomplete="tel" inputmode="tel"></label></div>
+<fieldset class="checks"><legend>O que você precisa</legend>${check('Consultoria para compra de elevadores', 'Consultoria para compra de elevadores')}${check('Contrato de manutenção', 'Contrato de manutenção')}${check('Modernização', 'Modernização')}${check('Vistoria técnica e laudo', 'Vistoria técnica e laudo')}${check('Projeto e adequações de obra', 'Projeto e adequações de obra')}${check('Módulos de software para equipe ou turma', 'Módulos de software para equipe ou turma', preset === 'cursos')}</fieldset>
+<div class="row3"><label class="field">Cidade do edifício<input name="empresa" maxlength="200" placeholder="São Paulo"></label><label class="field">Pavimentos<input name="pavimentos" type="number" min="1" max="200" inputmode="numeric"></label><label class="field">Elevadores<input name="elevadores" type="number" min="0" max="60" inputmode="numeric"></label></div>
+<label class="field">Conte o caso<textarea name="mensagem" required maxlength="5000" rows="5" placeholder="Idade dos elevadores, fabricante, o que está acontecendo e qual decisão precisa ser tomada."></textarea></label>
 <div class="hp" aria-hidden="true"><label>Não preencha<input name="site" tabindex="-1" autocomplete="off"></label></div>
-<div><button class="button teal" type="submit">Enviar mensagem</button></div>
+<div class="row-end"><label class="check small"><input type="checkbox" name="lgpd" required> Autorizo o uso destes dados para responder à minha solicitação.</label><button class="button amber" type="submit">Solicite um orçamento</button></div>
 </form></div>
 </div></section>
-</main>${footer()}${NAV_SCRIPT}${HERO_SCRIPT}</body></html>`;
+</main>${footer()}${NAV_SCRIPT}</body></html>`;
 }
 
 // Layout das páginas da área do cliente (ativação, assinatura e painel).

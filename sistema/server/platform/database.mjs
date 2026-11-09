@@ -73,6 +73,11 @@ export async function openSqlite(file) {
 }
 
 // ---------- Migrações ----------
+export function alreadyApplied(error) {
+  const code = error?.code || '', msg = String(error?.message || error || '');
+  return ['ER_DUP_KEYNAME', 'ER_DUP_FIELDNAME', 'ER_TABLE_EXISTS_ERROR'].includes(code) || [1061, 1060, 1050].includes(error?.errno)
+    || /already exists|duplicate column name|Duplicate key name|Duplicate column name/i.test(msg);
+}
 function splitStatements(text) {
   return text.split(/-->\s*statement-breakpoint|;\s*(?:\r?\n|$)/).map(s => s.replace(/^\s*--.*$/gm, '').trim()).filter(Boolean);
 }
@@ -86,7 +91,14 @@ export async function migrate(db, log = () => {}) {
   const applied = [];
   for (const file of readdirSync(dir).filter(f => f.endsWith('.sql')).sort()) {
     if (done.has(file)) continue;
-    for (const statement of splitStatements(readFileSync(new URL(file, dir), 'utf8'))) await db.exec(statement);
+    for (const statement of splitStatements(readFileSync(new URL(file, dir), 'utf8'))) {
+      try { await db.exec(statement); }
+      catch (error) {
+        // Migração repetível: índice, coluna ou tabela que já existe (por exemplo, aplicada à mão antes) não derruba a partida.
+        if (alreadyApplied(error)) { console.warn(`[migração] ${file}: já aplicado, ignorando — ${String(error.message || error).split('\n')[0]}`); continue; }
+        throw error;
+      }
+    }
     await db.prepare('INSERT INTO schema_migrations (name, applied_at) VALUES (?, ?)').bind(file, new Date().toISOString()).run();
     applied.push(file); log('Migração aplicada: ' + file);
   }

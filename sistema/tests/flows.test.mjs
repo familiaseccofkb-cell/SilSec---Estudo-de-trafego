@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fieldStep} from '../public/workflow.js';
-import {STORAGE_KEY} from '../public/state.js';
+import {STORAGE_KEY,normalizeStudy as normalizeStudyFn} from '../public/state.js';
 import {SPEED_OPTIONS,MAX_GROUPS,defaultStudy} from '../public/engine.js';
 class Element{
  constructor(){this.innerHTML='';this.textContent='';this.dataset={};this.listeners={};this.classes=new Set();this.attrs={};this.classList={add:(c)=>this.classes.add(c),remove:(c)=>this.classes.delete(c),toggle:(c,on)=>on?this.classes.add(c):this.classes.delete(c)};this.value='';this.hidden=false;}
@@ -250,4 +250,41 @@ test('interface: etapa Relatório mostra na tela o conteúdo impresso após o c�
  assert.match(html,/Estudo de tráfego/);
  assert.match(html,/Resultados por conjunto/);
  assert.match(app.innerHTML,/Imprimir \/ Salvar PDF/);
+});
+
+// ---- Tela: tabela dimensional por elevador (pontos de 07/11) ----
+function dimInput(group,car,key,value){click('workflow-step',{view:'parameters'});if(state()?.parameterTab!=='dimensions')click('parameter-tab',{tab:'dimensions'});const el={dataset:{dimGroup:String(group),dimCar:String(car),dimKey:key},value:value===null?'':String(value),type:key==='doorType'?'select-one':'number',matches:()=>false};events.change({target:el});click('parameter-tab',{tab:'dimensions'});}
+function retrofit3(){click('load-example');input('groups.0.count',3);input('supplyCondition.type','retrofit','select-one');click('workflow-step',{view:'parameters'});click('parameter-tab',{tab:'dimensions'});}
+test('tela: tabela dimensional mostra a largura real de cada elevador e a porta do elevador 1 não muda as outras',()=>{
+ retrofit3();
+ const g=()=>state().draft.groups[0];
+ const widths=()=>[0,1,2].map(j=>{const m=app.innerHTML.match(new RegExp('data-dim-car="'+j+'" data-dim-key="doorWidth"[^>]*value="([^"]*)"'));return m?Number(m[1]):null;});
+ const base=widths();assert.ok(base.every(w=>w>0),'as três colunas mostram a largura real: '+JSON.stringify(base));
+ dimInput(0,0,'doorWidth',750);
+ const after=widths();assert.equal(after[0],750);assert.equal(after[1],base[1]);assert.equal(after[2],base[2]);
+ dimInput(0,1,'doorWidth',950);assert.deepEqual(widths(),[750,950,base[2]]);
+});
+test('tela: medida fora da faixa é recusada com aviso e o campo volta ao valor anterior',()=>{
+ retrofit3();dimInput(0,1,'shaftWidth',2000);
+ assert.match(app.innerHTML,/data-dim-car="1" data-dim-key="shaftWidth"[^>]*value="2000"/);
+ dimInput(0,1,'shaftWidth',-50);
+ assert.match(toast.textContent||toast.innerHTML,/entre 0 e 50000/);
+ assert.match(app.innerHTML,/data-dim-car="1" data-dim-key="shaftWidth"[^>]*value="2000"/,'valor anterior preservado');
+ assert.equal(state().draft.groups[0].dimensionCars[1].siteDimensions.shaftWidth,2000);
+});
+test('tela: alerta de altura aparece por elevador, persiste após digitar outro campo e aparece no resumo da caixa fechada',()=>{
+ retrofit3();dimInput(0,1,'cabinHeight',1500);
+ assert.match(app.innerHTML,/Elevador 2 · [^<]*1[.,]?500/);
+ dimInput(0,0,'shaftWidth',2400);
+ assert.match(app.innerHTML,/Elevador 2 · /,'alerta continua após outro campo');
+ click('add-group');click('parameter-tab',{tab:'dimensions'});
+ const second=state().draft.groups.length-1;input('groups.'+second+'.count',1);
+ dimInput(second,0,'cabinHeight',1600);
+ assert.match(app.innerHTML,/<summary>[^<]*<span class="score-red">· 1 alerta de altura<\/span><\/summary>/,'resumo do grupo fechado mostra a contagem');
+});
+test('tela: estudo antigo com medida inválida é saneado ao carregar',()=>{
+ retrofit3();
+ const s=structuredClone(state().draft);s.groups[0].dimensionCars=[undefined,{siteDimensions:{shaftWidth:-50,cabinHeight:2200}}];
+ const out=normalizeStudyFn(s);
+ assert.equal(out.groups[0].dimensionCars[1].siteDimensions.shaftWidth,null);assert.equal(out.groups[0].dimensionCars[1].siteDimensions.cabinHeight,2200);
 });

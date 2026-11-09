@@ -17,7 +17,7 @@ O SilSec é publicado em `silsec-engenharia.com.br` como **Node.js Web App** (es
 
 - **Plano:** é preciso um plano que aceite Node.js Web Apps: o **Unlimited** (antigo Business) ou qualquer plano **Cloud**. Single e Premium não rodam Node.js. 
 - **Domínio novo:** registre `silsec-engenharia.com.br` no Registro.br (na consulta feita em 18/10/2026 ele aparecia livre; confirme na hora de registrar). No Registro.br, troque os servidores DNS para `ns1.dns-parking.com` e `ns2.dns-parking.com`. A propagação pode levar algumas horas.
-- **Arquivo:** `SilSec_Engenharia_Hostinger.zip`, o pacote que acompanha este guia.
+- **Arquivo:** o pacote de produção é um `.zip` com o **conteúdo da pasta `sistema/`**, com `server.mjs` na raiz do zip (não dentro de uma subpasta). O pacote **não** leva as pastas `tests/`, `teste-claude/` e `docs/`, que servem só ao desenvolvimento. O zip que acompanha este guia (`silsec-producao-<data>.zip`) já vem assim; se for montar à mão, selecione os arquivos dentro de `sistema/`, exclua essas três pastas e compacte.
 
 ## 1. Criar o banco de dados
 
@@ -25,7 +25,7 @@ O SilSec é publicado em `silsec-engenharia.com.br` como **Node.js Web App** (es
 2. Crie um banco MySQL e anote três dados: **nome do banco**, **usuário** e **senha** (a Hostinger acrescenta um prefixo como `u123456789_`).
 3. O servidor do banco normalmente é `localhost`. Se o app não conectar, use o endereço indicado como "Host MySQL" na mesma tela.
 
-Você não precisa criar tabelas. O programa cria e atualiza tudo sozinho quando inicia.
+Você não precisa criar tabelas nem rodar scripts SQL. Ao iniciar, o programa aplica sozinho as migrações de `db/mysql/` que ainda não foram aplicadas e registra cada uma na tabela `schema_migrations`. Uma migração que já tenha sido aplicada à mão (coluna, índice ou tabela já existentes) é reconhecida e pulada sem erro, portanto não há passo manual de banco em nenhuma instalação ou atualização.
 
 ## 2. Criar a caixa de e-mail que envia as mensagens
 
@@ -63,7 +63,7 @@ Quando o pagamento é aprovado, o sistema confere o valor direto no Mercado Pago
 1. No hPanel: **Websites → Adicionar site → Node.js Web App → Enviar seus arquivos**. Se o domínio já tem um site na Hostinger, remova o site antigo antes.
    - **Não** use "Migrar site", "Enviar site" nem o Gerenciador de Arquivos/`public_html`: esses caminhos são para sites PHP/HTML e mostram o erro "Não foi possível reconhecer seu site".
    - Se a opção **Node.js Web App** não aparecer, o plano contratado não roda Node.js (Single e Premium não rodam). É preciso o Business/Unlimited ou um plano Cloud.
-2. Envie o arquivo `SilSec_Engenharia_Hostinger.zip`.
+2. Envie o `.zip` de produção (conteúdo de `sistema/`, com `server.mjs` na raiz; ver "Antes de começar").
 3. Confira as configurações:
 
 | Campo | Valor |
@@ -82,8 +82,8 @@ Quando o pagamento é aprovado, o sistema confere o valor direto no Mercado Pago
 | `SITE_OWNER_EMAIL` | `contato@silsec-engenharia.com.br` (ou o e-mail que você já usa como administrador) | quem cria conta com este e-mail vira administrador |
 | `APP_URL` | `https://silsec-engenharia.com.br` | endereço usado nos links dos e-mails |
 | `DB_HOST` | `localhost` | servidor do banco |
-| `DB_NAME` | `u200686807_silsec` | nome do banco |
-| `DB_USER` | `u200686807_silsec` | usuário do banco |
+| `DB_NAME` | `u123456789_silsec` (o nome criado no passo 1, com o prefixo da Hostinger) | nome do banco |
+| `DB_USER` | `u123456789_silsec` (o usuário criado no passo 1) | usuário do banco |
 | `DB_PASSWORD` | (senha do banco) | senha do banco |
 | `SMTP_PASSWORD` | (senha da caixa contato@silsec-engenharia.com.br) | ativa o envio de e-mails (servidor, porta e remetente já vêm configurados) |
 | `MP_ACCESS_TOKEN` | `APP_USR-…` | liga o pagamento da anuidade pelo Mercado Pago |
@@ -126,9 +126,32 @@ Os estudos salvos na hospedagem antiga não são transferidos automaticamente. N
 
 ## Atualizar o programa
 
-Envie o novo `.zip` pelo mesmo painel e faça **Deploy** de novo. Os dados ficam no MySQL e não se perdem. Os anexos (logomarcas, contas, contratos e relatórios arquivados) também ficam guardados no banco.
+Antes de cada atualização, faça a **cópia de segurança** descrita abaixo. Depois:
 
-## Cópias de segurança
+1. Envie o novo `.zip` de produção pelo mesmo painel (**Websites → (seu site) → Deploy**) e clique em **Deploy**.
+2. Ao iniciar, o programa aplica sozinho as migrações novas e registra-as em `schema_migrations`. Não rode SQL à mão.
+3. Abra `/saude` e confirme `"ok":true` e `"banco":"mysql"`; entre no programa e confira a versão no rodapé.
+
+Os dados ficam no MySQL e não se perdem. Os anexos (logomarcas, contas, contratos, fotos de vistoria e relatórios arquivados) também ficam guardados no banco.
+
+## Cópia de segurança antes do deploy
+
+Faça sempre, em qualquer instalação ou atualização, antes de clicar em **Deploy**:
+
+1. **Banco:** no hPanel, **Bancos de dados → phpMyAdmin**, selecione o banco e use **Exportar → Rápido → SQL**. Guarde o arquivo com a data no nome (ex.: `silsec-2026-11-09.sql`). Alternativa: hPanel → **Backups** → gerar um backup novo do banco.
+2. **Variáveis de ambiente:** em **Websites → (seu site) → Variáveis de ambiente**, copie nome e valor de todas as variáveis para um arquivo de texto guardado fora da hospedagem (elas não vão no zip e não aparecem no backup do banco).
+3. **Pacote atual:** guarde o `.zip` da versão que está no ar, para poder voltar a ela.
+
+## Roteiro de volta (rollback)
+
+Se, depois do deploy, o programa não abrir, `/saude` falhar ou algo essencial parar de funcionar:
+
+1. Em **Deploy**, envie o `.zip` da versão anterior (guardado no item 3 acima) e faça **Deploy** de novo. Se as variáveis de ambiente foram alteradas na atualização, restaure os valores copiados no item 2.
+2. Se a versão nova tiver aplicado migrações novas, a versão anterior em geral continua funcionando com elas, porque as migrações só acrescentam colunas, índices e tabelas. Se mesmo assim houver erro de banco, restaure o `.sql` do item 1 pelo **phpMyAdmin → Importar** (apague antes as tabelas atuais ou importe em um banco vazio e aponte `DB_NAME`/`DB_USER`/`DB_PASSWORD` para ele).
+3. Confira `/saude`, entre no programa e abra um estudo salvo.
+4. Anote a mensagem de erro de **Logs** do app para enviar ao desenvolvimento.
+
+## Cópias de segurança periódicas
 
 - A Hostinger faz backups automáticos do banco (hPanel → **Backups**). Você também pode baixar uma cópia do banco pelo **phpMyAdmin**.
 - Dentro do programa, a administração tem a exportação geral de dados.

@@ -6,6 +6,19 @@ Notas da versão original (protótipo hospedado em outra plataforma). As regras 
 
 Use as cinco telas Cadastro, Parâmetros de cálculo, Cálculo populacional, Gráficos de performance e economias e Cálculo de tráfego. O estudo inicial usa 396 pessoas e três elevadores em dois grupos. O motor NBR é preferencial e o modelo ISO do documento fornecido é independente. Precisão integral de interpolação é o único critério de arredondamento intermediário.
 
+### Versão 9.5.1 (novembro de 2026)
+
+- **Tabela dimensional por elevador** (Parâmetros de cálculo): caixa, altura da última parada, poço, porta e tipo de porta em colunas, uma por elevador, com cópia da coluna do elevador N para as demais; validação de faixas na digitação; alertas de altura por elevador no resumo e no relatório.
+- **População por pavimento:** botão "não calcular população" por andar (restaura os valores ao desmarcar); desconto de 50 % só aparece onde a norma permite (percurso superior a 5 m); exclusões no topo da tabela, sem campos ocultos quando o pavimento não entra no estudo.
+- **Etapas:** Gráficos passam a vir depois do Cálculo de tráfego; etapa **Relatório** mostra na tela tudo o que é impresso.
+- **Tráfego:** capacidade necessária acima da definida pelo fabricante aparece em vermelho com tarja contrastante.
+- **Controle de acessos:** a rejeição de uma alteração restaura nome e cliente do projeto (colunas novas `previous_name`/`previous_client_id` em `project_changes`, migração 0010/0008) e mantém o projeto calculado.
+- **Migrações repetíveis:** o migrador reconhece coluna, índice ou tabela já existentes e segue adiante; nenhuma instalação exige SQL manual.
+- **Site da SilSec:** Início, Serviços, Módulos de software e Solicite um orçamento; formulário de orçamento com campo de cidade corrigido.
+- **Janela de teste no Claude:** fotos de vistoria persistem no IndexedDB após recarregar.
+- **Guia de instalação:** sem passo manual de banco; cópia de segurança do banco e das variáveis antes do deploy; roteiro de volta; pacote de produção = conteúdo de `sistema/` sem `tests/`, `teste-claude/` e `docs/`.
+- Testes: 542 (com pptxgenjs instalado).
+
 ### Versão 9.3 (outubro de 2026)
 
 - **Aplicativos:** o site virou aplicativo instalável (PWA) no Windows, Android e iPhone, com ícones, tela cheia, aviso sem conexão e vínculo para a Play Store (`/.well-known/assetlinks.json`). Instaladores Windows em `.exe` (conectado, desenvolvedor e offline), com ícone, registro em Aplicativos e desinstalação; a versão offline abre sem janela de console e encerra sozinha quando a janela do programa é fechada. Todos usam o banco do site, exceto a offline. Guia em `docs/APLICATIVOS.md`.

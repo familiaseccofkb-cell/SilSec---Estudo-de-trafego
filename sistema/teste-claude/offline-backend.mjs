@@ -4,7 +4,7 @@
 import {handleApi} from './server/api.mjs';
 import {createInspections} from './server/platform/inspections.mjs';
 
-const MIGRATIONS = ['0000_small_red_wolf.sql', '0001_goofy_rawhide_kid.sql', '0002_gigantic_miss_america.sql', '0003_cuddly_lady_mastermind.sql', '0004_plataforma.sql', '0005_acesso_clientes.sql', '0006_vistorias.sql', '0007_sistema.sql', '0008_controle_acessos.sql', '0009_indices_acessos.sql'];
+const MIGRATIONS = ['0000_small_red_wolf.sql', '0001_goofy_rawhide_kid.sql', '0002_gigantic_miss_america.sql', '0003_cuddly_lady_mastermind.sql', '0004_plataforma.sql', '0005_acesso_clientes.sql', '0006_vistorias.sql', '0007_sistema.sql', '0008_controle_acessos.sql', '0009_indices_acessos.sql', '0010_alteracoes_nome_cliente.sql'];
 const STORE_KEY = 'silsec-teste-banco-v1';
 const USER_KEY = 'silsec-teste-usuario-v1';
 const BASE = new URL('.', document.baseURI);
@@ -50,13 +50,17 @@ class SqlJsD1 {
   async exec(sql) { for (const st of splitStatements(sql)) this.db.exec(st); this.dirty = true; }
 }
 
-// ---------- Armazenamento de arquivos (fotos de vistoria) em memória ----------
-class MemoryBucket {
-  constructor() { this.items = new Map(); }
-  async put(key, data, options = {}) { this.items.set(key, {data: data instanceof Uint8Array ? data : new Uint8Array(await new Response(data).arrayBuffer()), httpMetadata: options.httpMetadata || {}}); }
-  async get(key) { const it = this.items.get(key); if (!it) return null; return {httpMetadata: it.httpMetadata, async arrayBuffer() { return it.data.buffer.slice(it.data.byteOffset, it.data.byteOffset + it.data.byteLength); }, body: new Blob([it.data])}; }
-  async delete(key) { this.items.delete(key); }
-  async list() { return {objects: [...this.items.keys()].map(key => ({key}))}; }
+// ---------- Armazenamento de arquivos (fotos de vistoria) no IndexedDB, para sobreviver ao recarregamento ----------
+const FOTOS_DB = 'silsec-teste-fotos-v1';
+class IdbBucket {
+  constructor() { this.ready = new Promise((ok, fail) => { const r = indexedDB.open(FOTOS_DB, 1); r.onupgradeneeded = () => r.result.createObjectStore('f'); r.onsuccess = () => ok(r.result); r.onerror = () => fail(r.error); }); }
+  async store(mode) { const db = await this.ready; return db.transaction('f', mode).objectStore('f'); }
+  req(r) { return new Promise((ok, fail) => { r.onsuccess = () => ok(r.result); r.onerror = () => fail(r.error); }); }
+  async put(key, data, options = {}) { const u8 = data instanceof Uint8Array ? data : new Uint8Array(await new Response(data).arrayBuffer()); await this.req((await this.store('readwrite')).put({data: u8, httpMetadata: options.httpMetadata || {}}, key)); }
+  async get(key) { const it = await this.req((await this.store('readonly')).get(key)); if (!it) return null; const u8 = it.data; return {httpMetadata: it.httpMetadata, async arrayBuffer() { return u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength); }, body: new Blob([u8])}; }
+  async delete(key) { await this.req((await this.store('readwrite')).delete(key)); }
+  async list() { const keys = await this.req((await this.store('readonly')).getAllKeys()); return {objects: keys.map(key => ({key}))}; }
+  static wipe() { return new Promise(ok => { const r = indexedDB.deleteDatabase(FOTOS_DB); r.onsuccess = r.onerror = r.onblocked = () => ok(); }); }
 }
 
 function toBase64(u8) { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }
@@ -77,13 +81,20 @@ async function start() {
   try { saved = localStorage.getItem(STORE_KEY); } catch {}
   const db = saved ? new SQL.Database(fromBase64(saved)) : new SQL.Database();
   const D1 = new SqlJsD1(db);
-  const BUCKET = new MemoryBucket();
+  const BUCKET = new IdbBucket();
   const env = {DB: D1, BUCKET, SITE_OWNER_EMAIL: OWNER.email, APP_URL: BASE.href.replace(/\/$/, '')};
-  if (!saved) {
-    for (const file of MIGRATIONS) {
-      const r = await fetch(new URL('db/sqlite/' + file, BASE)); if (!r.ok) throw new Error('Migração não encontrada: ' + file);
-      await D1.exec(await r.text());
+  // Migrações: aplica as que faltam (também em bancos já guardados de versões anteriores); o que já existe é ignorado.
+  db.exec('CREATE TABLE IF NOT EXISTS schema_migrations (name TEXT PRIMARY KEY, applied_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP))');
+  const applied = new Set(db.exec('SELECT name FROM schema_migrations')[0]?.values.map(v => v[0]) || []);
+  if (saved && applied.size === 0) for (const file of MIGRATIONS.slice(0, 10)) { applied.add(file); db.run('INSERT OR IGNORE INTO schema_migrations (name) VALUES (?)', [file]); } // bancos de teste anteriores à 9.5.1 já tinham 0000–0009
+  for (const file of MIGRATIONS) {
+    if (applied.has(file)) continue;
+    const r = await fetch(new URL('db/sqlite/' + file, BASE)); if (!r.ok) throw new Error('Migração não encontrada: ' + file);
+    for (const st of splitStatements(await r.text())) {
+      try { db.exec(st); } catch (e) { if (!/already exists|duplicate column name/i.test(e.message)) throw e; }
     }
+    db.run('INSERT OR IGNORE INTO schema_migrations (name) VALUES (?)', [file]);
+    D1.dirty = true;
   }
   const inspections = createInspections({db: D1, bucket: BUCKET, config: {ownerEmail: OWNER.email}, log: console,
     auth: {async sessionUser() { const u = currentUser(); return {id: u.id, email: u.email, name: u.name}; }, sameOrigin() { return true; }, baseUrl() { return BASE.href.replace(/\/$/, ''); }}});
@@ -111,7 +122,7 @@ async function start() {
     return response;
   }
 
-  function reset() { try { localStorage.removeItem(STORE_KEY); } catch {} location.reload(); }
+  async function reset() { try { localStorage.removeItem(STORE_KEY); } catch {} await IdbBucket.wipe(); location.reload(); }
 
   return {api, vistorias, reset, env, users: USERS, base: BASE};
 }

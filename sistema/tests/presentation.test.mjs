@@ -40,14 +40,9 @@ test('PowerPoint: estudos separados e versões históricas mantêm somente os gr
 });
 test('PowerPoint: pacote do navegador gera PPTX sem CDN ou rasterizar os gráficos',async()=>{
  const context={console,setTimeout,clearTimeout,TextEncoder,TextDecoder,Blob};context.window=context;context.globalThis=context;vm.createContext(context);vm.runInContext(await fs.readFile(new URL('../public/vendor/pptxgen.bundle.js',import.meta.url),'utf8'),context);assert.equal(typeof context.PptxGenJS,'function');const c=recalculatePopulationAndStudies(defaultStudy()),deck=buildPresentation(c.study,c.results,emptyBrand(),context.PptxGenJS),bytes=await serializePresentation(deck.pptx,context.JSZip);assert.equal(bytes[0],80);assert.equal(bytes[1],75);
- // Node 24: bytes vêm do contexto isolado (outro realm); normalizar antes de reler o zip.
- const normalized=Uint8Array.from(bytes);
- let zip=null;
- try{zip=await JSZip.loadAsync(normalized);}catch(error){
-  if(!/read the data of the loaded zip file/i.test(String(error)))throw error;
-  console.warn('Aviso: leitura do zip indisponível neste Node ('+process.version+'); arquivo PPTX gerado e cabeçalho validado.');
- }
- if(zip)assert.ok(zip.file('ppt/charts/chart1.xml'));
+ // Node 24: os bytes vêm do contexto isolado (outro realm); normalizar antes de reler o zip.
+ const zip=await JSZip.loadAsync(Uint8Array.from(bytes));
+ assert.ok(zip.file('ppt/charts/chart1.xml'),'o PPTX gerado contém o gráfico 1');
 });
 
 test('PowerPoint v7: tabela física, resultados por zona e gráficos editáveis usam dados do estudo',async()=>{const {makeFloorTable,synchronizeFloorTable}=await import('../public/building-floors.js');const s=normalizeStudy(defaultStudy());s.groups.forEach(g=>Object.assign(g,{stops:5,travel:12}));s.floorTable=makeFloorTable(s);s.floorTable.enabled=true;s.floorTable.rows.forEach((r,i)=>{r.served[s.groups[0].id]=[0,1,2].includes(i);r.served[s.groups[1].id]=[0,3,4].includes(i);});s.populationCalc.rows=[{...s.populationCalc.rows[0],amount:700},{...s.populationCalc.rows[0],floorMark:'2',servedFloorMark:'3',servedFloorLevel:3,floor:3,amount:1400}];const c=recalculatePopulationAndStudies(synchronizeFloorTable(s)),deck=buildPresentation(c.study,c.results,emptyBrand(),PptxGenJS),zip=await JSZip.loadAsync(await serializePresentation(deck.pptx,JSZip));assert.deepEqual(deck.chartIds,allStudyCharts(c.study,c.results).map(c=>c.id));assert.equal(new Set(deck.chartIds).size,deck.chartIds.length);assert.ok(deck.chartIds.some(id=>id==='zone-0-entry'));assert.ok(deck.chartIds.some(id=>id==='zone-1-entry'));const xml=(await Promise.all(Object.keys(zip.files).filter(n=>/^ppt\/slides\/slide\d+\.xml$/.test(n)).map(n=>zip.file(n).async('string')))).join('\n');for(const text of ['Pavimentos e grupos atendidos','Grupos atendidos (nº)','Resultados de Zona 1','Resultados de Zona 2','população','Novo nome'])if(!['população','Novo nome'].includes(text))assert.ok(xml.includes(text),text);assert.match(xml,/avaliados por zona|resultados por zona|ver resultados por zona/);assert.doesNotMatch(xml,/NaN|Infinity/);});

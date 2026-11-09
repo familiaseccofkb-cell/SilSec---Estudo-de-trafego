@@ -82,7 +82,7 @@ test('site: página inicial pública, contato, robots e links antigos do program
     r = await t.req('/modulos'); assert.equal(r.status, 200); assert.match(r.text, /R\$\s?797,00/); assert.match(r.text, /R\$\s?397,00/);
     r = await t.req('/servicos'); assert.equal(r.status, 200); assert.match(r.text, /Vistorias técnicas e laudos/); assert.doesNotMatch(r.text, /Adequação de caixa e poço/);
     r = await t.req('/orcamento'); assert.equal(r.status, 200); assert.match(r.text, /name="servicos"/);
-    r = await t.req('/contato', {method: 'POST', form: {origem: 'orcamento', nome: 'Gestora', email: 'gestora@adm.com', perfil: 'Administradora de condomínios', servicos: 'Vistoria técnica e laudo', pavimentos: '12', elevadores: '2', empresa: 'São Paulo', mensagem: 'Elevadores de 1998, muitas paradas.'}});
+    r = await t.req('/contato', {method: 'POST', form: {origem: 'orcamento', nome: 'Gestora', email: 'gestora@adm.com', perfil: 'Administradora de condomínios', servicos: 'Vistoria técnica e laudo', pavimentos: '12', elevadores: '2', cidade: 'São Paulo', mensagem: 'Elevadores de 1998, muitas paradas.'}});
     assert.equal(r.status, 303); assert.equal(r.location, '/orcamento?contato=enviado');
     // contato: grava, envia ao e-mail da SilSec com resposta para o visitante
     r = await t.req('/contato', {method: 'POST', form: {nome: 'Síndico Silva', email: 'sindico@predio.com', telefone: '11 99999-0000', empresa: 'Edifício Aurora', assunto: 'Modernização', mensagem: 'Gostaria de um orçamento.'}});

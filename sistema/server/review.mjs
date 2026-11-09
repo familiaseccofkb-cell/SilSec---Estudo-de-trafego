@@ -89,7 +89,8 @@ export async function reviewApi(ctx){
     // Restaura o estudo anterior. A revisão avança (invalida cópias abertas); se o estado anterior era calculado, a revisão calculada acompanha,
     // porque o estudo restaurado é exatamente o que gerou aquele cálculo — sem isso o projeto exigiria recálculo sem motivo.
     const restoredRevision=row.revision+1,restoredCalculated=c.previous_status==='calculated'&&c.previous_calculated_revision!==null?restoredRevision:c.previous_calculated_revision;
-    await run(db,'UPDATE projects SET study_json=?,status=?,calculation_snapshot=?,calculated_revision=?,revision=?,updated_at=? WHERE id=?',[c.previous_study_json,c.previous_status,c.previous_snapshot_json,restoredCalculated,restoredRevision,stamp,pid]);
+    const restoredName=c.previous_name??(JSON.parse(c.previous_study_json||'{}').name||row.name);
+    await run(db,'UPDATE projects SET study_json=?,status=?,calculation_snapshot=?,calculated_revision=?,revision=?,updated_at=?,name=?,client_id=? WHERE id=?',[c.previous_study_json,c.previous_status,c.previous_snapshot_json,restoredCalculated,restoredRevision,stamp,restoredName,c.previous_client_id??row.client_id,pid]);
     await run(db,"UPDATE project_changes SET status='rejected',decided_at=?,decided_by=? WHERE id=?",[stamp,user.id,c.id]);
     await audit(db,user,pid,'change.reject',{changeId:c.id});
     return json({id:c.id,status:'rejected'});
@@ -116,7 +117,7 @@ export async function recordProjectWrite(db,user,before,revision){
     if(!win)return;
     await run(db,"UPDATE project_access_requests SET status='used',decided_at=? WHERE id=?",[now(),win.id]);
     const cid=uid();
-    await run(db,'INSERT INTO project_changes (id,project_id,requester_id,requester_email,request_id,status,previous_study_json,previous_status,previous_snapshot_json,previous_calculated_revision,previous_revision,new_revision,created_at,decided_at,decided_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',[cid,before.id,user.id,user.email,win.id,'pending',before.study_json,before.status,before.calculation_snapshot||null,before.calculated_revision??null,before.revision,revision,now(),null,null]);
+    await run(db,'INSERT INTO project_changes (id,project_id,requester_id,requester_email,request_id,status,previous_study_json,previous_status,previous_snapshot_json,previous_calculated_revision,previous_revision,new_revision,created_at,decided_at,decided_by,previous_name,previous_client_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',[cid,before.id,user.id,user.email,win.id,'pending',before.study_json,before.status,before.calculation_snapshot||null,before.calculated_revision??null,before.revision,revision,now(),null,null,before.name,before.client_id]);
     await audit(db,user,before.id,'change.pending',{changeId:cid,revision});
     return;
   }

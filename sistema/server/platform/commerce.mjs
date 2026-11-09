@@ -82,9 +82,9 @@ export function createCommerce({db, config, mailer, auth, log = console, fetcher
     const name = String(f.get('nome') || '').trim().slice(0, 200), email = String(f.get('email') || '').trim().toLowerCase();
     const phone = String(f.get('telefone') || '').trim().slice(0, 40), company = String(f.get('empresa') || '').trim().slice(0, 200);
     const services = f.getAll('servicos').map(v => String(v).trim().slice(0, 80)).filter(Boolean).slice(0, 8);
-    const profile = String(f.get('perfil') || '').trim().slice(0, 80), floors = String(f.get('pavimentos') || '').trim().slice(0, 6), cars = String(f.get('elevadores') || '').trim().slice(0, 6);
+    const profile = String(f.get('perfil') || '').trim().slice(0, 80), city = String(f.get('cidade') || '').trim().slice(0, 120), floors = String(f.get('pavimentos') || '').trim().slice(0, 6), cars = String(f.get('elevadores') || '').trim().slice(0, 6);
     const subject = (services.length ? 'Orçamento · ' + services.join(', ') : String(f.get('assunto') || '').trim()).slice(0, 80);
-    const context = [profile && 'Perfil: ' + profile, floors && 'Pavimentos: ' + floors, cars && 'Elevadores: ' + cars].filter(Boolean).join(' · ');
+    const context = [profile && 'Perfil: ' + profile, city && 'Cidade do edifício: ' + city, floors && 'Pavimentos: ' + floors, cars && 'Elevadores: ' + cars].filter(Boolean).join(' · ');
     const message = ((context ? context + '\n\n' : '') + String(f.get('mensagem') || '').trim()).slice(0, 5000);
     if (!name || !validEmail(email) || String(f.get('mensagem') || '').trim().length < 3) return redirect(back('invalido'));
     await q('INSERT INTO contact_messages (id,name,email,phone,company,subject,message,ip,created_at) VALUES (?,?,?,?,?,?,?,?,?)', randomUUID(), name, email, phone, company, subject, message, ipOf(request).slice(0, 64), now()).run();

@@ -587,5 +587,5 @@ function restoreViewState(snap){
   }catch{}
 }
 
-function changeDimensionCar(el){if(isReadOnly())return;try{const i=Number(el.dataset.dimGroup),j=Number(el.dataset.dimCar),key=el.dataset.dimKey,value=el.value===''?null:key==='doorType'?el.value:Number(el.value);state.draft=setCarSiteDimension(state.draft,i,j,key,value);state.group=i;markDirty();persist();updateDerived();}catch(error){toast(error.message);el.value='';}}
+function changeDimensionCar(el){if(isReadOnly())return;try{const i=Number(el.dataset.dimGroup),j=Number(el.dataset.dimCar),key=el.dataset.dimKey,value=el.value===''?null:key==='doorType'?el.value:Number(el.value);state.draft=setCarSiteDimension(state.draft,i,j,key,value);state.group=i;markDirty();persist();if(key==='doorWidth'||key==='doorType')render();else updateDerived();}catch(error){toast(error.message);render();}}
 function copyDimensionCar(data){if(isReadOnly())return;try{state.draft=copyCarSiteDimensions(state.draft,Number(data.group),Number(data.car));markDirty();persist();render();toast('Parâmetros do elevador copiados para os demais.');}catch(error){toast(error.message);}}

@@ -1,21 +1,16 @@
-# SilSec · pacote de implantação de 2026-11-09 (9.5.2)
+# SilSec · pacote de implantação de 2026-11-09 (9.5.3)
 
-- Versão do aplicativo: 9.5.2 (fonte única em public/version.js; package.json e public/sw.js conferidos por tests/versao.test.mjs).
-- Correções do relatório do Code sobre a 9.5.1:
-  1. Nenhuma medida da tabela dimensional herda do grupo: cada elevador mostra só o que foi digitado para ele (`carSiteDimensionValues`); o grupo apenas espelha o elevador vinculado para a avaliação do produto. Estudos antigos (só levantamento do grupo) migram as medidas para o elevador vinculado ao carregar.
-  2. Copiar coluna copia só os valores próprios do elevador de origem (nada herdado); valores dos outros elevadores não são apagados.
-  3. Setores de destino: -1, 1000 e não inteiros são recusados na digitação, o campo volta ao valor anterior; texto de ajuda revisto.
-  4. `teste-claude/arquivos-do-servidor.json` inclui `db/sqlite/0010_alteracoes_nome_cliente.sql`.
-  5. `.env.example` com `u123456789_silsec`.
-  6. `package-lock.json`: continua a cargo do Code (`npm install`), sem rede aqui.
-  7. Testes de tela para os itens 1 e 2 (tests/flows.test.mjs) e de módulo (tests/car-dimensions.test.mjs); teste de tela para o item 3.
-  - Melhoria atendida: aviso ao abrir estudo com medidas fora de faixa descartadas. O guia indica que `docs/` fica só no pacote completo.
-- Pedidos do Fabio (09/11):
-  - Botão de mostrar/ocultar senha ("lupa") em todos os campos de senha: entrar, criar/redefinir senha e minha conta (`server/platform/auth-pages.mjs`).
-  - Contas da administração com acesso permanente (contagem infinita): contato@silsec-engenharia.com.br, fabio.secco@silsec-engenharia.com.br, fabiosecco@hotmail.com e fabiossecco@gmail.com — entram sempre como administradoras, ativas e sem vencimento; lista configurável em `SITE_OWNER_EMAILS` (padrão com os quatro). Teste em tests/contas-administracao.test.mjs.
-  - Administrador de exemplo no guia e no `.env.example`: fabiosecco@hotmail.com. Janela de teste no Claude entra como "Fabio Secco".
-- Pacotes: `silsec-producao-2026-11-09b.zip` (só o que vai para a Hostinger) e `silsec-completo-2026-11-09b.zip` (tudo).
-- Testes: 558 com pptxgenjs/jszip (545 sem o módulo de apresentação; 544 aprovados na origem).
-- Pendências: teste em MySQL real (só no Code, exige Node com npm na máquina dele); troca da senha do banco na Hostinger antes de publicar. Nada publicado; nada juntado à `main`.
+- Versão do aplicativo: 9.5.3 (fonte única em public/version.js; package.json e public/sw.js conferidos por tests/versao.test.mjs).
+- Correções do relatório do Code sobre a 9.5.2:
+  1. Alerta de altura de volta ao relatório (tela, impressão, HTML, PPTX): `projectFleet()` (public/fleet.js) agora leva `siteDimensions` de cada elevador para o estudo de cálculo. Teste de tela calcula e procura o alerta em `#print-report` (tests/flows.test.mjs); conferido também em navegador real na janela de teste.
+  2. Aviso de medidas descartadas virou painel fixo no topo do estudo (não some com o aviso do módulo), fechado em "Entendi"; aparece ao abrir projeto e ao importar arquivo.
+  3. O aviso mostra o valor descartado ("quantidade de portas: 9").
+  4. Nota abaixo da tabela dimensional revista: nenhum campo herda do grupo.
+  5. Endereços corretos no envio: /entrar, /redefinir-senha, /verificar e /conta.
+  - Melhoria atendida: a contagem "N alerta(s) de altura" no título do grupo atualiza ao sair do campo.
+- Mantido da 9.5.2: medidas por elevador sem herança, setores validados, lupa na senha, contas da administração permanentes (os quatro e-mails; grafia fabiossecco@gmail.com confirmada pelo Fabio).
+- Pacotes: `silsec-producao-2026-11-09c.zip` e `silsec-completo-2026-11-09c.zip`.
+- Testes: 561 com pptxgenjs/jszip (548 sem o módulo de apresentação; 547 aprovados na origem). `package-lock.json` gerado pelo Code (Node 26 / npm 11.20) — pedir para commitar na branch.
+- Pendências: MySQL real (o Code tem o roteiro pronto; depende da senha root do MariaDB digitada pelo Fabio); troca da senha do banco na Hostinger antes de publicar. Nada publicado; nada juntado à `main`.
 
 A lista completa de arquivos com SHA-256 está em LISTA-DE-ARQUIVOS.txt.

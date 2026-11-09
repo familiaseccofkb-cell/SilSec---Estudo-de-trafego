@@ -115,3 +115,4 @@
 
 .limit-exceeded th,.limit-exceeded td{color:var(--red)!important;font-weight:700}.limit-exceeded{background:var(--amber-bg);box-shadow:inset 3px 0 var(--red)}.limit-exceeded td{white-space:normal}@media print{.limit-exceeded th,.limit-exceeded td{color:#b3261e!important;background:#fff3cd!important}}
 .limit-exceeded,.limit-exceeded th,.limit-exceeded td{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.discarded-notice{border-left-color:#b42318}.discarded-notice ul{max-height:160px;overflow:auto}

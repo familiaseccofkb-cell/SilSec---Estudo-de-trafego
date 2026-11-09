@@ -6,6 +6,13 @@ Notas da versão original (protótipo hospedado em outra plataforma). As regras 
 
 Use as cinco telas Cadastro, Parâmetros de cálculo, Cálculo populacional, Gráficos de performance e economias e Cálculo de tráfego. O estudo inicial usa 396 pessoas e três elevadores em dois grupos. O motor NBR é preferencial e o modelo ISO do documento fornecido é independente. Precisão integral de interpolação é o único critério de arredondamento intermediário.
 
+### Versão 9.5.3 (novembro de 2026)
+
+- **Alerta de altura volta ao relatório** (tela, impressão, HTML e PowerPoint): as medidas próprias de cada elevador passam a acompanhar o estudo de cálculo montado por `projectFleet()`.
+- **Medidas descartadas:** aviso fixo no topo do estudo, com cada valor descartado, fechado em "Entendi" (não é mais coberto pelo aviso do módulo); também na importação de arquivo.
+- Nota da tabela dimensional revista (nenhum campo herda do grupo); contagem de alertas no título do grupo atualiza ao sair do campo.
+- Testes: 561 com pptxgenjs (548 sem ele; 3 novos de tela).
+
 ### Versão 9.5.2 (novembro de 2026)
 
 - **Tabela dimensional:** nenhuma medida herda mais do grupo — cada elevador mostra só o que foi digitado para ele (o grupo apenas espelha o elevador vinculado para a avaliação do produto); copiar coluna copia só valores próprios; estudos antigos migram o levantamento do grupo para o elevador vinculado; aviso ao abrir estudo com medidas fora de faixa descartadas.

@@ -280,7 +280,7 @@ test('tela: alerta de altura aparece por elevador, persiste após digitar outro 
  click('add-group');click('parameter-tab',{tab:'dimensions'});
  const second=state().draft.groups.length-1;input('groups.'+second+'.count',1);
  dimInput(second,0,'cabinHeight',1600);
- assert.match(app.innerHTML,/<summary>[^<]*<span class="score-red">· 1 alerta de altura<\/span><\/summary>/,'resumo do grupo fechado mostra a contagem');
+ assert.match(app.innerHTML,/<summary>[^<]*<span id="height-count-\d+"> <span class="score-red">· 1 alerta de altura<\/span><\/span><\/summary>/,'resumo do grupo fechado mostra a contagem');
 });
 test('tela: estudo antigo com medida inválida é saneado ao carregar',()=>{
  retrofit3();
@@ -309,4 +309,31 @@ test('tela: setores de destino recusam -1 e 1000 na digitação e mantêm o valo
  input('destination.sectors',-1);assert.equal(state().draft.destination.sectors,2);assert.match(toast.textContent||toast.innerHTML,/Setores de destino/);
  input('destination.sectors',1000);assert.equal(state().draft.destination.sectors,2);
  input('destination.sectors',0);assert.equal(state().draft.destination.sectors,0);
+});
+// ---- Relatório do Code de 09/11 (9.5.2) ----
+test('tela: alerta de altura do elevador 2 chega ao relatório (tela, impressão e HTML) após calcular',()=>{
+ retrofit3();dimInput(0,1,'cabinHeight',1500);
+ click('calculate');assert.equal(state().calculationComplete,true);
+ const print=document.querySelector('#print-report').innerHTML;
+ assert.match(print,/Elevador 2 · /,'alerta de altura no relatório impresso');
+ assert.doesNotMatch(print,/Elevador 3 · /,'sem alerta no elevador 3 (vazio)');
+ // A etapa Relatório copia #print-report para #screen-report no navegador real (fora do alcance deste adaptador de DOM).
+});
+test('tela: medidas descartadas viram aviso fixo com o valor descartado, que só some em "Entendi"',async()=>{
+ retrofit3();
+ const s=structuredClone(state().draft);s.groups[0].dimensionCars=[undefined,{siteDimensions:{shaftWidth:-50,doorCount:9}}];
+ fileInput.files=[{size:1000,text:async()=>JSON.stringify({schemaVersion:1,study:s})}];await fileInput.listeners.change({target:fileInput});
+ assert.match(toast.textContent,/importado/,'o aviso do módulo/importação continua sendo um toast');
+ assert.match(app.innerHTML,/Medidas fora de faixa descartadas ao abrir o estudo \(2\)/);
+ assert.match(app.innerHTML,/quantidade de portas: 9/);
+ assert.match(app.innerHTML,/frente da caixa: -50 mm/);
+ click('workflow-step',{view:'parameters'});
+ assert.match(app.innerHTML,/Medidas fora de faixa descartadas/,'continua visível depois de navegar e de outros avisos');
+ click('dismiss-discarded');
+ assert.doesNotMatch(app.innerHTML,/Medidas fora de faixa descartadas/);
+});
+test('tela: a nota da tabela dimensional não fala mais em herdar do grupo',()=>{
+ retrofit3();
+ assert.doesNotMatch(app.innerHTML,/usa o valor do grupo/);
+ assert.match(app.innerHTML,/um campo vazio fica vazio/);
 });

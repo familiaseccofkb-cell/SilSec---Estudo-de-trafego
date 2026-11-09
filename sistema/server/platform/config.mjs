@@ -32,6 +32,8 @@ export function readConfig(env = process.env) {
     appUrl: (env.APP_URL || '').replace(/\/+$/, ''),
     android: {packageName: (env.ANDROID_PACKAGE_NAME || '').trim(), fingerprints: (env.ANDROID_SHA256_FINGERPRINTS || '').split(',').map(s => s.trim().toUpperCase()).filter(f => /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(f))},
     ownerEmail: (env.SITE_OWNER_EMAIL || '').trim().toLowerCase(),
+    // Contas da administração com acesso permanente (sem contagem de dias): SITE_OWNER_EMAIL mais SITE_OWNER_EMAILS (separados por vírgula).
+    ownerEmails: ownerEmailList(env),
     production: env.NODE_ENV === 'production',
     // Modo computador: um único usuário local, sem login, servidor só em 127.0.0.1 (SILSEC_DESKTOP=1).
     desktop: env.SILSEC_DESKTOP === '1',
@@ -74,7 +76,14 @@ export function readConfig(env = process.env) {
 // Ambiente entregue à API (mesmos nomes usados pelo código original).
 export function apiEnv(config, db, bucket) {
   return {
-    DB: db, BUCKET: bucket, SITE_OWNER_EMAIL: config.ownerEmail,
+    DB: db, BUCKET: bucket, SITE_OWNER_EMAIL: config.ownerEmail, SITE_OWNER_EMAILS: [...config.ownerEmails].join(','),
     AI: config.ai,
   };
 }
+
+export const DEFAULT_OWNER_EMAILS = ['contato@silsec-engenharia.com.br', 'fabio.secco@silsec-engenharia.com.br', 'fabiosecco@hotmail.com', 'fabiossecco@gmail.com'];
+export function ownerEmailList(env) {
+  const extra = (env.SITE_OWNER_EMAILS === undefined ? DEFAULT_OWNER_EMAILS.join(',') : env.SITE_OWNER_EMAILS).split(',');
+  return new Set([env.SITE_OWNER_EMAIL || '', ...extra].map(e => e.trim().toLowerCase()).filter(e => e.includes('@')));
+}
+export const isOwnerEmail = (config, email) => !!email && config.ownerEmails.has(String(email).trim().toLowerCase());

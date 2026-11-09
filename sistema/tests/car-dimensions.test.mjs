@@ -121,3 +121,48 @@ test('tela: medida fora da faixa é recusada na digitação',()=>{
   const apagado=setCarSiteDimension(ok,0,1,'shaftWidth',null);
   assert.equal(apagado.groups[0].dimensionCars[1].siteDimensions.shaftWidth,null);
 });
+
+// ---- Relatório do Code de 09/11: nenhuma medida herda do grupo; copiar só o que foi digitado ----
+test('altura e demais medidas digitadas no elevador 1 não aparecem nos outros elevadores',()=>{
+  const s=fleetStudy();s.groups[0].count=3;
+  let out=setCarSiteDimension(s,0,0,'cabinHeight',2300);
+  out=setCarSiteDimension(out,0,1,'cabinHeight',1500);
+  assert.equal(carSiteDimensionValues(out.groups[0],0,out).cabinHeight,2300);
+  assert.equal(carSiteDimensionValues(out.groups[0],1,out).cabinHeight,1500);
+  assert.equal(carSiteDimensionValues(out.groups[0],2,out).cabinHeight,null,'elevador 3 nunca digitado fica vazio');
+  for(const k of ['shaftWidth','headroom','pit','doorHeight']){
+    const o=setCarSiteDimension(s,0,0,k,k==='pit'?1400:2500);
+    assert.equal(carSiteDimensionValues(o.groups[0],2,o)[k],null,k+' não herda');
+  }
+  // O grupo continua espelhando o elevador vinculado, para a avaliação dimensional do produto.
+  assert.equal(out.groups[0].siteDimensions.cabinHeight,2300);
+});
+
+test('alerta de altura só no elevador com a medida baixa',async()=>{
+  const {carHeightWarnings}=await import('../public/dimensions.js');
+  const s=fleetStudy();s.groups[0].count=3;
+  const out=setCarSiteDimension(s,0,0,'cabinHeight',1500);
+  const units=carHeightWarnings(out,out.groups[0]).map(w=>w.unit);
+  assert.ok(units.length>0);assert.ok(units.every(u=>u===1),'só o elevador 1 recebe alerta: '+JSON.stringify(units));
+});
+
+test('copiar coluna de um elevador sem valor próprio não apaga os valores dos outros',()=>{
+  const s=fleetStudy();s.groups[0].count=3;
+  let out=setCarSiteDimension(s,0,0,'cabinHeight',2300);
+  out=setCarSiteDimension(out,0,1,'cabinHeight',1500);
+  out=copyCarSiteDimensions(out,0,2);
+  assert.equal(carSiteDimensionValues(out.groups[0],1,out).cabinHeight,1500,'o 1.500 próprio do elevador 2 é mantido');
+  assert.equal(carSiteDimensionValues(out.groups[0],0,out).cabinHeight,2300);
+});
+
+test('estudo antigo (só levantamento do grupo) migra as medidas para o elevador vinculado',async()=>{
+  const {sanitizeCarSiteDimensions}=await import('../public/dimensions.js');
+  const s=fleetStudy();s.groups[0].count=3;
+  s.groups[0].siteDimensions={...s.groups[0].siteDimensions,cabinHeight:2300,shaftWidth:1800};
+  delete s.groups[0].dimensionCars;
+  const out=sanitizeCarSiteDimensions(s);
+  assert.equal(carSiteDimensionValues(out.groups[0],0,out).cabinHeight,2300);
+  assert.equal(carSiteDimensionValues(out.groups[0],0,out).shaftWidth,1800);
+  assert.equal(carSiteDimensionValues(out.groups[0],1,out).cabinHeight,null);
+  assert.equal(carSiteDimensionValues(out.groups[0],2,out).shaftWidth,null);
+});

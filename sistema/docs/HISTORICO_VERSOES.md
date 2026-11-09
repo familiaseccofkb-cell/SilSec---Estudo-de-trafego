@@ -6,6 +6,15 @@ Notas da versão original (protótipo hospedado em outra plataforma). As regras 
 
 Use as cinco telas Cadastro, Parâmetros de cálculo, Cálculo populacional, Gráficos de performance e economias e Cálculo de tráfego. O estudo inicial usa 396 pessoas e três elevadores em dois grupos. O motor NBR é preferencial e o modelo ISO do documento fornecido é independente. Precisão integral de interpolação é o único critério de arredondamento intermediário.
 
+### Versão 9.5.2 (novembro de 2026)
+
+- **Tabela dimensional:** nenhuma medida herda mais do grupo — cada elevador mostra só o que foi digitado para ele (o grupo apenas espelha o elevador vinculado para a avaliação do produto); copiar coluna copia só valores próprios; estudos antigos migram o levantamento do grupo para o elevador vinculado; aviso ao abrir estudo com medidas fora de faixa descartadas.
+- **Setores de destino:** valores fora de 0…(andares atendidos − 1) são recusados na digitação.
+- **Contas da administração com acesso permanente:** contato@silsec-engenharia.com.br, fabio.secco@silsec-engenharia.com.br, fabiosecco@hotmail.com e fabiossecco@gmail.com entram sempre como administradores, sem contagem de dias (lista configurável em `SITE_OWNER_EMAILS`).
+- **Senhas:** botão de mostrar/ocultar a senha em todas as telas (entrar, criar senha, minha conta).
+- `teste-claude/arquivos-do-servidor.json` inclui a migração 0010; `.env.example` com nome genérico de banco e administrador fabiosecco@hotmail.com.
+- Testes: 558 com pptxgenjs (545 sem ele; 11 novos: contas da administração, lupa, medidas por elevador, cópia, setores).
+
 ### Versão 9.5.1 (novembro de 2026)
 
 - **Tabela dimensional por elevador** (Parâmetros de cálculo): caixa, altura da última parada, poço, porta e tipo de porta em colunas, uma por elevador, com cópia da coluna do elevador N para as demais; validação de faixas na digitação; alertas de altura por elevador no resumo e no relatório.

@@ -10,7 +10,7 @@ const USER_KEY = 'silsec-teste-usuario-v1';
 const BASE = new URL('.', document.baseURI);
 
 export const USERS = [
-  {key: 'dono', id: 'fabio-secco-admin', email: 'contato@silsec-engenharia.com.br', name: 'Administração SilSec', label: 'Administrador (dono do site)'},
+  {key: 'dono', id: 'fabio-secco-admin', email: 'fabiosecco@hotmail.com', name: 'Fabio Secco', label: 'Administrador · Fabio Secco (dono do site)'},
   {key: 'gestorA', id: 'gestor@empresa-a.teste', email: 'gestor@empresa-a.teste', name: 'Gestor da Empresa A', label: 'Gestor · Empresa A (contratante)'},
   {key: 'funcA', id: 'funcionario@empresa-a.teste', email: 'funcionario@empresa-a.teste', name: 'Funcionário da Empresa A', label: 'Funcionário · Empresa A'},
   {key: 'gestorB', id: 'gestor@empresa-b.teste', email: 'gestor@empresa-b.teste', name: 'Gestor da Empresa B', label: 'Gestor · Empresa B (outra empresa)'},
@@ -82,7 +82,8 @@ async function start() {
   const db = saved ? new SQL.Database(fromBase64(saved)) : new SQL.Database();
   const D1 = new SqlJsD1(db);
   const BUCKET = new IdbBucket();
-  const env = {DB: D1, BUCKET, SITE_OWNER_EMAIL: OWNER.email, APP_URL: BASE.href.replace(/\/$/, '')};
+  const OWNER_EMAILS = ['contato@silsec-engenharia.com.br', 'fabio.secco@silsec-engenharia.com.br', 'fabiosecco@hotmail.com', 'fabiossecco@gmail.com'];
+  const env = {DB: D1, BUCKET, SITE_OWNER_EMAIL: OWNER.email, SITE_OWNER_EMAILS: OWNER_EMAILS.join(','), APP_URL: BASE.href.replace(/\/$/, '')};
   // Migrações: aplica as que faltam (também em bancos já guardados de versões anteriores); o que já existe é ignorado.
   db.exec('CREATE TABLE IF NOT EXISTS schema_migrations (name TEXT PRIMARY KEY, applied_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP))');
   const applied = new Set(db.exec('SELECT name FROM schema_migrations')[0]?.values.map(v => v[0]) || []);
@@ -96,7 +97,7 @@ async function start() {
     db.run('INSERT OR IGNORE INTO schema_migrations (name) VALUES (?)', [file]);
     D1.dirty = true;
   }
-  const inspections = createInspections({db: D1, bucket: BUCKET, config: {ownerEmail: OWNER.email}, log: console,
+  const inspections = createInspections({db: D1, bucket: BUCKET, config: {ownerEmail: OWNER.email, ownerEmails: new Set(OWNER_EMAILS)}, log: console,
     auth: {async sessionUser() { const u = currentUser(); return {id: u.id, email: u.email, name: u.name}; }, sameOrigin() { return true; }, baseUrl() { return BASE.href.replace(/\/$/, ''); }}});
 
   let timer = null;

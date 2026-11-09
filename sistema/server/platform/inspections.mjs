@@ -2,6 +2,8 @@
 // com conformidade, medições, opções e fotos tiradas no celular, e o sistema gera o relatório com as não conformidades.
 import {randomUUID} from 'node:crypto';
 import {consolePage, esc, notice, fmtDateTime} from '../site/pages.mjs';
+// Contas da administração com acesso permanente (lista em config.ownerEmails).
+const isOwnerEmail = (config, email) => { const e = String(email || '').trim().toLowerCase(); return !!e && (config.ownerEmails ? config.ownerEmails.has(e) : e === config.ownerEmail); };
 
 export const INSPECTION_BASE = '/vistorias';
 const TYPES = {texto: 'Texto', numero: 'Número', ok: 'Conforme / não conforme', opcoes: 'Opções', foto: 'Foto', data: 'Data'};
@@ -98,7 +100,7 @@ export function createInspections({db, bucket, auth, config, log = console}) {
   const page = (session, title, body, message) => html(consolePage({title, session, body: notice(message) + body, wide: true}));
 
   async function isAdmin(session) {
-    if (session.email === config.ownerEmail) return true;
+    if (isOwnerEmail(config, session.email)) return true;
     const m = await q('SELECT role, active FROM members WHERE email = ?', session.email).first();
     return !!(m && m.active && m.role === 'admin');
   }

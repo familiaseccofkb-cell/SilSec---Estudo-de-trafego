@@ -37,11 +37,13 @@ export function applyCatalogGroup(group,record){const g=copy(group),data=reusabl
 export function supplyConditionForm(study,h){const {select}=h;return `<section class="card card-body"><h2>Condição de fornecimento</h2>${select('Obra nova, retrofit ou Substituição total','supplyCondition.type',{'':'Selecionar condição',...SUPPLY_TYPES},'O gestor informa as dimensões existentes no retrofit/substituição total. O fornecedor registra seu produto e seu próprio levantamento em campo.')}<p class="small-copy">Dimensões e faixas são declarações documentadas do fabricante. Relações entre velocidade, cabina, portas, poço e última altura são consultadas por configuração no catálogo; não são deduzidas como mínimos normativos universais.</p></section>`;}
 const SITE_TABLE_ROWS=()=>[...SITE_FIELDS.map(([k,l])=>({k,l:l+' existente (mm)',t:'number'})),{k:'doorType',l:'Tipo de porta existente',t:'select'},{k:'doorCount',l:'Quantidade de portas da cabina existente',t:'number'}];
 export function carSiteDimensionValues(g,j,study){
+ // Cada elevador mostra só o que foi digitado para ele: nenhuma medida herda do grupo (o grupo apenas espelha o elevador vinculado,
+ // para a avaliação dimensional do produto). Assim o que se digita no elevador 1 não "vaza" para os outros.
  const own=g.dimensionCars?.[j]?.siteDimensions||{};
- const values={...emptySiteDimensions(),...(g.siteDimensions||{}),...own};
+ const values={...emptySiteDimensions(),...own};
  delete values.carId;
  // Abertura da porta: o valor digitado para este elevador vale primeiro; depois a largura real do elevador;
- // o valor do grupo só quando o elevador não tem largura — assim a porta do elevador 1 não "vaza" para os outros.
+ // o valor do grupo só quando o elevador não tem largura.
  if(!Number.isFinite(own.doorWidth)){
   const car=study?fleetCars(study,g)[j]:null;
   values.doorWidth=Number.isFinite(car?.width)?car.width:(Number.isFinite(g.siteDimensions?.doorWidth)?g.siteDimensions.doorWidth:null);
@@ -49,8 +51,16 @@ export function carSiteDimensionValues(g,j,study){
  return values;
 }
 export function carHeightWarnings(study,g){const cars=fleetCars(study,g);return cars.length?cars.flatMap((c,j)=>heightWarnings(carSiteDimensionValues(g,j,study)).map(w=>({...w,unit:j+1}))):heightWarnings(g.siteDimensions).map(w=>({...w,unit:null}));}
+// Medidas descartadas na última abertura de estudo (fora de faixa); o aplicativo avisa o usuário.
+export const sanitizeReport={discarded:[]};
 export function sanitizeCarSiteDimensions(study){
- for(const g of study.groups||[]){if(!Array.isArray(g.dimensionCars))continue;g.dimensionCars=g.dimensionCars.map(entry=>{if(!entry?.siteDimensions)return entry;const d={...entry.siteDimensions};for(const [k] of SITE_FIELDS){const v=d[k];if(v===null||v===undefined||v==='')continue;const ok=k==='doorWidth'?n(v,300,4000):n(v,k==='pit'?0:.01,50000);if(!ok)d[k]=null;}if(d.doorType!==undefined&&d.doorType!==null&&d.doorType!==''&&!DOOR_TYPES[d.doorType])d.doorType=null;if(d.doorCount!==undefined&&d.doorCount!==null&&d.doorCount!==''&&(!Number.isInteger(d.doorCount)||!n(d.doorCount,1,4)))d.doorCount=null;return {...entry,siteDimensions:d};});}
+ sanitizeReport.discarded=[];
+ for(const [gi,g] of (study.groups||[]).entries()){
+  // Estudo anterior à tabela por elevador: o levantamento guardado no grupo pertence ao elevador vinculado; os demais ficam vazios.
+  const hasOwn=(g.dimensionCars||[]).some(e=>e?.siteDimensions&&Object.entries(e.siteDimensions).some(([k,v])=>k!=='carId'&&v!==null&&v!==undefined&&v!==''));
+  const groupHas=g.siteDimensions&&[...SITE_FIELDS.map(([k])=>k),'doorType','doorCount'].some(k=>k!=='doorWidth'&&g.siteDimensions[k]!==null&&g.siteDimensions[k]!==undefined&&g.siteDimensions[k]!=='');
+  if(!hasOwn&&groupHas&&fleetCars(study,g).length){const j=linkedCarIndex(study,g);g.dimensionCars=g.dimensionCars||[];const d={...g.siteDimensions};delete d.carId;g.dimensionCars[j]={...(g.dimensionCars[j]||{}),siteDimensions:d};}
+  if(!Array.isArray(g.dimensionCars))continue;g.dimensionCars=g.dimensionCars.map(entry=>{if(!entry?.siteDimensions)return entry;const d={...entry.siteDimensions};for(const [k] of SITE_FIELDS){const v=d[k];if(v===null||v===undefined||v==='')continue;const ok=k==='doorWidth'?n(v,300,4000):n(v,k==='pit'?0:.01,50000);if(!ok){d[k]=null;sanitizeReport.discarded.push(`Grupo ${gi+1} · elevador ${g.dimensionCars.indexOf(entry)+1} · ${SITE_FIELDS.find(([kk])=>kk===k)[1].toLowerCase()}: ${v} mm`);}}if(d.doorType!==undefined&&d.doorType!==null&&d.doorType!==''&&!DOOR_TYPES[d.doorType]){d.doorType=null;sanitizeReport.discarded.push(`Grupo ${gi+1} · elevador ${g.dimensionCars.indexOf(entry)+1} · tipo de porta inválido`);}if(d.doorCount!==undefined&&d.doorCount!==null&&d.doorCount!==''&&(!Number.isInteger(d.doorCount)||!n(d.doorCount,1,4))){d.doorCount=null;sanitizeReport.discarded.push(`Grupo ${gi+1} · elevador ${g.dimensionCars.indexOf(entry)+1} · quantidade de portas: ${d.doorCount}`);}return {...entry,siteDimensions:d};});}
  return study;
 }
 export function setCarSiteDimension(study,i,j,key,value){
@@ -81,7 +91,9 @@ export function copyCarSiteDimensions(study,i,source){
  if(!g0)throw Error('Grupo não encontrado.');
  const cars=fleetCars(study,g0);
  if(!cars[source])throw Error('Elevador de origem não encontrado.');
- const values=carSiteDimensionValues(g0,source,study);
+ // Copia só o que foi digitado para o elevador de origem (nada herdado); a porta usa a largura real do elevador.
+ const own=g0.dimensionCars?.[source]?.siteDimensions||{};
+ const values={...own,doorWidth:carSiteDimensionValues(g0,source,study).doorWidth};
  let out=study;
  cars.forEach((_,j)=>{if(j===source)return;for(const r of SITE_TABLE_ROWS()){const v=values[r.k];if(v===null||v===undefined||v==='')continue;out=setCarSiteDimension(out,i,j,r.k,v);}});
  return out;

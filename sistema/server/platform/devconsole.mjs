@@ -5,6 +5,8 @@ import {randomUUID} from 'node:crypto';
 import {resolveLicenses, addCalendarMonths} from '../../public/licensing.js';
 import {ROLES} from '../../public/procurement.js';
 import {consolePage, esc, notice, fmtDate, fmtDateTime, brl} from '../site/pages.mjs';
+// Contas da administração com acesso permanente (lista em config.ownerEmails).
+const isOwnerEmail = (config, email) => { const e = String(email || '').trim().toLowerCase(); return !!e && (config.ownerEmails ? config.ownerEmails.has(e) : e === config.ownerEmail); };
 
 export const ADMIN_BASE = '/admin';
 const MODULES = {basic: 'Básico', advanced: 'Completo'};
@@ -34,7 +36,7 @@ export function createDevConsole({db, auth, config, commerce, log = console}) {
     if (!session) return null;
     const m = await q('SELECT * FROM members WHERE site_user_id = ? OR email = ? ORDER BY is_owner DESC LIMIT 1', session.id, session.email).first();
     if (m && m.active && m.role === 'admin') return m;
-    if (session.email === config.ownerEmail) return {id: session.id, email: session.email, name: session.name, role: 'admin', active: 1, is_owner: 1};
+    if (isOwnerEmail(config, session.email)) return {id: session.id, email: session.email, name: session.name, role: 'admin', active: 1, is_owner: 1};
     return null;
   }
   async function audit(admin, event, data) {

@@ -11,7 +11,7 @@ O SilSec é publicado em `silsec-engenharia.com.br` como **Node.js Web App** (es
 | `/ativar` | Ativação de chaves de cortesia (parcerias e turmas de faculdade) |
 | `/vistorias` | Vistorias guiadas: modelos (você edita), preenchimento no celular com fotos e relatório |
 | `/painel` | Seu painel: chaves, clientes, pagamentos e mensagens do site |
-| `/admin` | Console do desenvolvedor: usuários, acessos, pagamentos manuais, manutenção e cópias de segurança (ver `docs/APLICATIVOS.md`) |
+| `/admin` | Console do desenvolvedor: usuários, acessos, pagamentos manuais, manutenção e cópias de segurança (ver `docs/APLICATIVOS.md` no pacote completo; a pasta `docs/` não vai para a hospedagem) |
 
 ## Antes de começar
 
@@ -79,7 +79,7 @@ Quando o pagamento é aprovado, o sistema confere o valor direto no Mercado Pago
 | Variável | Exemplo | Para que serve |
 |---|---|---|
 | `NODE_ENV` | `production` | modo de produção |
-| `SITE_OWNER_EMAIL` | `contato@silsec-engenharia.com.br` (ou o e-mail que você já usa como administrador) | quem cria conta com este e-mail vira administrador |
+| `SITE_OWNER_EMAIL` | `fabiosecco@hotmail.com` (e-mail do administrador do sistema; não precisa ser a caixa de envio) | quem cria conta com este e-mail vira administrador |
 | `APP_URL` | `https://silsec-engenharia.com.br` | endereço usado nos links dos e-mails |
 | `DB_HOST` | `localhost` | servidor do banco |
 | `DB_NAME` | `u123456789_silsec` (o nome criado no passo 1, com o prefixo da Hostinger) | nome do banco |

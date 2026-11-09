@@ -21,6 +21,7 @@ const css = `
 .auth-msg.erro{background:var(--red-bg);color:var(--red);border:1px solid #f1cdc9}
 .auth-msg.ok{background:var(--teal-light);color:#176352;border:1px solid #d1e9df}
 .auth-hint{font-size:11px;color:var(--muted);margin-top:-8px}
+.pw-wrap{position:relative}.pw-wrap input{width:100%;padding-right:44px;box-sizing:border-box}.pw-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:var(--muted);width:34px;height:34px;border-radius:8px;cursor:pointer;display:grid;place-items:center}.pw-eye:hover,.pw-eye[aria-pressed=true]{color:var(--teal,#087e79);background:var(--teal-light,#e6f3f1)}
 @media (max-width:820px){.auth-contact{display:none}.auth-foot-contact{display:block!important}.auth-wrap{grid-template-columns:1fr;grid-template-rows:auto 1fr}.auth-main{align-items:flex-start;padding-top:36px}.auth-side{padding:16px 20px}.auth-side h2,.auth-side p{display:none}.auth-side{flex-direction:row;align-items:center}.auth-logo img{width:120px}.auth-logo{padding:8px 12px}}
 `;
 
@@ -39,10 +40,16 @@ export function page({title, heading, lead = '', body, message = null}) {
 ${message ? `<p class="auth-msg ${message.kind === 'ok' ? 'ok' : 'erro'}" role="${message.kind === 'ok' ? 'status' : 'alert'}">${esc(message.text)}</p>` : ''}
 ${body}
 <p class="auth-foot-contact" style="display:none;margin-top:28px;font-size:12px;color:var(--muted)">${esc(BRAND.name)} · <a href="${BRAND.phoneHref}">${esc(BRAND.phone)}</a> · <a href="mailto:${esc(BRAND.email)}">${esc(BRAND.email)}</a></p>
-</div></main></div></body></html>`;
+</div></main></div>
+<script>document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.pw-eye');if(!b)return;var i=document.getElementById(b.getAttribute('data-pw'));if(!i)return;var show=i.type==='password';i.type=show?'text':'password';b.setAttribute('aria-pressed',show?'true':'false');b.setAttribute('aria-label',show?'Ocultar senha':'Mostrar senha');b.title=show?'Ocultar senha':'Mostrar o que estou digitando';i.focus();});</script>
+</body></html>`;
 }
 
-const field = (label, name, type, attrs = '') => `<div class="field"><label for="${name}">${label}</label><input id="${name}" name="${name}" type="${type}" ${attrs}></div>`;
+const EYE = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+// Campo de senha com o botão "mostrar o que estou digitando" (lupa/olho).
+const field = (label, name, type, attrs = '') => type === 'password'
+  ? `<div class="field"><label for="${name}">${label}</label><div class="pw-wrap"><input id="${name}" name="${name}" type="password" ${attrs}><button type="button" class="pw-eye" data-pw="${name}" aria-label="Mostrar senha" aria-pressed="false" title="Mostrar o que estou digitando">${EYE}</button></div></div>`
+  : `<div class="field"><label for="${name}">${label}</label><input id="${name}" name="${name}" type="${type}" ${attrs}></div>`;
 const hidden = (name, value) => `<input type="hidden" name="${name}" value="${esc(value)}">`;
 
 export const loginPage = ({email = '', next = '/', message, signup = true}) => page({

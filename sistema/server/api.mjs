@@ -28,13 +28,17 @@ export async function authenticate(request,env){
  let user=await first(env.DB,'SELECT * FROM members WHERE site_user_id = ?',[siteId]);
  if(!user){
   user=await first(env.DB,'SELECT * FROM members WHERE email = ?',[email]);
-  if(!user&&email===env.SITE_OWNER_EMAIL?.trim().toLowerCase()){
+  if(!user&&ownerEmail(env,email)){
    await run(env.DB,'INSERT OR IGNORE INTO members (id,site_user_id,email,name,role,active,is_owner,created_at) VALUES (?,?,?,?,?,1,1,?)',[id(),siteId,email,displayName(request,email),'admin',now()]);user=await first(env.DB,'SELECT * FROM members WHERE site_user_id = ?',[siteId]);
   }else if(user&&!user.site_user_id){await run(env.DB,'UPDATE members SET site_user_id = ? WHERE id = ? AND site_user_id IS NULL',[siteId,user.id]);user=await first(env.DB,'SELECT * FROM members WHERE id = ?',[user.id]);if(user.site_user_id!==siteId)fail(403,'Esta conta não está autorizada.');}
  }
  if(user&&user.site_user_id!==siteId)fail(403,'Esta conta não está autorizada.');
+ // Contas da administração: sempre ativas, administradoras e sem contagem de dias.
+ if(user&&ownerEmail(env,user.email)&&(user.role!=='admin'||!user.active||!user.is_owner)){await run(env.DB,"UPDATE members SET role = 'admin', active = 1, is_owner = 1 WHERE id = ?",[user.id]);user=await first(env.DB,'SELECT * FROM members WHERE id = ?',[user.id]);}
  if(!user||!user.active)fail(403,'Sua conta ainda não tem acesso autorizado à equipe.');return user;
 }
+// E-mails com acesso permanente: SITE_OWNER_EMAIL e a lista SITE_OWNER_EMAILS (separada por vírgula).
+export function ownerEmail(env,email){const e=String(email||'').trim().toLowerCase();if(!e)return false;const list=[env.SITE_OWNER_EMAIL||'',...String(env.SITE_OWNER_EMAILS||'').split(',')].map(x=>x.trim().toLowerCase());return list.includes(e);}
 export async function canAccess(db,user,ownerId,write=false){if(fullAccess(user)||staff(user)&&user.id===ownerId)return true;if(!staff(user))return false;if(await sharedOrgManager(db,user,ownerId))return true;if(await teamAccess(db,user,ownerId))return true;const row=await first(db,"SELECT id FROM delegations WHERE source_id = ? AND target_id = ? AND revoked = 0 AND (expires_at IS NULL OR expires_at > ?) AND (? = 0 OR access = 'edit') LIMIT 1",[ownerId,user.id,now(),write?1:0]);return !!row;}
 async function resource(db,user,table,resourceId,write=false){if(!['projects','clients'].includes(table))fail(400,'Recurso inválido.');const row=await first(db,`SELECT * FROM ${table} WHERE id = ?`,[resourceId]);if(!row||!(table==='projects'?await projectPermission(db,user,row,write,canAccess):staff(user)&&await canAccess(db,user,row.owner_id,write)))fail(404,'Registro não encontrado ou acesso não autorizado.');return row;}
 async function body(request){if(!request.headers.get('content-type')?.includes('application/json'))fail(415,'Envie os dados em JSON.');const raw=await request.text();if(raw.length>3000000)fail(413,'Os dados excedem o limite de 3 MB.');try{return JSON.parse(raw);}catch{fail(400,'Dados JSON inválidos.');}}

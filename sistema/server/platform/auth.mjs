@@ -5,6 +5,8 @@ import {randomBytes, scrypt as scryptCb, timingSafeEqual, createHash, randomUUID
 import {promisify} from 'node:util';
 import {BRAND} from '../../public/brand.js';
 import {loginPage, signupPage, forgotPage, resetPage, accountPage, infoPage, esc} from './auth-pages.mjs';
+// Contas da administração com acesso permanente (lista em config.ownerEmails).
+const isOwnerEmail = (config, email) => { const e = String(email || '').trim().toLowerCase(); return !!e && (config.ownerEmails ? config.ownerEmails.has(e) : e === config.ownerEmail); };
 
 const scrypt = promisify(scryptCb);
 export const SESSION_COOKIE = 'silsec_sessao';
@@ -103,8 +105,8 @@ export function createAuth({db, config, mailer, log = console}) {
 
   async function signupAllowed(email) {
     if (signupAllowedMode === 'aberto') return true;
-    if (signupAllowedMode === 'fechado') return email === config.ownerEmail;
-    if (email === config.ownerEmail) return true;
+    if (signupAllowedMode === 'fechado') return isOwnerEmail(config, email);
+    if (isOwnerEmail(config, email)) return true;
     if (await q('SELECT id FROM members WHERE email = ? AND active = 1', email).first()) return true;
     return !!await q('SELECT id FROM silsec_invitations WHERE email = ? AND revoked = 0 AND expires_at > ?', email, now()).first();
   }

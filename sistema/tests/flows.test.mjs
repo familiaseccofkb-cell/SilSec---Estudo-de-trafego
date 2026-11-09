@@ -288,3 +288,25 @@ test('tela: estudo antigo com medida inválida é saneado ao carregar',()=>{
  const out=normalizeStudyFn(s);
  assert.equal(out.groups[0].dimensionCars[1].siteDimensions.shaftWidth,null);assert.equal(out.groups[0].dimensionCars[1].siteDimensions.cabinHeight,2200);
 });
+// ---- Relatório do Code de 09/11 ----
+test('tela: altura digitada no elevador 1 não aparece no elevador 3; alerta só onde há medida baixa',()=>{
+ retrofit3();dimInput(0,1,'cabinHeight',1500);dimInput(0,0,'cabinHeight',2300);
+ const val=j=>{const m=app.innerHTML.match(new RegExp('data-dim-car="'+j+'" data-dim-key="cabinHeight"[^>]*value="([^"]*)"'));return m?m[1]:null;};
+ assert.equal(val(0),'2300');assert.equal(val(1),'1500');assert.equal(val(2),'','elevador 3 nunca digitado fica vazio');
+ assert.doesNotMatch(app.innerHTML,/Elevador 3 · /,'sem alerta no elevador 3');
+ assert.doesNotMatch(app.innerHTML,/Elevador 1 · /,'2.300 não gera alerta');
+ assert.match(app.innerHTML,/Elevador 2 · /);
+});
+test('tela: copiar coluna do elevador 3 (sem valores próprios) não apaga o 1.500 do elevador 2',()=>{
+ retrofit3();dimInput(0,0,'cabinHeight',2300);dimInput(0,1,'cabinHeight',1500);
+ click('dim-copy-car',{group:'0',car:'2'});click('parameter-tab',{tab:'dimensions'});
+ assert.equal(state().draft.groups[0].dimensionCars[1].siteDimensions.cabinHeight,1500);
+ assert.match(app.innerHTML,/data-dim-car="1" data-dim-key="cabinHeight"[^>]*value="1500"/);
+});
+test('tela: setores de destino recusam -1 e 1000 na digitação e mantêm o valor anterior',()=>{
+ click('load-example');input('destination.enabled',true,'checkbox');input('destination.sectors',2);
+ assert.equal(state().draft.destination.sectors,2);
+ input('destination.sectors',-1);assert.equal(state().draft.destination.sectors,2);assert.match(toast.textContent||toast.innerHTML,/Setores de destino/);
+ input('destination.sectors',1000);assert.equal(state().draft.destination.sectors,2);
+ input('destination.sectors',0);assert.equal(state().draft.destination.sectors,0);
+});

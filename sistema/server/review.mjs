@@ -86,7 +86,10 @@ export async function reviewApi(ctx){
       await audit(db,user,pid,'change.accept',{changeId:c.id});
       return json({id:c.id,status:'accepted'});
     }
-    await run(db,'UPDATE projects SET study_json=?,status=?,calculation_snapshot=?,calculated_revision=?,revision=?,updated_at=? WHERE id=?',[c.previous_study_json,c.previous_status,c.previous_snapshot_json,c.previous_calculated_revision,row.revision+1,stamp,pid]);
+    // Restaura o estudo anterior. A revisão avança (invalida cópias abertas); se o estado anterior era calculado, a revisão calculada acompanha,
+    // porque o estudo restaurado é exatamente o que gerou aquele cálculo — sem isso o projeto exigiria recálculo sem motivo.
+    const restoredRevision=row.revision+1,restoredCalculated=c.previous_status==='calculated'&&c.previous_calculated_revision!==null?restoredRevision:c.previous_calculated_revision;
+    await run(db,'UPDATE projects SET study_json=?,status=?,calculation_snapshot=?,calculated_revision=?,revision=?,updated_at=? WHERE id=?',[c.previous_study_json,c.previous_status,c.previous_snapshot_json,restoredCalculated,restoredRevision,stamp,pid]);
     await run(db,"UPDATE project_changes SET status='rejected',decided_at=?,decided_by=? WHERE id=?",[stamp,user.id,c.id]);
     await audit(db,user,pid,'change.reject',{changeId:c.id});
     return json({id:c.id,status:'rejected'});

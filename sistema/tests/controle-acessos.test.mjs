@@ -143,3 +143,24 @@ test('gerente vê somente projetos da própria equipe e diretor sem acesso total
   assert.equal((await call('projects/'+pb,'GET',undefined,gerente)).status,404);
   assert.equal((await call('projects/'+pa,'GET',undefined,diretor)).status,404);
 });
+
+test('rejeição da alteração do admin mantém o projeto calculado (sem exigir recálculo)',async()=>{
+  const {call,admin,member}=await setup();
+  const owner=await member('dono2@test.dev','analyst','Sul');
+  const created=await call('projects','PUT',{study:defaultStudy(),calculate:true},owner);
+  assert.equal(created.status,200,JSON.stringify(created.data));
+  const pid=created.data.id;
+  await call(`projects/${pid}/enter`,'POST',{},admin);
+  const req=await call(`projects/${pid}/access-requests`,'POST',{},admin);
+  await call(`projects/${pid}/access-requests/${req.data.id}/approve`,'POST',{},owner);
+  const before=await call(`projects/${pid}`,'GET',undefined,owner);
+  const saved=await call(`projects/${pid}`,'PUT',{study:{...defaultStudy(),name:'Admin'},revision:before.data.revision,calculate:true},admin);
+  assert.equal(saved.status,200,JSON.stringify(saved.data));
+  const pending=(await call(`projects/${pid}`,'GET',undefined,owner)).data.review.pendingChange;
+  await call(`projects/${pid}/changes/${pending.id}/reject`,'POST',{},owner);
+  const after=await call(`projects/${pid}`,'GET',undefined,owner);
+  assert.equal(after.data.status,'calculated');
+  assert.ok(after.data.results,'resultados restaurados');
+  const share=await call(`projects/${pid}/shares`,'POST',{permission:'read'},owner);
+  assert.equal(share.status,201,JSON.stringify(share.data));
+});

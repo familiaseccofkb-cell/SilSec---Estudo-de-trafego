@@ -1,9 +1,12 @@
-# SilSec · pacote completo de 2026-11-07
+# SilSec · pacote completo de 2026-11-08
 
-- Versão do aplicativo: 9.4.1
-- Diferença para a 9.4.0 (branch atualizacao-2026-11-06, commit beb79d0): correção dos 3 defeitos de tela do teste de 07/11 — (1) a tabela dimensional mostra a largura real da porta de cada elevador; (2) o alerta de altura por elevador não some mais ao digitar outro campo; (3) medida fora da faixa é recusada na digitação, com aviso (0–50000 mm; porta 300–4000 mm; 1–4 portas).
-- Arquivos alterados: public/dimensions.js, public/app.js, tests/car-dimensions.test.mjs, package.json, VERSAO.md, LISTA-DE-ARQUIVOS.txt.
-- Testes na origem: 525 testes, 524 aprovados; 1 reprovado por falta do pptxgenjs neste ambiente (instalar com npm install).
-- Pendências conhecidas: teste em MySQL real; controle de acessos com servidor e MySQL; ISO 2020 e painel de despacho por destino sem teste de tela.
+- Versão do aplicativo: 9.4.2 (fonte única em public/version.js; package.json e sw.js conferidos por tests/versao.test.mjs)
+- Diferença para a 9.4.1 (commit b782565):
+  1. Escadas rolantes (editor v2): a rede andar a andar pela tabela de pavimentos calculava só quando todo andar tinha composição; agora os níveis do editor são aceitos (public/population.js). Teste: tests/escadas-tabela-pavimentos.test.mjs.
+  2. Tela de Assinatura/Licenças tolera resposta parcial do servidor (public/license-ui.js) — na versão de teste offline quebrava com "reading 'map'".
+  3. Rejeição de alteração do administrador restaura o projeto como calculado, sem exigir recálculo nem bloquear o link de compartilhamento (server/review.mjs). Teste em tests/controle-acessos.test.mjs.
+  4. Versão única e service worker: rodapé mostra "versão 9.4.2 · motor 10.0.0"; sw.js subiu de silsec-v9.3.0 para a versão atual (cache antigo era risco de módulos misturados após publicar).
+- Validações desta rodada: 529 testes (528 aprovados; presentation exige pptxgenjs); crawler de interface em todas as telas sem erro de JavaScript; servidor real com SQLite: 44 verificações de API (login, empresas, licenças, dupla confirmação, auditoria, compartilhamento sem login, relatório) e navegador logado (salvar, reabrir, compartilhar) sem falhas; ISO 2020 com relatório; despacho por destino; escadas rolantes; largura de celular sem rolagem horizontal.
+- Pendências: teste em MySQL real (migrações revisadas por padrão de sintaxe, sem construções exclusivas do SQLite).
 
 A lista completa de arquivos com SHA-256 está em LISTA-DE-ARQUIVOS.txt.

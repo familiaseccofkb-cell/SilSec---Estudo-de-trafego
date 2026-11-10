@@ -6,6 +6,12 @@ Notas da versão original (protótipo hospedado em outra plataforma). As regras 
 
 Use as cinco telas Cadastro, Parâmetros de cálculo, Cálculo populacional, Gráficos de performance e economias e Cálculo de tráfego. O estudo inicial usa 396 pessoas e três elevadores em dois grupos. O motor NBR é preferencial e o modelo ISO do documento fornecido é independente. Precisão integral de interpolação é o único critério de arredondamento intermediário.
 
+### Versão 9.5.4 (novembro de 2026)
+
+- **PowerPoint:** o slide "existente" traz as medidas de cada elevador (tabela dimensional) e um slide "alertas de altura" por grupo com os alertas por elevador. Teste gera o PPTX e procura o alerta no XML dos slides.
+- MySQL real verificado pelo Code na 9.5.3 (migrações 0001–0008, 0007 repetível, controle de acessos, contas da administração).
+- Testes: 562 com pptxgenjs (548 sem ele).
+
 ### Versão 9.5.3 (novembro de 2026)
 
 - **Alerta de altura volta ao relatório** (tela, impressão, HTML e PowerPoint): as medidas próprias de cada elevador passam a acompanhar o estudo de cálculo montado por `projectFleet()`.

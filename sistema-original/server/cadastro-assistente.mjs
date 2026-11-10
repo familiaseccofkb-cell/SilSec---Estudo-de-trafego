@@ -28,8 +28,9 @@ async function fetchJson(fetcher, url, unavailable) {
 export async function cadastroAssistenteApi(ctx) {
   const { user, parts, method, body, json, fetcher = fetch } = ctx;
   if (parts[0] !== 'admin' || parts[1] !== 'cadastro') return null;
-  // A verificação de perfil vem antes de qualquer consulta externa.
-  if (user?.role !== 'admin') fail(403, 'Esta ação é exclusiva do administrador do sistema.');
+  // Acesso restrito ao proprietário do sistema (is_owner), não a qualquer administrador.
+  // A verificação vem antes de qualquer consulta externa.
+  if (!user?.is_owner) fail(403, 'Esta ação é exclusiva do proprietário do sistema.');
   if (method !== 'POST') fail(405, 'Método não permitido.');
   const input = await body(ctx.request);
   const fetchedAt = new Date().toISOString();

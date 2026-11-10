@@ -135,7 +135,7 @@ const ctxFor = (user, input, fetcher) => {
     }
   };
 };
-const admin = {id: 'a1', role: 'admin'};
+const admin = {id: 'a1', role: 'admin', is_owner: 1};
 const notFound = async () => new Response('', {status: 404});
 const ok = payload => async () => new Response(JSON.stringify(payload), {status: 200, headers: {'Content-Type': 'application/json'}});
 
@@ -148,6 +148,20 @@ test('rotas: não administrador é bloqueado antes de qualquer consulta externa'
   const {ctx, calls} = ctxFor({id: 'u', role: 'analyst'}, {route: ['texto'], body: {text: 'Cliente: X'}}, ok({}));
   await assert.rejects(cadastroAssistenteApi(ctx), e => e.status === 403);
   assert.equal(calls.length, 0);
+});
+
+test('rotas: administrador que não é proprietário é bloqueado antes de qualquer consulta externa', async () => {
+  const otherAdmin = {id: 'a2', role: 'admin', is_owner: 0};
+  const cases = [
+    {route: ['cnpj'], body: {cnpj: '11222333000181'}},
+    {route: ['cep'], body: {cep: '01310100'}},
+    {route: ['texto'], body: {text: 'Cliente: Condomínio Alfa'}}
+  ];
+  for (const input of cases) {
+    const {ctx, calls} = ctxFor(otherAdmin, input, ok({}));
+    await assert.rejects(cadastroAssistenteApi(ctx), e => e.status === 403 && /proprietário/.test(e.message));
+    assert.equal(calls.length, 0, 'administrador não proprietário não deve chamar serviço externo');
+  }
 });
 
 test('rotas: administrador consulta CNPJ com dígitos válidos e recebe sugestão', async () => {

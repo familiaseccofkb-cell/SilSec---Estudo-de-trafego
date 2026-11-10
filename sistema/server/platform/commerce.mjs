@@ -83,14 +83,15 @@ export function createCommerce({db, config, mailer, auth, log = console, fetcher
     const phone = String(f.get('telefone') || '').trim().slice(0, 40), company = String(f.get('empresa') || '').trim().slice(0, 200);
     const services = f.getAll('servicos').map(v => String(v).trim().slice(0, 80)).filter(Boolean).slice(0, 8);
     const profile = String(f.get('perfil') || '').trim().slice(0, 80), city = String(f.get('cidade') || '').trim().slice(0, 120), floors = String(f.get('pavimentos') || '').trim().slice(0, 6), cars = String(f.get('elevadores') || '').trim().slice(0, 6);
-    const subject = (services.length ? 'Orçamento · ' + services.join(', ') : String(f.get('assunto') || '').trim()).slice(0, 80);
+    const subject = (services.length ? 'Orçamento · ' + services.join(', ') : f.get('origem') === 'orcamento' ? 'Orçamento' : String(f.get('assunto') || '').trim()).slice(0, 80);
     const context = [profile && 'Perfil: ' + profile, city && 'Cidade do edifício: ' + city, floors && 'Pavimentos: ' + floors, cars && 'Elevadores: ' + cars].filter(Boolean).join(' · ');
     const message = ((context ? context + '\n\n' : '') + String(f.get('mensagem') || '').trim()).slice(0, 5000);
     if (!name || !validEmail(email) || String(f.get('mensagem') || '').trim().length < 3) return redirect(back('invalido'));
     await q('INSERT INTO contact_messages (id,name,email,phone,company,subject,message,ip,created_at) VALUES (?,?,?,?,?,?,?,?,?)', randomUUID(), name, email, phone, company, subject, message, ipOf(request).slice(0, 64), now()).run();
-    await mailer.send({to: BRAND.email, replyTo: email, subject: `Contato pelo site · ${subject || 'mensagem'} · ${name}`,
+    const sent = await mailer.send({to: BRAND.email, replyTo: email, subject: `Contato pelo site · ${subject || 'mensagem'} · ${name}`,
       text: `Nome: ${name}\nE-mail: ${email}\nTelefone: ${phone || '—'}\nEmpresa/edifício: ${company || '—'}\nAssunto: ${subject || '—'}\n\n${message}`});
-    return redirect(back('enviado'));
+    // A mensagem já está registrada no banco; se o aviso por e-mail não saiu, a tela diz isso em vez de "enviada".
+    return redirect(back(sent.delivered || !sent.configured ? 'enviado' : 'registrado'));
   }
 
   // ---------- Ativação da chave ----------
@@ -144,6 +145,7 @@ ${session ? `<p class="muted">Você está conectado como ${esc(session.email)}.<
     const r = await auth.sendPasswordLink(request, {email: key.email, name: key.client_name, next: APP_HOME});
     const text = r.existing
       ? `${until} Você já tem conta com ${maskEmail(key.email)}: entre com seu e-mail e senha.`
+      : r.failure ? `${until} ${r.failure}`
       : `${until} Enviamos para ${maskEmail(key.email)} um link para você criar sua senha. Abra o e-mail e siga o link (confira também o spam).`;
     return activatePage({session, done: {text, actions: r.existing ? `<a class="button teal" href="/entrar?volta=%2Fsistema">Entrar</a>` : `<a class="button ghost" href="/">Voltar ao site</a>`}});
   }
@@ -191,6 +193,7 @@ ${session ? `<p class="muted">Você está conectado como ${esc(session.email)}.<
     const link = await auth.sendPasswordLink(request, {email: values.email, name: values.nome, next: APP_HOME});
     const text = link.existing
       ? `${until} Você já tem conta com ${maskEmail(values.email)}: entre com seu e-mail e senha.`
+      : link.failure ? `${until} ${link.failure}`
       : `${until} Enviamos para ${maskEmail(values.email)} um link para você criar sua senha. Abra o e-mail e siga o link (confira também o spam).`;
     return trialPage({session, done: {text, actions: link.existing ? `<a class="button teal" href="/entrar?volta=%2Fsistema">Entrar</a>` : `<a class="button ghost" href="/">Voltar ao site</a>`}});
   }
@@ -420,14 +423,14 @@ ${history}`;
       // Links antigos do programa (consulta compartilhada, convite, projeto) continuam funcionando.
       if (['share', 'supplierInvite', 'project'].some(k => url.searchParams.has(k))) return redirect(APP_HOME + url.search, 302);
       const flag = url.searchParams.get('contato');
-      const message = {enviado: {kind: 'ok', text: 'Mensagem enviada. Obrigado pelo contato!'}, invalido: {kind: 'error', text: 'Preencha nome, e-mail e mensagem.'}, limite: {kind: 'error', text: 'Muitas mensagens seguidas. Tente novamente em alguns minutos ou chame no WhatsApp.'}, erro: {kind: 'error', text: 'Não foi possível enviar. Tente pelo WhatsApp ou e-mail.'}}[flag];
+      const message = {enviado: {kind: 'ok', text: 'Mensagem enviada. Obrigado pelo contato!'}, invalido: {kind: 'error', text: 'Preencha nome, e-mail e mensagem.'}, limite: {kind: 'error', text: 'Muitas mensagens seguidas. Tente novamente em alguns minutos ou chame no WhatsApp.'}, erro: {kind: 'error', text: 'Não foi possível enviar. Tente pelo WhatsApp ou e-mail.'}, registrado: {kind: 'error', text: 'Sua mensagem foi registrada, mas o aviso por e-mail não pôde ser enviado agora. Se não houver retorno em dois dias úteis, chame no WhatsApp.'}}[flag];
       return html(homePage({plans, session, message}), 200, {'X-Robots-Tag': 'index, follow', 'Cache-Control': session || message ? 'no-store' : 'public, max-age=300'});
     }
     if (path === '/servicos') return html(servicesPage({session}), 200, {'X-Robots-Tag': 'index, follow', 'Cache-Control': session ? 'no-store' : 'public, max-age=300'});
     if (path === '/modulos') return html(modulesPage({plans, session}), 200, {'X-Robots-Tag': 'index, follow', 'Cache-Control': session ? 'no-store' : 'public, max-age=300'});
     if (path === '/orcamento') {
       const flag = url.searchParams.get('contato');
-      const message = {enviado: {kind: 'ok', text: 'Solicitação enviada. Retornamos em até dois dias úteis com escopo, prazo e valor.'}, invalido: {kind: 'error', text: 'Preencha nome, e-mail e a descrição do caso.'}, limite: {kind: 'error', text: 'Muitas mensagens seguidas. Tente novamente em alguns minutos.'}, erro: {kind: 'error', text: 'Não foi possível enviar. Tente novamente.'}}[flag] || null;
+      const message = {enviado: {kind: 'ok', text: 'Solicitação enviada. Retornamos em até dois dias úteis com escopo, prazo e valor.'}, invalido: {kind: 'error', text: 'Preencha nome, e-mail e a descrição do caso.'}, limite: {kind: 'error', text: 'Muitas mensagens seguidas. Tente novamente em alguns minutos.'}, erro: {kind: 'error', text: 'Não foi possível enviar. Tente novamente.'}, registrado: {kind: 'error', text: 'Sua solicitação foi registrada, mas o aviso por e-mail não pôde ser enviado agora. Se não houver retorno em dois dias úteis, chame no WhatsApp.'}}[flag] || null;
       return html(quotePage({session, message, preset: url.searchParams.get('assunto') || ''}), 200, {'X-Robots-Tag': 'index, follow', 'Cache-Control': 'no-store'});
     }
     if (path === '/contato') return method === 'POST' ? contact(request) : redirect('/orcamento');

@@ -196,7 +196,7 @@ ${grants.length ? `<div class="table-wrap"><table class="data mini"><thead><tr><
     if (module) await grantAccess(admin, m, module, days, 'cadastro pelo console');
     const r = await auth.sendPasswordLink(request, {email, name, next: '/sistema'});
     await audit(admin, 'create-user', {email, role, module, days});
-    return redirect(`${ADMIN_BASE}/usuarios/${encodeURIComponent(email)}?ok=${r.existing ? 'existente' : 'criado'}`);
+    return redirect(`${ADMIN_BASE}/usuarios/${encodeURIComponent(email)}?ok=${r.existing ? 'existente' : r.failure ? 'falha' : 'criado'}`);
   }
 
   async function paymentsPage(session, message) {
@@ -250,8 +250,24 @@ ${grants.length ? `<div class="table-wrap"><table class="data mini"><thead><tr><
 <form class="stack" method="post" action="${ADMIN_BASE}/sistema/manutencao"><label class="field">Mensagem para os usuários<input name="mensagem" maxlength="300" value="${esc(s.maintenance_message || 'O SilSec está em manutenção. Voltamos em instantes.')}"></label><div>${s.maintenance === '1' ? '<button class="button teal" name="ligar" value="0">Desligar manutenção</button>' : '<button class="button" name="ligar" value="1">Ligar manutenção</button>'}</div></form></div>
 <div class="panel"><h2>Aviso para todos os usuários</h2><p class="muted">Mostrado no topo do programa em todos os aparelhos (deixe vazio para retirar).</p><form class="stack" method="post" action="${ADMIN_BASE}/sistema/aviso"><label class="field">Aviso<input name="aviso" maxlength="300" value="${esc(s.announcement || '')}"></label><div><button class="button small">Salvar aviso</button></div></form></div>
 <div class="panel"><h2>Cópia de segurança</h2><p>Baixa todos os dados do sistema (usuários, acessos, pagamentos, projetos, clientes, vistorias e auditoria) em um arquivo JSON. Senhas saem só como hash. Os anexos ficam fora desta cópia; a Hostinger mantém cópias completas do banco em Backups.</p><a class="button small" href="${ADMIN_BASE}/sistema/backup.json">Baixar cópia de segurança</a></div>
-<div class="panel"><h2>Banco de dados</h2><p>${esc(db.dialect)} · ${migrations.length} migração(ões) aplicada(s): ${migrations.map(x => esc(x.name)).join(', ')}</p></div>`;
+<div class="panel"><h2>Banco de dados</h2><p>${esc(db.dialect)} · ${migrations.length} migração(ões) aplicada(s): ${migrations.map(x => esc(x.name)).join(', ')}</p></div>
+${mailPanel(session)}`;
     return page(session, 'Sistema', '/sistema', body, message);
+  }
+
+  // Envio de e-mail: situação da configuração, último erro em português e botão de teste.
+  function mailPanel(session) {
+    const m = auth.mailer, st = m?.status ? m.status() : {configured: !!auth.mailConfigured()};
+    const cfg = st.configured ? `Servidor ${esc(st.host)}:${esc(st.port)} · ${st.secure ? 'conexão segura (SSL/TLS)' : 'STARTTLS'} · usuário ${esc(st.user || '(sem autenticação)')} · remetente ${esc(st.from)}` : 'Envio de e-mail não configurado: defina SMTP_PASSWORD (e, se preciso, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_FROM) nas variáveis de ambiente do site.';
+    const last = st.lastError ? `<p class="notice error">Última falha em ${esc(fmtDateTime(st.lastError.at))}: ${esc(st.lastError.reason)}</p>` : st.lastDeliveredAt ? `<p class="notice ok">Último envio com sucesso em ${esc(fmtDateTime(st.lastDeliveredAt))}.</p>` : '';
+    return `<div class="panel" id="email"><h2>Envio de e-mail</h2><p class="muted">${cfg}</p>${last}<form class="stack" method="post" action="${ADMIN_BASE}/sistema/email-teste"><label class="field">Enviar e-mail de teste para<input name="para" type="email" required value="${esc(session.email)}"></label><div><button class="button small" ${st.configured ? '' : 'disabled'}>Testar envio de e-mail</button></div></form></div>`;
+  }
+  async function mailTest(request, session, admin) {
+    const f = new URLSearchParams(await request.text()), to = String(f.get('para') || session.email).trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return systemPage(session, {kind: 'erro', text: 'Informe um e-mail válido para o teste.'});
+    const r = await auth.mailer.test(to);
+    await audit(admin, 'mail-test', {to, delivered: r.delivered, code: r.code || null});
+    return systemPage(session, r.delivered ? {kind: 'ok', text: `E-mail de teste enviado para ${to} em ${r.ms} ms. Confira a caixa de entrada (e o spam).`} : {kind: 'erro', text: `O envio falhou: ${r.reason}`});
   }
 
   async function backup(admin) {
@@ -286,7 +302,7 @@ ${grants.length ? `<div class="table-wrap"><table class="data mini"><thead><tr><
         const email = decodeURIComponent(um[1]).toLowerCase();
         if (um[2] && method === 'POST') return userAction(request, session, admin, email, um[2]);
         const ok = url.searchParams.get('ok');
-        return userPage(session, email, ok ? {kind: 'ok', text: ok === 'existente' ? 'Usuário já tinha conta: cadastro atualizado.' : 'Usuário cadastrado. Enviamos o link para criar a senha.'} : null);
+        return userPage(session, email, ok ? (ok === 'falha' ? {kind: 'erro', text: `Usuário cadastrado, mas o e-mail com o link não saiu: ${auth.mailer?.status().lastError?.reason || 'falha no envio'} O link está no registro do servidor (Logs); teste o envio em Sistema.`} : {kind: 'ok', text: ok === 'existente' ? 'Usuário já tinha conta: cadastro atualizado.' : 'Usuário cadastrado. Enviamos o link para criar a senha.'}) : null);
       }
       if (rest === '/pagamentos') return paymentsPage(session);
       if (rest === '/pagamentos/manual' && method === 'POST') return manualPayment(request, session, admin);
@@ -301,6 +317,7 @@ ${grants.length ? `<div class="table-wrap"><table class="data mini"><thead><tr><
         return new Response(JSON.stringify({id: p.id, name: p.name, study: JSON.parse(p.study_json), updatedAt: p.updated_at}, null, 2), {headers: {'Content-Type': 'application/json; charset=utf-8', 'Content-Disposition': `attachment; filename="projeto-${p.id}.json"`}});
       }
       if (rest === '/sistema') return systemPage(session);
+      if (rest === '/sistema/email-teste' && method === 'POST') return mailTest(request, session, admin);
       if (rest === '/sistema/backup.json') return backup(admin);
       if (rest === '/sistema/manutencao' && method === 'POST') {
         const f = new URLSearchParams(await request.text()), on = f.get('ligar') === '1';

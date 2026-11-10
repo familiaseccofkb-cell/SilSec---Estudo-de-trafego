@@ -6,6 +6,12 @@ Notas da versão original (protótipo hospedado em outra plataforma). As regras 
 
 Use as cinco telas Cadastro, Parâmetros de cálculo, Cálculo populacional, Gráficos de performance e economias e Cálculo de tráfego. O estudo inicial usa 396 pessoas e três elevadores em dois grupos. O motor NBR é preferencial e o modelo ISO do documento fornecido é independente. Precisão integral de interpolação é o único critério de arredondamento intermediário.
 
+### Versão 9.5.5 (novembro de 2026)
+
+- **E-mail:** biblioteca nodemailer atualizada para a versão 10 (corrige as vulnerabilidades apontadas pelo npm audit); quando o envio falha, a tela avisa em português em vez de dizer "enviamos um link" (cadastro, recuperação de senha, chave de acesso, teste grátis, orçamento e contato); botão **Testar envio de e-mail** em /admin/sistema, com a configuração em uso, o último erro e o resultado do teste.
+- Testes com transporte de e-mail de teste (sem SMTP real): cadastro, recuperação de senha, orçamento, falha EAUTH 535 e painel do administrador.
+- Testes: 566 com pptxgenjs (552 sem ele).
+
 ### Versão 9.5.4 (novembro de 2026)
 
 - **PowerPoint:** o slide "existente" traz as medidas de cada elevador (tabela dimensional) e um slide "alertas de altura" por grupo com os alertas por elevador. Teste gera o PPTX e procura o alerta no XML dos slides.

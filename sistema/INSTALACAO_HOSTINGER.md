@@ -163,7 +163,7 @@ Se, depois do deploy, o programa não abrir, `/saude` falhar ou algo essencial p
 | `/saude` não abre ou o deploy falha | Em **Logs** do app, procure a mensagem de erro. Confira se o arquivo de entrada é `server.mjs` e o Node é 22. |
 | "Configuração incompleta" no log | Falta `DB_NAME`, `DB_USER` ou `DB_PASSWORD`. |
 | Erro de conexão com o banco | Troque `DB_HOST` de `localhost` para o host MySQL mostrado no hPanel, ou o contrário. |
-| O e-mail com o link não chega | Veja a caixa de spam. Confira `SMTP_PASSWORD` (a senha da caixa de envio). O link também aparece em **Logs**. |
+| O e-mail com o link não chega | Entre como administrador em **/admin/sistema → Envio de e-mail** e clique em **Testar envio de e-mail**: a tela mostra o motivo em português (senha da caixa errada, servidor sem resposta, remetente recusado). Confira `SMTP_PASSWORD` (a senha da caixa de envio). O link também aparece em **Logs**. |
 | "Sua conta ainda não tem acesso autorizado à equipe" | O e-mail ainda não foi cadastrado em **Equipe e acessos**. |
 | A IA responde "indisponível" | Confira a chave, o endereço e o nome do modelo no AI Router, e se há créditos. O motivo aparece em **Logs**. Se o roteador exigir outro cabeçalho, defina `AI_AUTH_HEADER=bearer`. |
 | Esqueci a senha do administrador | Use **Esqueci minha senha** na tela de entrada. |

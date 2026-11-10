@@ -132,14 +132,14 @@ export function createAuth({db, config, mailer, log = console}) {
   async function sendVerification(request, user, next) {
     const token = await issueToken(user.id, 'verify', VERIFY_HOURS);
     const link = `${baseUrl(request)}/verificar?token=${token}&volta=${encodeURIComponent(next || APP_HOME)}`;
-    await mailer.send({to: user.email, subject: `Confirme seu e-mail · ${BRAND.name}`,
+    return mailer.send({to: user.email, subject: `Confirme seu e-mail · ${BRAND.name}`,
       text: `Olá, ${user.name}.\n\nPara confirmar seu e-mail e criar sua senha no sistema de estudos de tráfego da ${BRAND.name}, abra o link abaixo (válido por ${VERIFY_HOURS} horas):\n${link}\n\nSe você não pediu esta conta, ignore esta mensagem.\n\n—\n${BRAND.name}\n${BRAND.phone} · ${BRAND.email}`,
       html: `<p>Olá, ${esc(user.name)}.</p><p>Para confirmar seu e-mail e criar sua senha no sistema de estudos de tráfego da ${esc(BRAND.name)}, clique no link abaixo (válido por ${VERIFY_HOURS} horas):</p><p><a href="${esc(link)}">Confirmar e criar senha</a></p><p>Se você não pediu esta conta, ignore esta mensagem.</p><p style="color:#627780;font-size:13px">—<br>${esc(BRAND.name)}<br>${esc(BRAND.phone)} · ${esc(BRAND.email)}</p>`});
   }
   async function sendReset(request, user) {
     const token = await issueToken(user.id, 'reset', RESET_HOURS);
     const link = `${baseUrl(request)}/redefinir-senha?token=${token}`;
-    await mailer.send({to: user.email, subject: `Recuperação de senha · ${BRAND.name}`,
+    return mailer.send({to: user.email, subject: `Recuperação de senha · ${BRAND.name}`,
       text: `Olá, ${user.name}.\n\nPara criar uma nova senha, abra o link abaixo (válido por ${RESET_HOURS} hora):\n${link}\n\nSe você não pediu a recuperação, ignore esta mensagem; sua senha atual continua valendo.\n\n—\n${BRAND.name}\n${BRAND.phone} · ${BRAND.email}`,
       html: `<p>Olá, ${esc(user.name)}.</p><p>Para criar uma nova senha, clique no link abaixo (válido por ${RESET_HOURS} hora):</p><p><a href="${esc(link)}">Criar nova senha</a></p><p>Se você não pediu a recuperação, ignore esta mensagem.</p><p style="color:#627780;font-size:13px">—<br>${esc(BRAND.name)}<br>${esc(BRAND.phone)} · ${esc(BRAND.email)}</p>`});
   }
@@ -156,6 +156,8 @@ export function createAuth({db, config, mailer, log = console}) {
     return true;
   }
   const mailNote = () => mailer.configured ? '' : ' (Envio de e-mail não configurado: o administrador encontra o link no log do servidor.)';
+  // Quando o envio falha (senha errada, servidor fora do ar), a tela avisa em vez de dizer que o e-mail foi enviado.
+  const failedNote = r => r && r.delivered === false && r.configured ? `Não foi possível enviar o e-mail agora: ${r.reason} O link fica registrado no servidor; avise o administrador (${BRAND.email}).` : null;
 
   async function handle(request) {
     const url = new URL(request.url), path = url.pathname, method = request.method;
@@ -205,6 +207,7 @@ export function createAuth({db, config, mailer, log = console}) {
       if (!validEmail(email)) return again('Informe um e-mail válido.');
       if (!name) return again('Informe seu nome.');
       const done = html(infoPage({title: 'Confirme seu e-mail', heading: 'Confirme seu e-mail', text: 'Se este e-mail estiver autorizado a usar o sistema, você receberá em instantes um link para confirmar o e-mail e criar sua senha. Verifique também a caixa de spam.' + mailNote()}));
+      const failed = r => html(infoPage({title: 'E-mail não enviado', heading: 'Não conseguimos enviar o e-mail', text: failedNote(r), kind: 'erro', link: '/entrar', linkText: 'Voltar'}), 502);
       if (!await signupAllowed(email)) { log.warn('[cadastro] e-mail não autorizado: ' + email); return done; }
       const existing = await q('SELECT * FROM auth_users WHERE email = ?', email).first();
       if (existing?.email_verified_at) {
@@ -217,8 +220,8 @@ export function createAuth({db, config, mailer, log = console}) {
         user = {id: randomUUID(), email, name};
         await q('INSERT INTO auth_users (id,email,name,password_hash,created_at,updated_at) VALUES (?,?,?,?,?,?)', user.id, email, name, '', now(), now()).run();
       }
-      await sendVerification(request, user, back);
-      return done;
+      const sent = await sendVerification(request, user, back);
+      return failedNote(sent) ? failed(sent) : done;
     }
 
     if (path === '/verificar') {
@@ -244,7 +247,10 @@ export function createAuth({db, config, mailer, log = console}) {
       const f = await form(request), email = String(f.get('email') || '').trim().toLowerCase();
       if (validEmail(email)) {
         const user = await q('SELECT * FROM auth_users WHERE email = ?', email).first();
-        if (user) await sendReset(request, user);
+        if (user) {
+          const sent = await sendReset(request, user);
+          if (failedNote(sent)) return html(forgotPage({email, message: {kind: 'erro', text: failedNote(sent)}}), 502);
+        }
       }
       return html(forgotPage({email, message: {kind: 'ok', text: 'Se o e-mail estiver cadastrado, enviamos um link para criar uma nova senha. O link vale por 1 hora.' + mailNote()}}));
     }
@@ -290,17 +296,17 @@ export function createAuth({db, config, mailer, log = console}) {
   async function sendPasswordLink(request, {email, name, next = APP_HOME, reset = false}) {
     email = String(email).trim().toLowerCase();
     const existing = await q('SELECT * FROM auth_users WHERE email = ?', email).first();
-    if (existing?.email_verified_at) { if (reset) await sendReset(request, existing); return {existing: true}; }
+    if (existing?.email_verified_at) { const r = reset ? await sendReset(request, existing) : null; return {existing: true, delivered: r ? r.delivered : null, failure: failedNote(r)}; }
     let user = existing;
     if (!user) {
       user = {id: randomUUID(), email, name: name || email};
       await q('INSERT INTO auth_users (id,email,name,password_hash,created_at,updated_at) VALUES (?,?,?,?,?,?)', user.id, email, user.name, '', now(), now()).run();
     }
-    await sendVerification(request, user, next);
-    return {existing: false};
+    const r = await sendVerification(request, user, next);
+    return {existing: false, delivered: r.delivered, failure: failedNote(r)};
   }
 
-  return {handle, sessionUser, cleanup, sendPasswordLink, sameOrigin, baseUrl, mailConfigured: () => mailer.configured};
+  return {handle, sessionUser, cleanup, sendPasswordLink, sameOrigin, baseUrl, mailConfigured: () => mailer.configured, mailer};
 }
 
 // Cria ou redefine uma conta já confirmada (uso administrativo pelo terminal).

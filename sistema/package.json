@@ -1,6 +1,6 @@
 {
   "name": "silsec",
-  "version": "9.5.4",
+  "version": "9.5.5",
   "description": "SilSec Engenharia · estudos de tráfego de elevadores (NBR 5665 / ISO 8100-32) — versão para hospedagem Node.js (Hostinger)",
   "private": true,
   "type": "module",
@@ -19,7 +19,7 @@
   "dependencies": {
     "express": "^5.1.0",
     "mysql2": "^3.11.0",
-    "nodemailer": "^7.0.10"
+    "nodemailer": "^10.4.0"
   },
   "devDependencies": {
     "pptxgenjs": "^3.12.0",

@@ -1,10 +1,15 @@
-# SilSec · pacote de implantação de 2026-11-09 (9.5.4)
+# SilSec · pacote de 2026-11-10 (9.5.5)
 
-- Versão do aplicativo: 9.5.4 (fonte única em public/version.js; package.json e public/sw.js conferidos por tests/versao.test.mjs).
-- Único item pendente do relatório do Code sobre a 9.5.3: **PowerPoint sem alerta de altura por elevador**. `public/presentation.js` agora monta o slide "existente" com as medidas de cada elevador (`carSiteDimensionValues`) e acrescenta um slide "alertas de altura" por grupo com `carHeightWarnings` ("Elevador 2 · Altura interna da cabina: 1500 mm, inferior à referência mínima de 2200 mm…"). Teste novo em tests/presentation.test.mjs gera o PPTX e procura o alerta no XML dos slides (roda com pptxgenjs; conferido aqui com um gerador simulado).
-- MySQL real: verificado e aprovado pelo Code na 9.5.3 (MariaDB, banco vazio e banco com 0001–0007 à mão, controle de acessos, contas da administração).
-- Pacotes: `silsec-producao-2026-11-09d.zip` e `silsec-completo-2026-11-09d.zip`.
-- Testes: 562 com pptxgenjs/jszip (548 sem o módulo de apresentação; 547 aprovados na origem). `package-lock.json` gerado pelo Code — aguarda autorização do Fabio para o commit.
-- Antes de publicar: autorização do Fabio; trocar a senha do banco na Hostinger; "Cópia de segurança antes do deploy" do guia. Nada publicado; nada juntado à `main`.
+- Versão do aplicativo: 9.5.5 (fonte única em public/version.js; package.json e public/sw.js conferidos por tests/versao.test.mjs).
+- No ar na Hostinger desde 09/11: 9.5.4 (publicada pelo Code com autorização permanente do Fabio).
+- Pedidos do Code para a 9.5.5 (vulnerabilidades do nodemailer e e-mail):
+  1. `nodemailer` ^10.4.0 em package.json. O código de envio (`server/platform/mailer.mjs`) usa só `createTransport({host, port, secure, auth, timeouts})` e `sendMail`, que não mudaram entre a 7 e a 10; a importação aceita o módulo em ESM ou CommonJS. **Não há nodemailer instalado aqui**: o Code precisa rodar `npm install`, `npm audit --omit=dev` (esperado 0) e um envio real de teste.
+  2. Teste automático com transporte de teste injetado (`createMailer(smtp, log, {createTransport})`), em tests/email.test.mjs: cadastro (link de verificação), recuperação de senha (link /redefinir-senha), orçamento (e-mail para a SilSec com reply-to), falha EAUTH 535 e painel do administrador.
+  3. Aviso na tela quando o envio falha: `/cadastrar` e `/esqueci-senha` respondem 502 com "Não foi possível enviar o e-mail agora: <motivo em português>"; chave de acesso e teste grátis mostram o motivo em vez de "Enviamos…"; contato/orçamento redirecionam com `contato=registrado` ("registrada, mas o aviso por e-mail não pôde ser enviado"). Sem SMTP configurado, continua como antes (link no log).
+  4. Botão **Testar envio de e-mail** em `/admin/sistema` (painel "Envio de e-mail"): mostra servidor, porta, modo, usuário e remetente (nunca a senha), a última falha com data e motivo, e o resultado do teste (sucesso com tempo, ou erro do SMTP traduzido: EAUTH, ECONNECTION, ETIMEDOUT, EENVELOPE…). Registrado na auditoria (`mail-test`).
+  5. `package-lock.json`: gerar aí depois do `npm install` com o nodemailer 10 e commitar na branch (com autorização do Fabio).
+- Pacotes: `silsec-producao-2026-11-10.zip` e `silsec-completo-2026-11-10.zip`.
+- Testes: 566 com pptxgenjs/jszip (552 sem o módulo de apresentação; 551 aprovados na origem).
+- Antes de publicar: aprovação do Code (incluindo envio real com a SMTP_PASSWORD correta) e autorização do Fabio. Nada juntado à `main`.
 
 A lista completa de arquivos com SHA-256 está em LISTA-DE-ARQUIVOS.txt.

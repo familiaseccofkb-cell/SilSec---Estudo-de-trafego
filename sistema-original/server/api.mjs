@@ -4,6 +4,7 @@ import {licenseApi,licenses,projectLicense,requireModule,requireProjectLicense} 
 import {studyModule} from '../public/licensing.js';
 import {isBasic,normalizeBasic} from '../public/basic.js';
 import {reportArchiveApi} from './report-archive.mjs';
+import {cadastroAssistenteApi} from './cadastro-assistente.mjs';
 import {collaborationApi,projectPermission,teamAccess,comparison,audit,canManage,projectGrant,supplierBase} from './collaboration.mjs';
 import {staff,fullAccess,ROLES,evaluateOffer} from '../public/procurement.js';
 import {normalizeStudy} from '../public/state.js';
@@ -53,7 +54,7 @@ export async function handleApi(request,env){try{
  }
  const onboarding=await onboardingApi({request,env,parts,method,body,json});if(onboarding)return onboarding;
  const user=await authenticate(request,env),db=env.DB;
- const ctx={request,env,db,user,parts,method,body,resource,canAccess,expiry,json};const licensing=await licenseApi(ctx);if(licensing)return licensing;const archived=await reportArchiveApi(ctx);if(archived)return archived;
+ const ctx={request,env,db,user,parts,method,body,resource,canAccess,expiry,json};const licensing=await licenseApi(ctx);if(licensing)return licensing;const assistant=await cadastroAssistenteApi(ctx);if(assistant)return assistant;const archived=await reportArchiveApi(ctx);if(archived)return archived;
  // Enforce module and project-owner licenses independently of delegated roles.
  if(parts[0]==='projects'&&parts[1]&&parts.length>2){const p=await resource(db,user,'projects',parts[1]);await requireProjectLicense(db,p);if(staff(user))await requireModule(db,user,studyModule(JSON.parse(p.study_json)));if(parts[2]!=='shares'&&isBasic(JSON.parse(p.study_json)))fail(403,'Colaboração de fornecedores é exclusiva do módulo Avançado.');}
  if(parts[0]==='dimensional-catalog'&&!isSupplier(user)&&!isClient(user))await requireModule(db,user,'advanced');

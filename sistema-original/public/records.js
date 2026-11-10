@@ -1,4 +1,4 @@
-export const emptyCustomer=()=>({companyName:'',address:'',phone:'',email:'',contact:''});
+export const emptyCustomer=()=>({companyName:'',cnpj:'',address:'',phone:'',email:'',contact:''});
 export const emptyProjectDetails=()=>({name:'',address:'',contact:'',phone:''});
 export const emptyBrand=()=>({companyName:'',phone:'',email:'',address:'',contactPlacement:'header',logoPlacement:'header',logoDataUri:''});
 export const emptyAccount=()=>({name:'',contactEmail:'',phone:'',address:''});

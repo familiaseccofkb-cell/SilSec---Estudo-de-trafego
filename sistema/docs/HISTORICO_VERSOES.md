@@ -10,6 +10,7 @@ Use as cinco telas Cadastro, Parâmetros de cálculo, Cálculo populacional, Gr�
 
 - **E-mail:** biblioteca nodemailer atualizada para a versão 10 (corrige as vulnerabilidades apontadas pelo npm audit); quando o envio falha, a tela avisa em português em vez de dizer "enviamos um link" (cadastro, recuperação de senha, chave de acesso, teste grátis, orçamento e contato); botão **Testar envio de e-mail** em /admin/sistema, com a configuração em uso, o último erro e o resultado do teste.
 - Testes com transporte de e-mail de teste (sem SMTP real): cadastro, recuperação de senha, orçamento, falha EAUTH 535 e painel do administrador.
+- `image-size` forçado à 2.1.0 (`overrides`), fechando os dois avisos altos vindos do pptxgenjs.
 - Testes: 566 com pptxgenjs (552 sem ele).
 
 ### Versão 9.5.4 (novembro de 2026)

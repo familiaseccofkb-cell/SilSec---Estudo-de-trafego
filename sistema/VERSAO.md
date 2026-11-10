@@ -8,6 +8,7 @@
   3. Aviso na tela quando o envio falha: `/cadastrar` e `/esqueci-senha` respondem 502 com "Não foi possível enviar o e-mail agora: <motivo em português>"; chave de acesso e teste grátis mostram o motivo em vez de "Enviamos…"; contato/orçamento redirecionam com `contato=registrado` ("registrada, mas o aviso por e-mail não pôde ser enviado"). Sem SMTP configurado, continua como antes (link no log).
   4. Botão **Testar envio de e-mail** em `/admin/sistema` (painel "Envio de e-mail"): mostra servidor, porta, modo, usuário e remetente (nunca a senha), a última falha com data e motivo, e o resultado do teste (sucesso com tempo, ou erro do SMTP traduzido: EAUTH, ECONNECTION, ETIMEDOUT, EENVELOPE…). Registrado na auditoria (`mail-test`).
   5. `package-lock.json`: gerar aí depois do `npm install` com o nodemailer 10 e commitar na branch (com autorização do Fabio).
+  6. `image-size` (2 avisos altos, via pptxgenjs/devDependency): `"overrides": {"image-size": "^2.1.0"}` em package.json. O Code confere se o teste do PPTX continua passando com a 2.x e se `npm audit` (com e sem `--omit=dev`) zera.
 - Pacotes: `silsec-producao-2026-11-10.zip` e `silsec-completo-2026-11-10.zip`.
 - Testes: 566 com pptxgenjs/jszip (552 sem o módulo de apresentação; 551 aprovados na origem).
 - Antes de publicar: aprovação do Code (incluindo envio real com a SMTP_PASSWORD correta) e autorização do Fabio. Nada juntado à `main`.

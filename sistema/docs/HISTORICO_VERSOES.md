@@ -6,6 +6,12 @@ Notas da versão original (protótipo hospedado em outra plataforma). As regras 
 
 Use as cinco telas Cadastro, Parâmetros de cálculo, Cálculo populacional, Gráficos de performance e economias e Cálculo de tráfego. O estudo inicial usa 396 pessoas e três elevadores em dois grupos. O motor NBR é preferencial e o modelo ISO do documento fornecido é independente. Precisão integral de interpolação é o único critério de arredondamento intermediário.
 
+### Versão 9.5.6 (novembro de 2026)
+
+- **Site:** nova coluna "Consultoria para novos projetos" na Início (título "O que a SilSec faz pelo seu edifício e seu projeto"), bloco 02 em /servicos (estudo de tráfego do empreendimento, compatibilização com o projeto, especificação e contratação), link no rodapé e opção no formulário de orçamento.
+- **Segurança (ressalva do Code na 9.5.5):** quando o envio de e-mail falha, as telas públicas (/esqueci-senha, /cadastrar, chave de acesso, teste grátis) mostram a mesma mensagem genérica, com o mesmo código HTTP, para e-mail cadastrado ou não; o motivo técnico fica só no painel do administrador e no log. Painel: "sem SSL (STARTTLS se o servidor oferecer)".
+- Testes: 567 com pptxgenjs (553 sem ele).
+
 ### Versão 9.5.5 (novembro de 2026)
 
 - **E-mail:** biblioteca nodemailer atualizada para a versão 10 (corrige as vulnerabilidades apontadas pelo npm audit); quando o envio falha, a tela avisa em português em vez de dizer "enviamos um link" (cadastro, recuperação de senha, chave de acesso, teste grátis, orçamento e contato); botão **Testar envio de e-mail** em /admin/sistema, com a configuração em uso, o último erro e o resultado do teste.

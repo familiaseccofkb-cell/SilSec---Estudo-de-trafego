@@ -44,6 +44,10 @@ export function createMailer(smtp, log = console, {createTransport} = {}) {
   return {
     configured: !!smtp,
     // Resumo para a tela do administrador (sem senha).
+    // Verdadeiro quando houve falha de envio nos últimos 15 minutos e nenhum sucesso depois: as telas públicas mostram o aviso genérico.
+    recentFailure(windowMs = 15 * 60 * 1000) {
+      return !!lastError && Date.now() - Date.parse(lastError.at) < windowMs;
+    },
     status() {
       return {configured: !!smtp, host: smtp?.host || '', port: smtp?.port || null, secure: !!smtp?.secure, user: smtp?.user || '', from: smtp?.from || '', lastError, lastDeliveredAt};
     },

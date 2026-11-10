@@ -66,14 +66,18 @@ test('e-mail: cadastro, recuperação de senha e orçamento saem pelo transporte
     assert.equal(t.state.sent.length, 3); assert.match(t.state.sent[2].subject, /Orçamento/); assert.equal(t.state.sent[2].replyTo, 'sindico@predio.test'); assert.match(t.state.sent[2].text, /Cidade do edifício: Santo André/);
     assert.equal(t.mailer.status().lastError, null); assert.ok(t.mailer.status().lastDeliveredAt);
 
-    // 4) Senha da caixa errada (EAUTH 535): a tela não diz mais "enviamos um link"
+    // 4) Senha da caixa errada (EAUTH 535): a tela não diz mais "enviamos um link", mas também não revela quem tem conta nem a configuração
     t.state.fail = true;
     r = await t.req('/esqueci-senha', {method: 'POST', form: {email: OWNER}});
-    assert.equal(r.status, 502); assert.match(r.text, /Não foi possível enviar o e-mail agora/); assert.match(r.text, /EAUTH 535/); assert.doesNotMatch(r.text, /enviamos um link/);
+    assert.equal(r.status, 200); assert.match(r.text, /Não foi possível enviar o e-mail agora\. Tente novamente mais tarde/); assert.doesNotMatch(r.text, /enviamos um link/); assert.doesNotMatch(r.text, /SMTP|EAUTH|hPanel|variáveis de ambiente/);
+    const r2 = await t.req('/esqueci-senha', {method: 'POST', form: {email: 'ninguem@silsec.test'}});
+    assert.equal(r2.status, r.status); assert.equal(r2.text.replace(/ninguem@silsec\.test|dono@silsec\.test/g, 'X'), r.text.replace(/ninguem@silsec\.test|dono@silsec\.test/g, 'X'), 'mesma resposta para e-mail cadastrado e não cadastrado');
     r = await t.req('/cadastrar', {method: 'POST', form: {nome: 'Outra', email: 'outra@silsec.test', volta: '/'}, user: 'b'});
-    // e-mail fora da lista de administração: o cadastro é recusado em silêncio (não revela), sem tentar enviar
-    assert.equal(r.status, 200);
-    assert.match(t.mailer.status().lastError.reason, /recusou o usuário ou a senha/);
+    assert.equal(r.status, 200); assert.match(r.text, /Não conseguimos enviar o e-mail/); assert.doesNotMatch(r.text, /SMTP|EAUTH/);
+    r = await t.req('/cadastrar', {method: 'POST', form: {nome: 'Dono', email: OWNER, volta: '/'}, user: 'c'});
+    assert.equal(r.status, 200); assert.match(r.text, /Não conseguimos enviar o e-mail/, 'conta existente recebe a mesma tela');
+    assert.match(t.mailer.status().lastError.reason, /recusou o usuário ou a senha/, 'o motivo técnico fica no painel/log');
+    assert.equal(t.mailer.recentFailure(), true);
     assert.equal(t.state.sent.length, 3);
     // orçamento com e-mail falhando: fica registrado e a tela avisa
     r = await t.req('/contato', {method: 'POST', form: {origem: 'orcamento', nome: 'Síndico 2', perfil: 'sindico', email: 'outro@predio.test', mensagem: 'Estudo para prédio novo.', lgpd: 'on', site: ''}});
@@ -93,7 +97,7 @@ test('e-mail: botão "Testar envio de e-mail" no painel do administrador mostra 
     assert.ok([200, 303].includes(r.status), r.text);
     r = await t.req('/admin/sistema');
     assert.equal(r.status, 200, r.text);
-    assert.match(r.text, /Envio de e-mail/); assert.match(r.text, /smtp\.hostinger\.com:465/); assert.match(r.text, /Testar envio de e-mail/); assert.doesNotMatch(r.text, /"x"/, 'a senha não aparece');
+    assert.match(r.text, /Envio de e-mail/); assert.match(r.text, /smtp\.hostinger\.com:465 · conexão segura/); assert.match(r.text, /Testar envio de e-mail/); assert.doesNotMatch(r.text, /"x"/, 'a senha não aparece');
     r = await t.req('/admin/sistema/email-teste', {method: 'POST', form: {para: OWNER}});
     assert.equal(r.status, 200); assert.match(r.text, /E-mail de teste enviado para dono@silsec\.test em \d+ ms/);
     assert.match(t.state.sent.at(-1).subject, /Teste de envio/);

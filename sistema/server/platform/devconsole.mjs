@@ -258,7 +258,7 @@ ${mailPanel(session)}`;
   // Envio de e-mail: situação da configuração, último erro em português e botão de teste.
   function mailPanel(session) {
     const m = auth.mailer, st = m?.status ? m.status() : {configured: !!auth.mailConfigured()};
-    const cfg = st.configured ? `Servidor ${esc(st.host)}:${esc(st.port)} · ${st.secure ? 'conexão segura (SSL/TLS)' : 'STARTTLS'} · usuário ${esc(st.user || '(sem autenticação)')} · remetente ${esc(st.from)}` : 'Envio de e-mail não configurado: defina SMTP_PASSWORD (e, se preciso, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_FROM) nas variáveis de ambiente do site.';
+    const cfg = st.configured ? `Servidor ${esc(st.host)}:${esc(st.port)} · ${st.secure ? 'conexão segura (SSL/TLS)' : 'sem SSL (STARTTLS se o servidor oferecer)'} · usuário ${esc(st.user || '(sem autenticação)')} · remetente ${esc(st.from)}` : 'Envio de e-mail não configurado: defina SMTP_PASSWORD (e, se preciso, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_FROM) nas variáveis de ambiente do site.';
     const last = st.lastError ? `<p class="notice error">Última falha em ${esc(fmtDateTime(st.lastError.at))}: ${esc(st.lastError.reason)}</p>` : st.lastDeliveredAt ? `<p class="notice ok">Último envio com sucesso em ${esc(fmtDateTime(st.lastDeliveredAt))}.</p>` : '';
     return `<div class="panel" id="email"><h2>Envio de e-mail</h2><p class="muted">${cfg}</p>${last}<form class="stack" method="post" action="${ADMIN_BASE}/sistema/email-teste"><label class="field">Enviar e-mail de teste para<input name="para" type="email" required value="${esc(session.email)}"></label><div><button class="button small" ${st.configured ? '' : 'disabled'}>Testar envio de e-mail</button></div></form></div>`;
   }
@@ -302,7 +302,7 @@ ${mailPanel(session)}`;
         const email = decodeURIComponent(um[1]).toLowerCase();
         if (um[2] && method === 'POST') return userAction(request, session, admin, email, um[2]);
         const ok = url.searchParams.get('ok');
-        return userPage(session, email, ok ? (ok === 'falha' ? {kind: 'erro', text: `Usuário cadastrado, mas o e-mail com o link não saiu: ${auth.mailer?.status().lastError?.reason || 'falha no envio'} O link está no registro do servidor (Logs); teste o envio em Sistema.`} : {kind: 'ok', text: ok === 'existente' ? 'Usuário já tinha conta: cadastro atualizado.' : 'Usuário cadastrado. Enviamos o link para criar a senha.'}) : null);
+        return userPage(session, email, ok ? (ok === 'falha' ? {kind: 'erro', text: `Usuário cadastrado, mas o e-mail com o link não saiu: ${auth.mailer?.status?.().lastError?.reason || 'falha no envio'} O link está no registro do servidor (Logs); teste o envio em Sistema.`} : {kind: 'ok', text: ok === 'existente' ? 'Usuário já tinha conta: cadastro atualizado.' : 'Usuário cadastrado. Enviamos o link para criar a senha.'}) : null);
       }
       if (rest === '/pagamentos') return paymentsPage(session);
       if (rest === '/pagamentos/manual' && method === 'POST') return manualPayment(request, session, admin);

@@ -157,7 +157,9 @@ export function createAuth({db, config, mailer, log = console}) {
   }
   const mailNote = () => mailer.configured ? '' : ' (Envio de e-mail não configurado: o administrador encontra o link no log do servidor.)';
   // Quando o envio falha (senha errada, servidor fora do ar), a tela avisa em vez de dizer que o e-mail foi enviado.
-  const failedNote = r => r && r.delivered === false && r.configured ? `Não foi possível enviar o e-mail agora: ${r.reason} O link fica registrado no servidor; avise o administrador (${BRAND.email}).` : null;
+  // Mensagem pública genérica (igual para todos, sem revelar configuração nem quem tem conta); o motivo técnico fica no log e no painel do administrador.
+  const PUBLIC_MAIL_FAILURE = `Não foi possível enviar o e-mail agora. Tente novamente mais tarde ou fale com ${BRAND.email}.`;
+  const failedNote = r => r && r.delivered === false && r.configured ? PUBLIC_MAIL_FAILURE : null;
 
   async function handle(request) {
     const url = new URL(request.url), path = url.pathname, method = request.method;
@@ -207,12 +209,12 @@ export function createAuth({db, config, mailer, log = console}) {
       if (!validEmail(email)) return again('Informe um e-mail válido.');
       if (!name) return again('Informe seu nome.');
       const done = html(infoPage({title: 'Confirme seu e-mail', heading: 'Confirme seu e-mail', text: 'Se este e-mail estiver autorizado a usar o sistema, você receberá em instantes um link para confirmar o e-mail e criar sua senha. Verifique também a caixa de spam.' + mailNote()}));
-      const failed = r => html(infoPage({title: 'E-mail não enviado', heading: 'Não conseguimos enviar o e-mail', text: failedNote(r), kind: 'erro', link: '/entrar', linkText: 'Voltar'}), 502);
-      if (!await signupAllowed(email)) { log.warn('[cadastro] e-mail não autorizado: ' + email); return done; }
+      const failed = () => html(infoPage({title: 'E-mail não enviado', heading: 'Não conseguimos enviar o e-mail', text: PUBLIC_MAIL_FAILURE, kind: 'erro', link: '/entrar', linkText: 'Voltar'}), 200);
+      if (!await signupAllowed(email)) { log.warn('[cadastro] e-mail não autorizado: ' + email); return mailer.configured && mailer.recentFailure?.() ? failed() : done; }
       const existing = await q('SELECT * FROM auth_users WHERE email = ?', email).first();
       if (existing?.email_verified_at) {
-        await mailer.send({to: email, subject: `Você já tem conta · ${BRAND.name}`, text: `Recebemos um pedido de cadastro com este e-mail, mas você já tem conta. Para entrar, use ${baseUrl(request)}/entrar ou crie uma nova senha em ${baseUrl(request)}/esqueci-senha.`});
-        return done;
+        const r = await mailer.send({to: email, subject: `Você já tem conta · ${BRAND.name}`, text: `Recebemos um pedido de cadastro com este e-mail, mas você já tem conta. Para entrar, use ${baseUrl(request)}/entrar ou crie uma nova senha em ${baseUrl(request)}/esqueci-senha.`});
+        return failedNote(r) ? failed() : done;
       }
       let user = existing;
       if (!user) {
@@ -221,7 +223,7 @@ export function createAuth({db, config, mailer, log = console}) {
         await q('INSERT INTO auth_users (id,email,name,password_hash,created_at,updated_at) VALUES (?,?,?,?,?,?)', user.id, email, name, '', now(), now()).run();
       }
       const sent = await sendVerification(request, user, back);
-      return failedNote(sent) ? failed(sent) : done;
+      return failedNote(sent) ? failed() : done;
     }
 
     if (path === '/verificar') {
@@ -247,11 +249,10 @@ export function createAuth({db, config, mailer, log = console}) {
       const f = await form(request), email = String(f.get('email') || '').trim().toLowerCase();
       if (validEmail(email)) {
         const user = await q('SELECT * FROM auth_users WHERE email = ?', email).first();
-        if (user) {
-          const sent = await sendReset(request, user);
-          if (failedNote(sent)) return html(forgotPage({email, message: {kind: 'erro', text: failedNote(sent)}}), 502);
-        }
+        if (user) await sendReset(request, user);
       }
+      // Resposta igual para e-mail cadastrado ou não: só muda quando o servidor de e-mail está falhando (estado do servidor, não da conta).
+      if (mailer.configured && mailer.recentFailure?.()) return html(forgotPage({email, message: {kind: 'erro', text: PUBLIC_MAIL_FAILURE}}), 200);
       return html(forgotPage({email, message: {kind: 'ok', text: 'Se o e-mail estiver cadastrado, enviamos um link para criar uma nova senha. O link vale por 1 hora.' + mailNote()}}));
     }
 

@@ -267,3 +267,17 @@ test('vistorias: modelo padrão, preenchimento por seção com foto, não confor
     assert.equal(forged.status, 403);
   } finally { await t.close(); }
 });
+
+test('site: consultoria para novos projetos na Início, em /servicos, no rodapé e no formulário de orçamento', async () => {
+  const t = await boot();
+  try {
+    let r = await t.req('/'); assert.equal(r.status, 200);
+    assert.match(r.text, /O que a SilSec faz pelo seu edifício e seu projeto/);
+    assert.match(r.text, /class="services five"/); assert.match(r.text, /Consultoria para novos projetos/); assert.match(r.text, /caixa, poço e casa de máquinas/);
+    r = await t.req('/servicos'); assert.equal(r.status, 200);
+    assert.match(r.text, /id="novos-projetos"/); assert.match(r.text, /02 · Consultoria para novos projetos/); assert.match(r.text, /03 · Vistorias técnicas e laudos/); assert.match(r.text, /04 · Projetos e adequações/);
+    assert.match(r.text, /Estudo de tráfego do empreendimento/); assert.match(r.text, /Compatibilização com o projeto/); assert.match(r.text, /Especificação e contratação/);
+    assert.match(r.text, /href="\/servicos#novos-projetos">Novos projetos</);
+    r = await t.req('/orcamento'); assert.match(r.text, /value="Consultoria para novo projeto \(quantos elevadores, caixa, poço e casa de máquinas\)"/);
+  } finally { await t.close(); }
+});

@@ -1,11 +1,14 @@
-# SilSec · pacote de 2026-11-10 (9.5.6)
+# SilSec · pacote de 2026-11-18 (9.5.7)
 
-- Versão do aplicativo: 9.5.6. No ar na Hostinger: 9.5.5 (publicada pelo Code em 10/11 com autorização do Fabio).
-- **Site — consultoria para novos projetos** (pedido do Fabio): título da seção "O que a SilSec faz pelo seu edifício e seu projeto"; quinta coluna "Consultoria para novos projetos" na Início (`services five`, 5 → 3 → 2 → 1 colunas conforme a largura); bloco "02 · Consultoria para novos projetos" em /servicos com três frentes (estudo de tráfego do empreendimento, compatibilização com o projeto, especificação e contratação); vistorias e projetos renumerados 03 e 04; link "Novos projetos" no rodapé; opção "Consultoria para novo projeto (quantos elevadores, caixa, poço e casa de máquinas)" no formulário de orçamento; descrição da página /servicos e público ("incorporadoras, construtoras e escritórios de arquitetura") atualizados. Arquivos: `server/site/pages.mjs`, `public/site.css`. Teste em tests/commerce.test.mjs.
-- **Ressalva de segurança do Code (9.5.5) corrigida:** telas públicas não revelam mais quem tem conta nem a configuração do servidor quando o e-mail falha. `/esqueci-senha` responde 200 com "Não foi possível enviar o e-mail agora. Tente novamente mais tarde ou fale com contato@…" tanto para e-mail cadastrado quanto não cadastrado (critério: falha de envio nos últimos 15 minutos sem sucesso depois — `mailer.recentFailure()`); `/cadastrar` idem (200), inclusive para e-mail não autorizado ou já com conta; chave de acesso e teste grátis mostram a mesma frase genérica. O motivo técnico (EAUTH 535 etc.) fica só em /admin/sistema e no log. Teste: mesma resposta para os dois casos, sem "SMTP", "EAUTH" ou "hPanel" no HTML público.
-- Melhoria do Code: painel mostra "sem SSL (STARTTLS se o servidor oferecer)" quando SMTP_SECURE é falso.
-- Pacotes: `silsec-producao-2026-11-10b.zip` e `silsec-completo-2026-11-10b.zip`.
-- Testes: 567 com pptxgenjs/jszip (553 sem; 552 aprovados na origem).
+- Versão do aplicativo: 9.5.7. No ar na Hostinger: 9.5.6. Branch `release/9.5.7` criada a partir de `43b58ee` (9.5.6), com as alterações aprovadas na janela de teste do Claude (pacote de 18/11).
+- **Lotação nominal na NBR:** NBR 5665 convencional e FAB calculam com a lotação nominal (pessoas); ADS (antecipação de destino) e ISO 8100-32 mantêm o fator de ocupação (`public/cabin-occupancy.js`: `effectiveCapacity` = ocupação, `nominalCapacity` = lotação). Anexo A sem as linhas de fator de ocupação; textos de ajuda revistos; sugestão "Adotar fator de ocupação de 100%" só na ISO.
+- **Ajuda contextual** do Relatório e das seções de resultados, comparativo, distribuição, memória, recomendações e partidas por hora (`public/context-help.js`).
+- **Renomear projeto** na lista "Projetos salvos" (somente equipe, com controle de revisão): `PATCH /api/projects/:id/name`.
+- **Tabela de performance de referência** nos relatórios NBR e ISO.
+- Ajustes de população e das tabelas de comparação; gráficos de atendimento com janela de 1 hora e almoço completo; fornecedor isolado (não vê outros fornecedores nem o comparativo); "Adotar estes tempos" ao lado de abertura e fechamento; tempos de porta por tipo e vão; bloco duplicado de porta removido.
+- Inclui a correção de layout da revisão 10c (resumo do Cálculo populacional dentro da coluna principal) e o teste `tests/populacao-layout.test.mjs`.
+- Janela de teste: `teste-claude/arquivos-do-servidor.json` com `cabin-occupancy.js`, `context-help.js` e `display-number.js`.
+- **Situação dos testes automáticos: 454 de 569 aprovados (115 falhas).** Ver o relatório do Code. Não publicar enquanto as falhas não forem resolvidas ou explicadas.
 - Publicar só após aprovação do Code e autorização do Fabio. Nada juntado à `main`.
 
 A lista completa de arquivos com SHA-256 está em LISTA-DE-ARQUIVOS.txt.

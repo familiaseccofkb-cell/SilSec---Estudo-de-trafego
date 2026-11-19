@@ -54,7 +54,7 @@ export function validateEscalators(config,accessFloor=0){
  if(seen.size!==expected.size)errors.push('Complete a tabela de todos os pavimentos declarados.');
  return [...new Set(errors)];
 }
-export function escalatorCapacity(value){if(!number(value,0,100000))throw new Error('Capacidade do fabricante inválida; informe de 0 a 100.000 pessoas/h.');return value;}
+export function escalatorCapacity(value){if(!number(value,0,100000))throw new Error('Capacidade do fabricante inválida; informe de 0 a 100.000 PSH.');return value;}
 export function normalizeEscalators(config){if(!config||!Array.isArray(config.links))return config;return {...config,capacityBasis:config.capacityBasis??'manufacturer',links:config.links.map(link=>({...defaultEscalatorLink(link.floor),...link}))};}
 export function calculateEscalators(config,accessFloor,lines){
  if(!config?.enabled)return {enabled:false,segments:[],floors:{},excludedPopulation:0};

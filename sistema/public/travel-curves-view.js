@@ -1,6 +1,6 @@
 import {motionAt,TRAVEL_CURVES_SOURCE} from './travel-curves.js';
 const e=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const f=(x,d=2)=>Number.isFinite(x)?new Intl.NumberFormat('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}).format(x):'—';
+const f=(x,d=2)=>Number.isFinite(x)?new Intl.NumberFormat('pt-BR',{minimumFractionDigits:d>2?0:d,maximumFractionDigits:Math.min(d,3)}).format(x):'—';
 const n=x=>Number(x.toFixed(4));
 
 function chart(j,g,title,id){

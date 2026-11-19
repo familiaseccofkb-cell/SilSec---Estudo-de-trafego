@@ -66,5 +66,8 @@
 "db/sqlite/0007_sistema.sql",
 "db/sqlite/0008_controle_acessos.sql",
 "db/sqlite/0009_indices_acessos.sql",
-"db/sqlite/0010_alteracoes_nome_cliente.sql"
+"db/sqlite/0010_alteracoes_nome_cliente.sql",
+"public/cabin-occupancy.js",
+"public/context-help.js",
+"public/display-number.js"
 ]

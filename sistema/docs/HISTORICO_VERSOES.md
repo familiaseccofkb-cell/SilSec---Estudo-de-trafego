@@ -6,6 +6,14 @@ Notas da versão original (protótipo hospedado em outra plataforma). As regras 
 
 Use as cinco telas Cadastro, Parâmetros de cálculo, Cálculo populacional, Gráficos de performance e economias e Cálculo de tráfego. O estudo inicial usa 396 pessoas e três elevadores em dois grupos. O motor NBR é preferencial e o modelo ISO do documento fornecido é independente. Precisão integral de interpolação é o único critério de arredondamento intermediário.
 
+### Versão 9.5.7 (novembro de 2026)
+
+- **Cálculo:** NBR 5665 convencional e FAB com lotação nominal; ADS e ISO 8100-32 com fator de ocupação. Anexo A sem linhas de fator de ocupação.
+- **Relatórios:** tabela de performance de referência na NBR e na ISO.
+- **Projetos salvos:** renomear pela lista (equipe, com controle de revisão).
+- **Fornecedores:** cada fornecedor vê só a própria proposta.
+- Ajuda contextual nas seções de resultados; tempos de porta por tipo e vão; gráficos de atendimento com janela de 1 hora.
+
 ### Versão 9.5.6 (novembro de 2026)
 
 - **Site:** nova coluna "Consultoria para novos projetos" na Início (título "O que a SilSec faz pelo seu edifício e seu projeto"), bloco 02 em /servicos (estudo de tráfego do empreendimento, compatibilização com o projeto, especificação e contratação), link no rodapé e opção no formulário de orçamento.

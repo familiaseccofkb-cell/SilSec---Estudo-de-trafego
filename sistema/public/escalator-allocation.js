@@ -2,7 +2,7 @@ import {parametersOnly,operationallyEnabled} from './escalator-policy.js';
 // Project assumption for partial service. Full-floor exclusion remains conditional
 // on continuous access and adequate capacity; this is not a new normative rule.
 export const PARTIAL_ESCALATOR_PREMISE='Atendimento parcial: premissa de projeto solicitada pelo responsável, sem atribuição de regra proporcional à NBR 5665, 5.1.6, nem ao documento ISO. Capacidade equivalente de população = menor capacidade de subida/descida na janela ÷ (demanda percentual / 100). Distribuição proporcional entre os andares dependentes, respeitando cada trecho compartilhado. A população residual permanece nos elevadores, com arredondamento final para cima.';
-const fmt=v=>new Intl.NumberFormat('pt-BR',{maximumFractionDigits:4}).format(v);
+const fmt=v=>new Intl.NumberFormat("pt-BR",{maximumFractionDigits:3}).format(v);
 export function allocateEscalatorPopulation(network,lines){
  if(!network.enabled)return network;
  const {segments,accessFloor:access=0}=network,byFloor=new Map(segments.map(s=>[s.floor,s])),floors=network.floors||{},fraction=network.demandPercent/100;

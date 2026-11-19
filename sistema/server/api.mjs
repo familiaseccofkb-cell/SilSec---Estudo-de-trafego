@@ -79,6 +79,17 @@ export async function handleApi(request,env){try{
  }
  if(parts[0]==='projects'&&parts[1]&&method==='GET'&&parts.length===2){const row=await resource(db,user,'projects',parts[1]),module=studyModule(JSON.parse(row.study_json)),ownerLicense=await projectLicense(db,row),ownLicense=await licenses(db,user),locked=!ownerLicense[module].active||(staff(user)&&!ownLicense[module].active);if(locked)return json({id:row.id,name:row.name,module,revision:row.revision,ownerId:row.owner_id,licenseLocked:true,canEdit:false,reportAvailable:!!row.report_key,reportRevision:row.report_revision,projectEntitlements:ownerLicense,entitlements:ownLicense});const grant=await projectGrant(db,user,row.id),original=JSON.parse(row.study_json),study=grant?.kind==='supplier'?supplierBase(original):original,computed=row.status==='calculated'?(grant?.kind==='supplier'?recalculatePopulationAndStudies(normalizeStudy(study)):row.calculation_snapshot?JSON.parse(row.calculation_snapshot):recalculatePopulationAndStudies(normalizeStudy(study))):null;const rv=await reviewState(db,user,row,await projectPermission(db,user,row,true,canAccess));return json({id:row.id,ownerId:row.owner_id,revision:row.revision,status:row.status,clientId:row.client_id,canEdit:rv.canEdit,review:rv.review,canManage:await canManage(db,user,row,canAccess),projectRole:grant?.kind||user.role,procurement:isBasic(study)?null:await comparison(db,user,row),study:computed?.study||study,results:computed?.results||null,profile:computed?.profile||await profile(env,row.owner_id),reportAvailable:!!row.report_key,reportRevision:row.report_revision,projectEntitlements:ownerLicense,entitlements:ownLicense});}
 
+ if(parts[0]==='projects'&&parts[1]&&parts[2]==='name'&&method==='PATCH'&&parts.length===3){
+  if(!staff(user))fail(403,'Somente a equipe pode renomear o projeto.');const input=await body(request),name=String(input.name??'').trim();
+  if(!name||name.length>120)fail(400,'Informe um nome com até 120 caracteres.');
+  const row=await resource(db,user,'projects',parts[1],true);await requireProjectLicense(db,row);
+  if(input.revision!==row.revision)fail(409,'O projeto foi alterado em outro acesso. Atualize a lista antes de renomear.');
+  const study=JSON.parse(row.study_json);study.name=name;const snapshot=row.calculation_snapshot?JSON.parse(row.calculation_snapshot):null;if(snapshot?.study)snapshot.study.name=name;
+  const revision=row.revision+1,updatedAt=now(),calculatedRevision=row.calculated_revision===row.revision?revision:row.calculated_revision;
+  const update=await run(db,'UPDATE projects SET name=?,study_json=?,calculation_snapshot=?,calculated_revision=?,revision=?,updated_at=? WHERE id=? AND revision=?',[name,JSON.stringify(study),snapshot?JSON.stringify(snapshot):row.calculation_snapshot,calculatedRevision,revision,updatedAt,row.id,row.revision]);
+  if(update.meta?.changes!==1)fail(409,'O projeto foi alterado em outro acesso. Atualize a lista antes de renomear.');
+  await recordProjectWrite(db,user,row,revision);return json({id:row.id,name,revision,updatedAt});
+ }
  if(parts[0]==='projects'&&method==='PUT'&&parts.length<=2){
   if(!staff(user))fail(403,'Somente a equipe pode alterar o estudo-base.');const input=await body(request);let row;if(parts[1])row=await resource(db,user,'projects',parts[1],true);
   if(row&&input.revision!==row.revision)fail(409,'O estudo foi alterado em outro acesso. Reabra a versão salva antes de continuar.');

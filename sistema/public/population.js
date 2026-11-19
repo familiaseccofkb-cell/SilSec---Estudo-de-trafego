@@ -32,7 +32,7 @@ const typeList=(use,model)=>((model==='iso8100'?isoTypes:types)[use]||[]);
 export const populationTypes=(use,model='nbr5665')=>Object.fromEntries([...new Set([...(Array.isArray(use)?use:[use]).flatMap(u=>typeList(u,model)),...COMPLEMENTARY_TYPES])].map(k=>[k,POP_TYPES[k].label]));
 export function applicationForRow(study,row){return (study.populationApplications||study.groups.map(g=>g.use||study.use)).find(u=>typeList(u,study.trafficModel).includes(row.kind))||study.use;}
 export const defaultPopulationMode=(use,kind,model='nbr5665')=>typeList(use,model).includes(kind)?'main':kind==='auditorium'?'external':'exclusive';
-export function defaultPopulationRow(use='offices'){return {label:'Composição 1',kind:types[use]?.[0]||'office',mode:'main',amount:0,repeat:1,reduction15:false,discount:'none',distance:0,exclusion:'none',conditionsConfirmed:false,notes:'',floor:1,isStreetAccess:false,declaredPopulation:0,schoolDiscountPercent:0,schoolDistance:0,escalatorDiscount:false,servedByEscalator:false};}
+export function defaultPopulationRow(use='offices'){return {label:'Composição 1',kind:types[use]?.[0]||'office',mode:'main',amount:0,repeat:1,reduction15:false,corridorFullFloor:false,discount:'none',distance:0,exclusion:'none',conditionsConfirmed:false,notes:'',floor:1,isStreetAccess:false,declaredPopulation:0,schoolDiscountPercent:0,schoolDistance:0,escalatorDiscount:false,servedByEscalator:false};}
 export function defaultPopulationCalc(use='offices'){return {accessFloor:0,rows:[defaultPopulationRow(use)],escalators:defaultEscalators(),last:null};}
 export function normalizePopulationRow(row,use){
  const next={...defaultPopulationRow(use),...row,mode:row.mode??defaultPopulationMode(use,row.kind),floorMark:row.floorMark??String(row.floor??1)};
@@ -47,8 +47,64 @@ export function normalizePopulationCalc(pc,use){
  if(next.last){next.last={...next.last,accessFloor:next.last.accessFloor??0,escalators:normalizeEscalators(next.last.escalators||defaultEscalators()),rows:next.last.rows?.map(row=>snapshotRow(normalizePopulationRow(row,next.last.use)))};}
  return next;
 }
-export function discountAllowed(row,accessFloor=0){return Math.abs(row.floor-accessFloor)===1&&(row.distance??0)<=5;}
-const fmt=v=>new Intl.NumberFormat('pt-BR',{maximumFractionDigits:4}).format(v);
+// NBR 5665, 5.1.2: pavimentos acima do acesso e/ou o imediatamente abaixo, a até 5 m do acesso, em qualquer tipo de edifício.
+export function adjacentFloor(floor,accessFloor=0){return floor>accessFloor||floor===accessFloor-1;}
+// 50% (NBR 5665, 5.1.2): somente o pavimento imediatamente acima ou imediatamente abaixo do acesso.
+export function immediateFloor(floor,accessFloor=0){return Math.abs(floor-accessFloor)===1;}
+export function fiftyPercentApplies(row,use,accessFloor=0,iso=false){return automaticRow(row,use,accessFloor,iso,{}).discount==='adjacent50';}
+export function discountAllowed(row,accessFloor=0){return immediateFloor(row.floor,accessFloor)&&(row.distance??0)>0&&(row.distance??0)<=5;}
+// Descontos automáticos (regra de 2026-11-15): não são escolhidos pelo usuário; valem quando o critério de distância é atendido.
+// Escritórios: 50% nos pavimentos imediatamente acima e abaixo do acesso, com até 5 m de percurso.
+// Edifício escolar: 30% na população principal dos pavimentos acima ou imediatamente abaixo do acesso, com até 12 m de percurso.
+// Redução de 15%: somente escritório de edifício escolar, com sala ≥ 200 m² ou sala corrida de pavimento inteiro.
+// Redução de 15% (NBR 5665, 5.1.5): só escritório ou sala de administração; sala ≥ 200 m² ou sala corrida de pavimento inteiro.
+// Redução de 15% (NBR 5665, 5.1.5): escritório ou sala de administração; só quando não há outra composição no mesmo pavimento;
+// sala corrida que ocupa todo o pavimento, ou sala com área ≥ 200 m². Abaixo de 200 m² não se aplica com repetições no mesmo pavimento.
+// Só escritório, ou sala de administração de edifício escolar.
+export function reduction15Kind(row,use){return row.kind==='office'||(use==='school'&&row.kind==='administration');}
+export function reduction15Reason(row,use,iso=false,floorCount=1){
+ const area=Number(row.amount)||0,repeat=Number(row.repeat)||1;
+ if(iso)return 'não se aplica ao modelo ISO.';
+ if(row.kind==='classroom')return 'sala de aula não tem redução de 15%.';
+ if(!reduction15Kind(row,use))return 'somente escritório ou sala de administração da escola.';
+ if(area<200&&!row.corridorFullFloor)return 'sala com menos de 200 m² que não ocupa todo o pavimento.';
+ if(area<200&&repeat>1)return 'repetições no mesmo pavimento com área inferior a 200 m².';
+ return '';
+}
+export function reduction15Eligible(row,use,iso=false,floorCount=1){return reduction15Reason(row,use,iso,floorCount)==='';}
+export function automaticRow(row,use,accessFloor=0,iso=false,options={}){
+ const next={...row};
+ // Sala de aula não tem desconto escolar, de 50% nem redução de 15% (NBR 5665, 5.1.1 g).
+ // Sala de aula: desconto escolar de 30% (NBR 5665, 5.1.3), sem 50% e sem redução de 15%.
+ if(next.kind==='classroom'){next.reduction15=false;next.corridorFullFloor=false;}
+ next.corridorFullFloor=!!next.reduction15&&next.kind!=='classroom';
+ const floorDelta=next.floor-accessFloor;
+ const isoOk=!iso||Boolean(next.iso?.stairsSameHall&&next.iso?.stairsUnrestricted&&!options.isoConfig?.multipleEntrances);
+ if(use==='school'&&next.mode==='main'){
+  const aboveOrAdjacentBelow=adjacentFloor(next.floor,accessFloor),d=next.schoolDistance??0;
+  // Sala de aula: até 5 m soma 50% (NBR 5665, 5.1.2) e 30% (5.1.3); de 5 a 12 m aplica-se só 30%.
+  if((next.kind==='classroom'||next.kind==='administration')&&isoOk&&immediateFloor(next.floor,accessFloor)&&d>0&&d<=5){next.discount='adjacent50';next.distance=d;next.schoolDiscountPercent=30;}
+  else{next.discount='none';next.schoolDiscountPercent=isoOk&&aboveOrAdjacentBelow&&d>0&&d<=12?30:0;}
+ }else{
+  next.discount=isoOk&&discountAllowed(next,accessFloor)?'adjacent50':'none';
+ }
+ next.reduction15=Boolean(next.reduction15)&&reduction15Eligible(next,use,iso,options.floorCount??1);
+ return next;
+}
+export function discountStatus(row,use,accessFloor=0,iso=false){
+  const eff=automaticRow(row,use,accessFloor,iso,{});
+ if(use==='school'&&row.mode==='main'){
+  const norm='Nos edifícios escolares pode ser descontado 30% da população dos pavimentos acima e/ou imediatamente abaixo do pavimento de acesso, contidos dentro de uma distância máxima de 12 metros em relação ao pavimento de acesso · NBR 5665, 5.1.3.';
+  if(eff.discount==='adjacent50')return (eff.reduction15&&row.kind==='administration'?'Descontos somados automaticamente: 50% (NBR 5665, 5.1.2) + 30% (5.1.3) + 15% (5.1.5) = 95%':'Descontos somados automaticamente: 50% (NBR 5665, 5.1.2) + 30% (5.1.3) = 80%')+', pavimento imediatamente acima ou abaixo do acesso, a '+fmt(row.schoolDistance)+' m.';
+  if(eff.schoolDiscountPercent>0)return norm;
+  return norm+' Não aplicado neste ambiente: percurso informado de '+fmt(row.schoolDistance??0)+' m.';
+ }
+ if(eff.discount==='adjacent50')return 'Desconto de 50% aplicado automaticamente (NBR 5665, 5.1.2): pavimento acima ou imediatamente abaixo do acesso, a '+fmt(row.distance)+' m.';
+ if(immediateFloor(row.floor,accessFloor))return 'Desconto de 50% não aplicado: percurso acima de 5 m (informado: '+fmt(row.distance??0)+' m).';
+ return 'Desconto de 50% não aplicado: somente nos pavimentos acima ou imediatamente abaixo do acesso.';
+}
+
+const fmt=v=>new Intl.NumberFormat("pt-BR",{maximumFractionDigits:3}).format(v);
 export function setRowSkipPopulation(pc,i,skip,use='offices'){
  const next={...pc,rows:pc.rows.map(r=>({...r}))},row=next.rows[i];
  if(!row)throw Error('Composição não encontrada.');
@@ -68,8 +124,9 @@ export function calculatePopulation(use,rows,options={}){
  rows=rows.map(r=>r&&r.exclusion&&r.exclusion!=='none'?{...r,isStreetAccess:false,reduction15:false,discount:'none',schoolDiscountPercent:0,schoolDistance:0,servedByEscalator:false,escalatorDiscount:false,conditionsConfirmed:false}:r);
  if(!Array.isArray(rows)||!rows.length||rows.length>100)throw new Error('Informe de 1 a 100 composições de população.');
  const applications=options.applications?.length?options.applications:[use];const rowUse=r=>applications.find(u=>typeList(u,options.trafficModel).includes(r.kind))||use;
+ const floorCounts=rows.reduce((m,r)=>r&&!r.skipPopulation?{...m,[floorKeyOf(r)]:(m[floorKeyOf(r)]||0)+1}:m,{});
+ rows=rows.map(r=>r&&!r.skipPopulation?automaticRow(normalizePopulationRow(r,rowUse(r)),rowUse(r),options.accessFloor??0,options.trafficModel==='iso8100',{...options,floorCount:floorCounts[floorKeyOf(r)]||1}):r);
  const floorErrors=validateFloorConfiguration({...options,rows});if(floorErrors.length)throw new Error(floorErrors.join('\n'));
- if(applications.some(u=>new Set(rows.filter(r=>r.discount==='adjacent50'&&rowUse(r)===u).map(r=>r.floor)).size>(u==='offices'?2:1)))throw Error(use==='offices'?'O desconto de 50% nos escritórios é limitado a dois pavimentos: imediatamente acima e imediatamente abaixo do acesso.':'O desconto de 50% pode ser aplicado em somente um andar neste estudo. Vários ambientes do mesmo andar podem compartilhá-lo. Critério do projeto.');
  // Versão 1 do editor: só andares com composição podem ser origem/destino. Versão 2: os trechos seguem a tabela de pavimentos
  // (andar a andar), então os níveis já permitidos pelo editor são mantidos e os andares com composição são acrescentados.
  if(options.escalators?.graphVersion===1)options={...options,escalators:{...options.escalators,allowedFloors:[...new Set([0,...rows.map(r=>r.floor),...(options.additionalLines||[]).map(r=>r.floor)])]}};
@@ -91,11 +148,10 @@ export function calculatePopulation(use,rows,options={}){
   if(!['none','adjacent50'].includes(row.discount)||!['none','exclusive','unusable'].includes(row.exclusion))throw new Error(prefix+'desconto ou exclusão inválido.');
   if(!Number.isFinite(row.schoolDiscountPercent)||row.schoolDiscountPercent<0||row.schoolDiscountPercent>100)throw new Error(prefix+'desconto escolar deve estar entre 0% e 100%.');
   if(row.schoolDiscountPercent>0&&(use!=='school'||row.mode!=='main'))throw new Error(prefix+'desconto escolar é exclusivo da população principal de edifícios escolares.');
-  if(row.schoolDiscountPercent>0&&row.discount!=='none')throw new Error(prefix+'não acumule o desconto escolar com o desconto de 50% na mesma população.');
-  if((row.discount!=='none'||row.reduction15||row.schoolDiscountPercent>0)&&row.conditionsConfirmed!==true)throw new Error(prefix+'confirme as condições para aplicar desconto, redução ou exclusão.');
-  if(row.discount==='adjacent50'&&(!Number.isFinite(row.distance)||row.distance<=0||row.distance>5||Math.abs(row.floor-accessFloor)!==1))throw new Error(prefix+'desconto de 50% exige pavimento imediatamente acima ou abaixo, com distância positiva até 5 m.');
+  if(!['classroom','administration'].includes(row.kind)&&row.schoolDiscountPercent>0&&row.discount!=='none')throw new Error(prefix+'não acumule o desconto escolar com o desconto de 50% na mesma população.');
+  if(row.discount==='adjacent50'&&(!Number.isFinite(row.distance)||row.distance<=0||row.distance>5||!immediateFloor(row.floor,accessFloor)))throw new Error(prefix+'desconto de 50% exige pavimento acima ou imediatamente abaixo do acesso, com distância positiva até 5 m.');
   if(row.schoolDiscountPercent>0&&(!Number.isFinite(row.schoolDistance)||row.schoolDistance<=0||row.schoolDistance>12||!(row.floor>accessFloor||row.floor===accessFloor-1)))throw new Error(prefix+'desconto escolar exige distância positiva até 12 m, acima ou imediatamente abaixo do acesso.');
-  if(row.reduction15&&row.kind!=='office')throw new Error(prefix+'redução de 15% é exclusiva de salas de escritório elegíveis.');
+  if(row.reduction15&&!reduction15Eligible(row,use,iso,floorCountOf(rows,row)))throw new Error(prefix+'redução de 15% é exclusiva de escritórios ou salas de administração, com sala ≥ 200 m² ou sala corrida de pavimento inteiro (NBR 5665, 5.1.5).');
   if(row.exclusion==='unusable'&&row.kind!=='office')throw new Error(prefix+'exclusão de espaços sem uso para trabalho é específica de escritórios.');
   if(row.exclusion!=='none'&&!row.notes.trim())throw new Error(prefix+'descreva o motivo e as condições da exclusão.');
   if(iso){
@@ -112,13 +168,14 @@ export function calculatePopulation(use,rows,options={}){
    const area=row.amount*(row.reduction15?.85:1);
    perUnit=row.reduction15?area/7:row.amount<=7?1:row.amount<14?2:area/7;
    formula=row.reduction15?`${fmt(row.amount)} m² × 85% / 7`:`${fmt(row.amount)} m² → ${fmt(perUnit)} pessoas`;
-  }else if(type.area){perUnit=row.amount/type.divisor;formula=`${fmt(row.amount)} m² / ${fmt(type.divisor)}`;}
+  }else if(row.reduction15&&row.kind==='administration'){perUnit=row.amount/type.divisor;formula=`${fmt(row.amount)} m² / ${fmt(type.divisor)} (redução de 15% somada aos descontos)`;}
+  else if(type.area){perUnit=row.amount/type.divisor;formula=`${fmt(row.amount)} m² / ${fmt(type.divisor)}`;}
   else {perUnit=row.amount*type.factor;formula=`${fmt(row.amount)} × ${fmt(type.factor)}`;}
-  const gross=perUnit*row.repeat,discount=row.discount==='adjacent50'?.5:row.schoolDiscountPercent/100;
+  const gross=perUnit*row.repeat,discount=(row.discount==='adjacent50'?.5:0)+row.schoolDiscountPercent/100+(row.reduction15&&row.kind==='administration'?.15:0);
   const calculatedPopulation=gross*(1-discount);
   const beforeEscalator=row.participationVersion===1&&row.participation==='exclude'||streetAccess||row.mode==='exclusive'||row.exclusion!=='none'?0:gross*(1-discount);
   const customSchool=row.schoolDiscountPercent>0&&row.schoolDiscountPercent!==30;
-  const details=iso?`Documento ISO informado, ${isoItem||'critério de acesso / declaração'}; pavimento ${row.floor}; acesso ${accessFloor}; ${row.discount==='adjacent50'?'desconto de 50% (§4.3.3.1); ':''}${row.schoolDiscountPercent>0?'desconto escolar '+fmt(row.schoolDiscountPercent)+'% (§4.3.3.2 ou premissa personalizada); ':''}${row.notes}`:[row.kind==='auditorium'?type.item:`NBR 5665, ${type.item}`,`pavimento ${row.floor}; acesso ${accessFloor}`,row.reduction15?'redução de área de 15% (5.1.5): sala ≥ 200 m² ou sala corrida de pavimento inteiro':'',row.discount==='adjacent50'?`desconto de 50% a ${fmt(row.distance)} m (5.1.2)`:'',row.schoolDiscountPercent>0?`desconto escolar ${fmt(row.schoolDiscountPercent)}% a ${fmt(row.schoolDistance)} m; ${customSchool?'percentual personalizado: premissa do usuário diferente dos 30% de 5.1.3':'NBR 5665, 5.1.3'}`:'',row.exclusion!=='none'?`exclusão ${row.exclusion} (${row.exclusion==='unusable'?'5.1.4':'5.1.7'}): ${row.notes}`:'',row.exclusion==='none'?row.notes:''].filter(Boolean).join('; ');
+  const details=iso?`Documento ISO informado, ${isoItem||'critério de acesso / declaração'}; pavimento ${row.floor}; acesso ${accessFloor}; ${row.discount==='adjacent50'?'desconto de 50% (§4.3.3.1); ':''}${row.schoolDiscountPercent>0?'desconto escolar '+fmt(row.schoolDiscountPercent)+'% (§4.3.3.2 ou premissa personalizada); ':''}${row.notes}`:[row.kind==='auditorium'?type.item:`NBR 5665, ${type.item}`,`pavimento ${row.floor}; acesso ${accessFloor}`,row.reduction15?(row.kind==='administration'?'redução de 15% somada aos descontos escolares (5.1.5): sala ≥ 200 m² ou sala corrida de pavimento inteiro':'redução de área de 15% (5.1.5): sala ≥ 200 m² ou sala corrida de pavimento inteiro'):'',row.discount==='adjacent50'?`desconto de 50% a ${fmt(row.distance)} m (5.1.2)`:'',row.schoolDiscountPercent>0?`desconto escolar ${fmt(row.schoolDiscountPercent)}% a ${fmt(row.schoolDistance)} m; ${customSchool?'percentual personalizado: premissa do usuário diferente dos 30% de 5.1.3':'NBR 5665, 5.1.3'}`:'',row.exclusion!=='none'?`exclusão ${row.exclusion} (${row.exclusion==='unusable'?'5.1.4':'5.1.7'}): ${row.notes}`:'',row.exclusion==='none'?row.notes:''].filter(Boolean).join('; ');
   return {id:row.id,index:i,mode:row.mode,label:row.label||`Composição ${i+1}`,kind:row.kind,floor:row.floor,floorMark:row.floorMark,servedFloorMark:row.servedFloorMark??String(row.floor),declaredPopulation:row.declaredPopulation,compositionName:compositionName(row),calculatedNet:calculatedPopulation,declarationEligible:!(row.participationVersion===1&&row.participation==='exclude')&&!streetAccess&&row.mode!=='exclusive'&&row.exclusion==='none',isStreetAccess:row.isStreetAccess,streetAccessExcluded:streetAccess,formula:`(${formula}) × ${row.repeat}`,gross,discount,beforeEscalator,net:beforeEscalator,escalatorRequested:!streetAccess&&row.mode!=='exclusive'&&row.servedByEscalator,customSchool,details:details+(row.participationVersion===1?'; participação escolhida pelo gestor: '+({include:'incluir no estudo principal como premissa de uso composto',exclude:'registrar sem somar à população',separate:'estudo separado para esta demanda'}[row.participation]||'pendente'):'')+(row.discount==='adjacent50'?(use==='offices'?'; desconto de 50% limitado aos dois pavimentos adjacentes ao acesso, um acima e um abaixo, até 5 m':'; critério adicional deste projeto: desconto de 50% limitado a um único andar'):'')+(streetAccess?'; acesso à rua confirmado: população desconsiderada por critério deste estudo; preservar paradas e percurso':'')+(row.mode==='exclusive'?'; uso exclusivo da edificação: população desconsiderada ('+(iso?'documento §4.3.2.11 / 4.3.3.5':'NBR 5665, 5.1.7')+'); preservar paradas e percurso':row.mode==='external'?'; população destinada a estudo separado, com critérios e elevadores próprios':'')};
  });
  const declarationSummary=[];
@@ -142,7 +199,8 @@ export function calculatePopulation(use,rows,options={}){
   line.escalatorReason=(iso?floor?.reason?.replace('NBR 5665, 5.1.6','documento ISO informado, 4.3.3.4'):floor?.reason)||'População mantida: configure e confirme o estudo de escadas rolantes antes de aplicar a exclusão.';line.details+='; '+line.escalatorReason;
  }
  for(const line of lines){line.notComputedPopulation=Math.max(0,line.recordedPopulation-line.net);line.exclusionNotice=!line.declarationEligible?`Esta população não irá fazer parte do estudo de tráfego: ${line.skipped?'pavimento sem cálculo de população':line.streetAccessExcluded?'pavimento de acesso':line.mode==='exclusive'?'uso exclusivo da edificação':line.exclusion!=='none'?'exclusão justificada':'participação desativada'}. Calculada: ${fmt(line.calculatedNet)}; registrada após declaração: ${fmt(line.recordedPopulation)} pessoas.`:line.escalatorServedPopulation>0?`${fmt(line.escalatorServedPopulation)} pessoas não serão computadas por atendimento de escadas rolantes; ${fmt(line.net)} pessoas permanecem nos elevadores. ${line.escalatorReason}`:line.mode==='external'?'Esta população não entra no estudo principal; participa do estudo separado.':'';if(line.exclusionNotice)line.details+='; '+line.exclusionNotice;}
- const ceil=value=>value===0?0:Math.max(1,Math.ceil(value-1e-10));
+ // Arredondamento sempre para cima: só elimina ruído de ponto flutuante (6 casas) antes de arredondar.
+ const ceil=value=>value===0?0:Math.max(1,Math.ceil(Math.round(value*1e6)/1e6));
  const raw=lines.filter(line=>line.mode==='main').reduce((sum,line)=>sum+line.net,0),value=ceil(raw);
  const separate=lines.filter(line=>line.mode==='external').map(line=>({...line,value:ceil(line.net)}));
  const separateValue=separate.reduce((sum,line)=>sum+line.value,0),totalValue=value+separateValue;
@@ -151,7 +209,7 @@ export function calculatePopulation(use,rows,options={}){
  for(const line of lines){if(!floorMap.has(line.floor))floorMap.set(line.floor,{floor:line.floor,marks:[],environments:[],gross:0,calculated:0,declared:0,recorded:0,notComputed:0,escalatorServed:0,notices:[],adopted:0,main:0,separate:0,streetAccess:false});const floor=floorMap.get(line.floor);if(!floor.marks.includes(line.servedFloorMark))floor.marks.push(line.servedFloorMark);floor.environments.push(line.label);floor.gross+=line.gross;floor.calculated+=line.calculatedNet;floor.recorded+=line.recordedPopulation;floor.notComputed+=line.notComputedPopulation;floor.escalatorServed+=line.escalatorServedPopulation||0;if(line.exclusionNotice)floor.notices.push(line.exclusionNotice);floor.adopted+=line.net;floor.main+=line.mode==='main'?line.net:0;floor.separate+=line.mode==='external'?line.net:0;floor.streetAccess ||= line.streetAccessExcluded;}
  for(const group of declarationSummary)floorMap.get(group.floor).declared+=group.declared;
  const floors=[...floorMap.values()].sort((a,b)=>a.floor-b.floor);
- const basis=lines.map(line=>`${line.compositionName}, composição ${line.floorMark}, ambiente ${line.label}, andar ${line.servedFloorMark}: ${line.formula}; população líquida ${fmt(line.net)}. ${line.details}.`).join('\n')+`\nEstudo principal antes do arredondamento: ${fmt(raw)}. População calculada: ${value} pessoas. Estudos separados: ${separateValue} pessoas. Total dos estudos: ${totalValue} pessoas. ${iso?'Arredondamento para cima por pavimento e estudo, após somar seus ambientes; documento §4.3.3.3.':'Arredondamento final para cima em cada estudo, sem arredondar componentes.'} As populações dos estudos separados não são somadas à demanda principal.`;
+ const basis=populationBasisText({iso,lines,raw,value,separateValue,totalValue});
  return {value,raw,separate,separateValue,totalValue,lines,floors,declarationSummary,basis:basis+(escalators.partialAllocationPremise?'\n'+escalators.partialAllocationPremise:''),escalators};
 }
 export function additionalEscalatorLines(study){
@@ -181,4 +239,44 @@ export function populationWarnings(study){
  for(const declaration of status.declarationSummary||[])if(declaration.overridden)warnings.push(`${declaration.label}, andar ${declaration.servedFloorMark}: população declarada de ${declaration.declared} pessoas superior à calculada (${fmt(declaration.calculated)}). Foi adotada a declaração deste ambiente antes da verificação das escadas. O ambiente contribui uma única vez para a soma do andar e do respectivo estudo.`);
  if(status.value===0)warnings.push('População líquida calculada igual a zero: não há demanda populacional de elevadores neste cálculo. Paradas e percurso permanecem informados; isso não dispensa elevadores ou rotas acessíveis exigidos para o projeto.');
  return warnings;
+}
+
+// Número de composições no mesmo pavimento (ignora linhas puladas).
+// Chave do pavimento: a marca servida ou, na ausência dela, o nível do pavimento.
+export function floorKeyOf(r){return String(r.servedFloorMark??r.floor??'');}
+export function floorCountOf(rows,row){return rows.filter(r=>r&&!r.skipPopulation&&floorKeyOf(r)===floorKeyOf(row)).length||1;}
+
+// Premissas de população em texto padronizado: uma seção por pavimento (ambientes, critérios, declaração e adoção) e um resumo.
+const SPLIT_CRITERIA=/^(?:ambiente|andar|população|adotad|declarad|calculad|Adotado|A declaração|arredondamento)/;
+export function populationBasisText({iso,lines,raw,value,separateValue,totalValue}){
+ const model=iso?'ISO 8100-32 · documento informado':'NBR 5665, 5.1';
+ const byFloor=new Map();for(const line of lines){const key=String(line.servedFloorMark);if(!byFloor.has(key))byFloor.set(key,[]);byFloor.get(key).push(line);}
+ const out=[`PREMISSAS DE POPULAÇÃO · ${model}`,''];
+ let n=0;
+ for(const [floor,items] of byFloor){
+  n++;const access=items[0]?.accessFloor??null;out.push(`${n}. Pavimento ${floor}${access!==null?` · acesso ${access}`:''}`);
+  out.push('   1.1 Ambientes e composição');
+  for(const line of items)out.push(`   • ${line.compositionName}, composição ${line.floorMark}, ambiente ${line.label}: ${line.formula} = população líquida ${fmt(line.net)} pessoas.`);
+  out.push('   1.2 Critérios aplicados');
+  const criteria=[...new Set(items.flatMap(line=>String(line.details||'').split('; ').map(x=>x.replace(/\.$/,'').trim()).filter(Boolean)))].filter(x=>!SPLIT_CRITERIA.test(x)&&!/^pavimento \S+$/.test(x)&&!/^acesso \S+$/.test(x));
+  for(const c of criteria)out.push(`   • ${c}.`);
+  out.push('   1.3 Declaração e adoção');
+  for(const line of items){const adopted=line.beforeEscalator??line.net;out.push(`   • ${line.label}: calculada ${fmt(line.calculatedNet??line.net)}; declarada ${fmt(line.declaredPopulation??0)}; adotada ${fmt(adopted)} pessoas.`);}
+  out.push('');
+ }
+ out.push(`${n+1}. Resumo do cálculo`);
+ out.push(`   • Estudo principal antes do arredondamento: ${fmt(raw)} pessoas.`);
+ out.push(`   • População calculada: ${value} pessoas.`);
+ out.push(`   • Estudos separados: ${separateValue} pessoas (não somados à demanda principal).`);
+ out.push(`   • Total dos estudos: ${totalValue} pessoas.`);
+ out.push(`   • ${iso?'Arredondamento para cima por pavimento e estudo, após somar seus ambientes (§4.3.3.3).':'Arredondamento final para cima em cada estudo, sem arredondar componentes.'}`);
+ return out.join('\n');
+}
+export function populationBasisFor(study){
+ const last=study.populationCalc?.last;
+ if(!last)return study.populationBasis||'';
+ try{
+  const calculation=calculatePopulation(last.use,last.rows,{applications:last.applications,trafficModel:last.trafficModel||'nbr5665',isoConfig:last.isoConfig,floorSequenceVersion:last.floorSequenceVersion,accessFloor:last.accessFloor??0,escalators:last.escalators,additionalLines:last.additionalLines});
+  return calculation.basis+(study.populationDefinition?.trim()?'\nComo a população foi definida: '+study.populationDefinition.trim():'');
+ }catch{return study.populationBasis||'';}
 }

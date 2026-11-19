@@ -3,9 +3,6 @@ import {meanFlight} from './starts.js';
 import {validateTractionEquipment,supplierPower,motorComparisons,TRACTION_REFERENCE,TRACTION_EXPLANATION} from './traction-energy.js';
 export const ENERGY_SOURCES=[
  {title:'Peters · Mathematical Modelling of Lift Drive Motion and Energy Consumption · §§2.2–2.4',url:'https://download.peters-research.com/library/Mathematical_Modelling_of_Lift_Drive_Motion_and_Energy_Consumption.pdf'},
- {title:'Nidec/MCE · especificações técnicas · §§17-5–17-7 e 17-20',url:'https://acim.nidec.com/elevators/-/media/Project/Nidec/NidecElevator/MCE/PDFs/Technical-Publications/Complete-Technical-Specifications-Document.pdf'},
- {title:'Atlas Schindler · acionamentos e inversores',url:'https://www.schindler.com.br/pt/elevadores/modernizacao/componentes/inversores.html'},
- {title:'Wittur · WSG-25 · ficha de diâmetros e relações de suspensão',url:'https://www.wittur.com/pt/produtos/lift-machines/wsg-25.aspx'},
  {title:'ABNT NBR 16858-1:2021 · 5.5.1.1, 5.5.1.2 a), 5.5.2.1 · consultar edição aplicável no Catálogo ABNT',url:'https://www.abntcatalogo.com.br/'}
 ];
 export const ENERGY_TECHNOLOGIES={

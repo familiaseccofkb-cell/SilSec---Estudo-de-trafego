@@ -1,3 +1,4 @@
+import {effectiveCapacity,nominalCapacity} from './cabin-occupancy.js';
 import {meanFlight,STARTS_SOURCES} from './starts.js';
 
 export const TRAVEL_CURVES_VERSION='1';
@@ -32,7 +33,7 @@ function journey(g,distance,stops,settings){
  const allowance=settings.allowanceRate*(doorTime+transferTime);
  const movementStart=g.close+settings.startDelay,movementEnd=movementStart+motion.time;
  // A pre-opening overlap is shown only if it fits inside the movement and opening.
- // Unsupported timing does not change the traffic model's previously valid RTT.
+ // Unsupported timing does not change the traffic model's previously valid TIV.
  if(settings.preOpening>Math.min(motion.time,g.open))return {available:false,kind:stops===2?'consecutive':'extremes',distance,stops,error:'A pré-abertura excede o movimento ou a abertura desta viagem. Revise os tempos para representar uma curva física.'};
  const openingStart=movementEnd-settings.preOpening,openingEnd=openingStart+g.open;
  const performance=openingEnd+settings.closingDelay,total=performance+transferTime+allowance+settings.dwell;
@@ -49,7 +50,7 @@ function journey(g,distance,stops,settings){
  return {available:true,stops,distance,motion,doorTime,transferTime,allowance,startDelay:settings.startDelay,closingDelay:settings.closingDelay,preOpening:settings.preOpening,dwell:settings.dwell,passengersUsed:settings.passengers,movementStart,movementEnd,openingStart,openingEnd,withDoors:motion.time+doorTime,performance,total,maximumByTime,manufacturerLimit,maximumAdopted:manufacturerLimit===null?maximumByTime:Math.min(maximumByTime,manufacturerLimit),phases};
 }
 
-export function calculateGroupTravel(g,{model='nbr5665',probableStops=1,dwell=0,passengers=g.capacity,averageDistance=2*g.travel/probableStops}={}){
+export function calculateGroupTravel(g,{model='nbr5665',probableStops=1,dwell=0,passengers=nominalCapacity(g),averageDistance=2*g.travel/probableStops}={}){
  if(!Number.isInteger(g.stops)||g.stops<2||!finitePositive(g.travel)||['speed','acceleration','jerk','open','close',g.transferMode==='per-stop'?'transferPerStop':'passenger'].some(k=>!finitePositive(g[k])))throw Error('Informe paradas, percurso, velocidade, aceleração, jerk e tempos positivos para visualizar as curvas.');
  const iso=model==='iso8100',p=g.iso||{},settings={passengers,transferDirections:iso?2:1,allowanceRate:iso?0:.1,startDelay:iso?p.startDelay:(g.start||0)/probableStops,closingDelay:iso?p.closingDelay:0,preOpening:g.preOpeningEnabled?g.preOpening||0:iso?p.preOpening:0,dwell:iso?0:dwell};
  if(Object.values(settings).some(x=>!Number.isFinite(x)||x<0)||!finitePositive(probableStops))throw Error('Premissas de portas, passageiros ou permanência inválidas.');

@@ -13,9 +13,11 @@ export const BRAND = Object.freeze({
   credit: '',
   creditPhone: '',
   // Vídeos exibidos no site (seção "Vídeos"). O primeiro aparece grande; os demais em lista.
+  // `file` (opcional): vídeo próprio servido pelo site, dentro de public/. Quando o arquivo existe no pacote, ele é exibido
+  // no lugar do YouTube; quando não existe, o site continua mostrando o vídeo do YouTube indicado em `id`.
   // Para incluir um vídeo novo, publique no YouTube e acrescente o ID (o trecho depois de youtu.be/).
   videos: Object.freeze([
-    Object.freeze({id: '2NFZdsuN4_4', title: 'Cálculo de tráfego em elevadores'}),
+    Object.freeze({id: '2NFZdsuN4_4', title: 'Por que fazer um estudo de tráfego de elevadores', file: '/site/estudo-de-trafego.mp4'}),
   ]),
 });
 export const contactLine = () => `${BRAND.phone} · ${BRAND.email}`;

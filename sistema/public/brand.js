@@ -9,7 +9,8 @@ export const BRAND = Object.freeze({
   whatsappHref: 'https://wa.me/5511983130055',
   email: 'contato@silsec-engenharia.com.br',
   site: 'https://silsec-engenharia.com.br',
-  logo: '/marca/silsec-engenharia.svg',
+  // ?v=… força navegador e CDN a buscarem o logo novo; troque o número quando o arquivo do logo mudar.
+  logo: '/marca/silsec-engenharia.svg?v=9.5.7',
   credit: '',
   creditPhone: '',
   // Vídeos exibidos no site (seção "Vídeos"). O primeiro aparece grande; os demais em lista.

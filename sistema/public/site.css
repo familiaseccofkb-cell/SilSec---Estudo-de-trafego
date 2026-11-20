@@ -248,7 +248,7 @@ ul.two-col{columns:2;column-gap:28px;margin:8px 0 0;padding-left:20px;line-heigh
 .result-card .kicker{color:var(--signal)}
 .kpis{background:var(--dark-2);border-radius:10px;padding:16px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .kpis small{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--line)}.kpis strong{font-size:24px}.kpis .amber{color:var(--signal)}
-.result-card dl{margin:0;display:flex;flex-direction:column;gap:8px;font-size:14px;color:var(--line)}.result-card dl div{display:flex;justify-content:space-between;gap:12px}.result-card dd{margin:0}
+.result-card dl{margin:0;display:flex;flex-direction:column;gap:8px;font-size:14px;color:var(--line)}.result-card dl div{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:4px 16px}.result-card dd{margin:0;text-align:right;white-space:nowrap}@media (max-width:420px){.result-card dd{white-space:normal;max-width:9.5em}}
 .plans.two{grid-template-columns:repeat(2,minmax(0,1fr))}
 .quote{display:grid;grid-template-columns:5fr 7fr;gap:40px;align-items:start}
 .quote h1{font-size:clamp(32px,3.4vw,44px);line-height:1.08;letter-spacing:-.02em;margin:0 0 12px}

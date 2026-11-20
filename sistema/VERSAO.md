@@ -1,3 +1,10 @@
+# SilSec · rascunho de 2026-11-20 (9.5.7, pacote 19k)
+
+- Inclui tudo do 19j (publicado em 20/11) e duas correções do site pedidas pelo Fabio:
+  - logo: o endereço passa a levar ?v=9.5.7, para navegador e CDN buscarem o logo novo em vez do antigo guardado em cache;
+  - cartão "Resultado de um estudo" (página Módulos): a coluna da direita fica alinhada à direita, também quando quebra linha.
+- Testes: 593 de 593 aprovados no Node 26.13.0.
+
 # SilSec · rascunho de 2026-11-20 (9.5.7, pacote 19j)
 
 - Inclui tudo do 19i e a paleta SilSec aprovada pelo Fabio no Canva (verde-escuro #1F2A22, verde #5DA246, âmbar #EDA10B, petróleo #087E79, azul-marinho #142C38, fundo #F3F6F5, menta #E8EFE9, cinza #8A978C):

@@ -84,7 +84,6 @@ function moduleCards(plans, {prices = false} = {}) {
   return `<div class="modules">
 <article class="module"><span class="kicker">Módulo</span><h3>Sistema de estudo de tráfego Básico</h3><p>${esc(basic.summary)}</p>${price(basic)}<a class="button ghost" href="/modulos#comparar">Detalhes do módulo</a></article>
 <article class="module featured"><span class="kicker">Módulo · mais completo</span><h3>Sistema de estudo de tráfego Completo</h3><p>${esc(full.summary)}</p>${price(full)}<a class="button amber" href="/modulos#comparar">Detalhes do módulo</a></article>
-<article class="module soon"><span class="kicker">Em preparação</span><h3>Cursos e capacitação</h3><p>Aulas on-line sobre normas ABNT, legislação, análise de sistemas de elevadores, gestão de contratos e atualizações tecnológicas.</p><p class="muted">Turmas e datas serão anunciadas aqui.</p><a class="button ghost" href="/orcamento?assunto=cursos">Quero ser avisado</a></article>
 </div>`;
 }
 
@@ -177,7 +176,7 @@ export function modulesPage({plans, session}) {
 <main id="conteudo">
 <section class="page-head split"><div class="wrap"><div><span class="kicker">Módulos de software · serviços adicionais</span><h1>A engenharia da SilSec, em forma de plataforma</h1><p class="lead">Estudo de tráfego de elevadores pela NBR 5665 e pela ISO 8100-32, no navegador e no celular, com memória de cálculo e relatório. Contrate como módulo adicional aos serviços ou use de forma independente, por assinatura anual.</p>
 <div class="hero-actions"><a class="button teal" href="/experimentar">Testar 30 dias grátis</a><a class="button ghost" href="#comparar">Comparar os módulos</a></div></div>
-<aside class="result-card" aria-label="Exemplo de resultado"><span class="kicker">Resultado de um estudo</span><div class="kpis"><div><small>Intervalo</small><strong>31 s</strong></div><div><small>Capacidade 5 min</small><strong>13,2 %</strong></div><div><small>Classificação</small><strong class="amber">Bom</strong></div></div><dl><div><dt>Grupo 1 · 4 elevadores</dt><dd>1.000 kg · 2,5 m/s</dd></div><div><dt>Paradas prováveis</dt><dd>8,46</dd></div><div><dt>Tempo total de viagem</dt><dd>124 s</dd></div></dl><small>Valores ilustrativos de um estudo-exemplo da plataforma.</small></aside></div></section>
+<aside class="result-card" aria-label="O que o estudo entrega"><span class="kicker">Resultado de um estudo</span><dl><div><dt>Intervalo de tráfego</dt><dd>em segundos</dd></div><div><dt>Capacidade de transporte em 5 min</dt><dd>em % da população</dd></div><div><dt>Classificação do atendimento</dt><dd>por grupo de elevadores</dd></div><div><dt>Paradas prováveis e tempo total de viagem</dt><dd>por grupo de elevadores</dd></div></dl><small>Os valores são calculados para cada edifício, com os dados do projeto.</small></aside></div></section>
 
 <section class="section alt" id="comparar"><div class="wrap">
 <div class="section-head"><div><span class="kicker">Planos</span><h2>Dois módulos, uma assinatura anual</h2></div><p>Os dois incluem 30 dias de teste. Equipes, empresas e turmas de faculdade têm condições próprias — fale com a SilSec.</p></div>

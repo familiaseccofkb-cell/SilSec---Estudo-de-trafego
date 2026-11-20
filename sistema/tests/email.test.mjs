@@ -12,6 +12,7 @@ const OWNER = 'dono@silsec.test';
 // Transporte falso no lugar do SMTP: guarda as mensagens ou falha como o servidor da Hostinger com senha errada.
 function fakeTransport(state) {
   return () => ({async sendMail(m) {
+    if (state.delay) await new Promise(r => setTimeout(r, state.delay));
     if (state.fail) { const e = new Error('Invalid login: 535 5.7.8 Error: authentication failed'); e.code = 'EAUTH'; e.response = '535 5.7.8 Error: authentication failed'; e.responseCode = 535; throw e; }
     state.sent.push(m); return {messageId: '<teste@silsec>'};
   }});
@@ -66,8 +67,10 @@ test('e-mail: cadastro, recuperação de senha e orçamento saem pelo transporte
     assert.equal(t.state.sent.length, 3); assert.match(t.state.sent[2].subject, /Orçamento/); assert.equal(t.state.sent[2].replyTo, 'sindico@predio.test'); assert.match(t.state.sent[2].text, /Cidade do edifício: Santo André/);
     assert.equal(t.mailer.status().lastError, null); assert.ok(t.mailer.status().lastDeliveredAt);
 
-    // 4) Senha da caixa errada (EAUTH 535): a tela não diz mais "enviamos um link", mas também não revela quem tem conta nem a configuração
+    // 4) Senha da caixa errada (EAUTH 535): a tela não diz mais "enviamos um link", mas também não revela quem tem conta nem a configuração.
+    // 9.5.7: o aviso usa o estado do servidor de e-mail antes do pedido; o primeiro envio que falha registra a falha e o aviso aparece a partir do pedido seguinte, igual para qualquer e-mail.
     t.state.fail = true;
+    await t.req('/esqueci-senha', {method: 'POST', form: {email: OWNER}});
     r = await t.req('/esqueci-senha', {method: 'POST', form: {email: OWNER}});
     assert.equal(r.status, 200); assert.match(r.text, /Não foi possível enviar o e-mail agora\. Tente novamente mais tarde/); assert.doesNotMatch(r.text, /enviamos um link/); assert.doesNotMatch(r.text, /SMTP|EAUTH|hPanel|variáveis de ambiente/);
     const r2 = await t.req('/esqueci-senha', {method: 'POST', form: {email: 'ninguem@silsec.test'}});
@@ -115,4 +118,45 @@ test('e-mail: sem SMTP configurado o envio não derruba a tela e informa o admin
   const r = await m.send({to: 'a@b.c', subject: 's', text: 't'});
   assert.equal(r.delivered, false); assert.equal(r.configured, false); assert.match(r.reason, /não configurado/);
   assert.equal(m.status().configured, false);
+});
+
+test('esqueci-senha: resposta e tempo iguais com e sem cadastro, inclusive com e-mail lento (9.5.7)', async () => {
+  const t = await boot();
+  const {FORGOT_RESPONSE_MS} = await import('../server/platform/auth.mjs');
+  const timed = async email => { const t0 = performance.now(); const r = await t.req('/esqueci-senha', {method: 'POST', form: {email}}); return {...r, ms: performance.now() - t0, text: r.text.replace(email, 'X')}; };
+  try {
+    let r = await t.req('/cadastrar', {method: 'POST', form: {nome: 'Dono', email: OWNER, volta: '/'}});
+    r = await t.req('/verificar', {method: 'POST', form: {token: new URL(t.linkFrom(t.state.sent[0])).searchParams.get('token'), senha: 'senha-muito-boa-1', volta: '/'}});
+    for (const delay of [0, 3000]) {
+      t.state.delay = delay;
+      const com = await timed(OWNER), sem = await timed('ninguem@silsec.test');
+      assert.equal(com.status, 200); assert.equal(sem.status, com.status);
+      assert.equal(sem.text, com.text, 'mesma página para e-mail cadastrado e não cadastrado');
+      assert.match(com.text, /Se o e-mail estiver cadastrado, enviamos um link/);
+      for (const x of [com, sem]) assert.ok(x.ms >= FORGOT_RESPONSE_MS - 20 && x.ms < FORGOT_RESPONSE_MS + 700, `tempo fora da faixa: ${Math.round(x.ms)} ms (e-mail com atraso de ${delay} ms)`);
+      assert.ok(Math.abs(com.ms - sem.ms) < 500, `diferença de tempo: ${Math.round(Math.abs(com.ms - sem.ms))} ms`);
+    }
+    await new Promise(r => setTimeout(r, 3200));
+    assert.equal(t.state.sent.filter(m => /Recuperação de senha/.test(m.subject)).length, 2, 'o link sai só para quem tem conta, também quando o e-mail demora');
+  } finally { await t.close(); }
+});
+
+test('orçamento: assunto do e-mail com no máximo 80 caracteres, sem quebrar palavra e com "…" (9.5.7)', async () => {
+  const {shortSubject} = await import('../server/platform/commerce.mjs');
+  assert.equal(shortSubject('Orçamento · Estudo de tráfego'), 'Orçamento · Estudo de tráfego', 'assunto curto não muda');
+  const longo = 'Contato pelo site · Orçamento · Estudo de tráfego de elevadores, Vistoria técnica, Modernização · Condomínio Edifício Residencial Jardim das Acácias';
+  const s = shortSubject(longo);
+  assert.ok(s.length <= 80, `${s.length} caracteres`); assert.ok(s.endsWith('…'));
+  const base = s.slice(0, -1);
+  assert.ok(longo.startsWith(base) && /[\s·,]/.test(longo[base.length]), 'corta no fim de uma palavra: ' + s);
+  assert.equal(shortSubject('x'.repeat(120)).length, 80, 'palavra única maior que o limite é cortada no limite');
+  const t = await boot();
+  try {
+    const r = await t.req('/contato', {method: 'POST', form: {origem: 'orcamento', nome: 'Administradora de Condomínios Jardim das Acácias e Associados Ltda', perfil: 'sindico', email: 'sindico@predio.test', servicos: 'Estudo de tráfego de elevadores pela NBR 5665 e ISO 8100-32', mensagem: 'Preciso de um estudo para modernização.', lgpd: 'on', site: ''}});
+    assert.equal(r.status, 303);
+    const m = t.state.sent.at(-1);
+    assert.ok(m.subject.length <= 80, `${m.subject.length} caracteres: ${m.subject}`); assert.ok(m.subject.endsWith('…'));
+    assert.match(m.subject, /^Contato pelo site · Orçamento · Estudo de tráfego/);
+    assert.match(m.text, /Nome: Administradora de Condomínios Jardim das Acácias e Associados Ltda/, 'o corpo do e-mail mantém o nome completo');
+  } finally { await t.close(); }
 });

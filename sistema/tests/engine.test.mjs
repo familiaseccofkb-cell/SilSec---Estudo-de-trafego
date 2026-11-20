@@ -4,18 +4,19 @@ import fs from 'node:fs';
 import {MAX_GROUPS,motionCheck,accelerationMessage,jerkMessage,SOURCES,SPEED_OPTIONS,travelCheck,defaultStudy,defaultGroup,calculateStudy,calculateGroup,simulate,validateStudy,accelerationTime,manufacturerAcceleration,USES,maxInterval,clone} from '../public/engine.js';
 import {initialState,saveScenario,deleteScenario,decodeImport,restoreState,ENTITLEMENTS,normalizeStudy} from '../public/state.js';
 const fixtures=JSON.parse(fs.readFileSync(new URL('./fixtures.json',import.meta.url)));
+const shown2=v=>Math.round(v*100)/100; // paradas prováveis: exibição com 2 casas (decisão de 19/11)
 const near=(a,b,t=1e-8)=>assert.ok(Math.abs(a-b)<=t,`${a} ≠ ${b} (tolerância ${t})`);
 test('v3: todas as células de cálculo dos conjuntos D/E e do sistema',()=>{
  const r=calculateStudy({...defaultStudy(),method:'excel-v3'});
  for(let i=0;i<2;i++){
-  const source=fixtures.v3.groups[i],g=r.groups[i];near(g.stops,source.stops);
+  const source=fixtures.v3.groups[i],g=r.groups[i];near(shown2(g.stops),source.stops);
   for(const [base,expected] of Object.entries({manufacturer:source.manufacturer,normative:source.normative}))for(const [key,value] of Object.entries(expected))near(g[base][key],value);
  }
  for(const [key,[base,property]] of Object.entries({F54:['manufacturer','capacity'],F55:['normative','capacity'],F57:['manufacturer','interval'],F58:['normative','interval']}))near(r[base][property],fixtures.v3.system[key]);near(r.required,fixtures.v3.system.F56);near(r.limit,fixtures.v3.system.F59);
  assert.equal(r.normative.capacityPass,true);assert.equal(r.normative.intervalPass,true);
 });
 test('planilha original: resultados exibidos conferem com tolerância de arredondamento',()=>{const r=calculateStudy({...defaultStudy(),method:'excel-v3'});near(r.normative.capacity,fixtures.original.capacity,.005);near(r.normative.interval,fixtures.original.interval,.005);assert.equal(Math.round(r.normative.capacity*100),Math.round(fixtures.original.capacity*100));});
-for(const [index,e] of fixtures.annexB.entries())test(`NBR 5665 anexo B, exemplo ${index+1}: ciclo, capacidade e intervalo`,()=>{const s=defaultStudy();s.method='excel-v3';s.population=e.population;s.groups=[{...defaultGroup(),...e.group}];const r=calculateStudy(s);near(r.groups[0].stops,e.stops);near(r.groups[0].normative.total,e.total,.03);near(r.normative.capacity,e.capacity,.05);near(r.normative.interval,e.interval,.01);assert.equal(r.normative.capacityPass,true);});
+for(const [index,e] of fixtures.annexB.entries())test(`NBR 5665 anexo B, exemplo ${index+1}: ciclo, capacidade e intervalo`,()=>{const s=defaultStudy();s.method='excel-v3';s.population=e.population;s.groups=[{...defaultGroup(),...e.group}];const r=calculateStudy(s);near(shown2(r.groups[0].stops),e.stops);near(r.groups[0].normative.total,e.total,.03);near(r.normative.capacity,e.capacity,.05);near(r.normative.interval,e.interval,.01);assert.equal(r.normative.capacityPass,true);});
 test('tabela 2: nós, interpolação e faixa superior v3',()=>{near(accelerationTime(.63),2.5);near(accelerationTime(1.25),3);near(accelerationTime(1.4),3.5);near(accelerationTime(1.4,'precision'),3.3);near(accelerationTime(3),6);assert.ok(Number.isNaN(accelerationTime(NaN)));});
 test('tabela 4: fronteira 1.100 mm',()=>{const g=defaultGroup();g.width=1099;near(calculateGroup(g).normative.passenger,2.4);g.width=1100;near(calculateGroup(g).normative.passenger,2);});
 test('tabela 3: três portas',()=>{const g=defaultGroup();for(const [door,time] of [['central',3.9],['lateral',5.5],['vertical',6]]){g.door=door;near(calculateGroup(g).normative.door,time);}});

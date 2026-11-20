@@ -3,6 +3,7 @@
 // que são sempre removidos das requisições externas (ver server.mjs).
 import {randomBytes, scrypt as scryptCb, timingSafeEqual, createHash, randomUUID} from 'node:crypto';
 import {promisify} from 'node:util';
+import {setTimeout as sleep} from 'node:timers/promises';
 import {BRAND} from '../../public/brand.js';
 import {loginPage, signupPage, forgotPage, resetPage, accountPage, infoPage, esc} from './auth-pages.mjs';
 // Contas da administração com acesso permanente (lista em config.ownerEmails).
@@ -11,6 +12,8 @@ const isOwnerEmail = (config, email) => { const e = String(email || '').trim().t
 const scrypt = promisify(scryptCb);
 export const SESSION_COOKIE = 'silsec_sessao';
 const VERIFY_HOURS = 48, RESET_HOURS = 1, MAX_FAILS = 8, LOCK_MINUTES = 15, MIN_PASSWORD = 10;
+// 9.5.7: /esqueci-senha responde sempre neste tempo (ms), com ou sem cadastro, para o tempo não revelar quem tem conta.
+export const FORGOT_RESPONSE_MS = 1200;
 const now = () => new Date().toISOString();
 const later = ms => new Date(Date.now() + ms).toISOString();
 const sha256 = v => createHash('sha256').update(v).digest('hex');
@@ -246,13 +249,19 @@ export function createAuth({db, config, mailer, log = console}) {
 
     if (path === '/esqueci-senha') {
       if (method !== 'POST') return html(forgotPage({}));
+      // Resposta e tempo iguais para e-mail cadastrado ou não (9.5.7):
+      // - o aviso de falha usa o estado do servidor de e-mail ANTES deste pedido (não o resultado deste envio);
+      // - o envio corre em segundo plano e a resposta sai sempre em FORGOT_RESPONSE_MS, mesmo se o e-mail demorar mais.
+      const started = Date.now(), mailDown = !!(mailer.configured && mailer.recentFailure?.());
       const f = await form(request), email = String(f.get('email') || '').trim().toLowerCase();
+      let work = Promise.resolve();
       if (validEmail(email)) {
         const user = await q('SELECT * FROM auth_users WHERE email = ?', email).first();
-        if (user) await sendReset(request, user);
+        if (user) work = sendReset(request, user).catch(e => log.error('[senha] falha ao enviar o link: ' + (e?.message || e)));
       }
-      // Resposta igual para e-mail cadastrado ou não: só muda quando o servidor de e-mail está falhando (estado do servidor, não da conta).
-      if (mailer.configured && mailer.recentFailure?.()) return html(forgotPage({email, message: {kind: 'erro', text: PUBLIC_MAIL_FAILURE}}), 200);
+      await Promise.race([work, sleep(FORGOT_RESPONSE_MS)]);
+      await sleep(Math.max(0, FORGOT_RESPONSE_MS - (Date.now() - started)));
+      if (mailDown) return html(forgotPage({email, message: {kind: 'erro', text: PUBLIC_MAIL_FAILURE}}), 200);
       return html(forgotPage({email, message: {kind: 'ok', text: 'Se o e-mail estiver cadastrado, enviamos um link para criar uma nova senha. O link vale por 1 hora.' + mailNote()}}));
     }
 

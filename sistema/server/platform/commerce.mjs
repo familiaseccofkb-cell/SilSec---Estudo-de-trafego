@@ -12,6 +12,16 @@ const validEmail = e => typeof e === 'string' && e.length <= 254 && /^[^\s@<>()"
 const MODULE_NAMES = {basic: 'Básico', advanced: 'Completo'};
 const SOURCE_NAMES = {trial: 'teste de 30 dias', mercadopago: 'anuidade paga', concession: 'concessão', key: 'chave', education: 'educacional', 'demo-purchase': 'demonstração'};
 
+// 9.5.7: assunto de e-mail com no máximo `max` caracteres, cortado no fim de uma palavra e terminado com "…".
+// Só corta no meio quando a primeira palavra sozinha já passa do limite.
+export function shortSubject(value, max = 80) {
+  const s = String(value || '').replace(/\s+/g, ' ').trim();
+  if (s.length <= max) return s;
+  const room = s.slice(0, max - 1), space = room.lastIndexOf(' ');
+  const base = (space > 0 ? room.slice(0, space) : room).replace(/[\s·,;:–-]+$/u, '');
+  return base + '…';
+}
+
 export function newAccessCode() {
   const bytes = randomBytes(12);
   let s = '';
@@ -83,12 +93,12 @@ export function createCommerce({db, config, mailer, auth, log = console, fetcher
     const phone = String(f.get('telefone') || '').trim().slice(0, 40), company = String(f.get('empresa') || '').trim().slice(0, 200);
     const services = f.getAll('servicos').map(v => String(v).trim().slice(0, 80)).filter(Boolean).slice(0, 8);
     const profile = String(f.get('perfil') || '').trim().slice(0, 80), city = String(f.get('cidade') || '').trim().slice(0, 120), floors = String(f.get('pavimentos') || '').trim().slice(0, 6), cars = String(f.get('elevadores') || '').trim().slice(0, 6);
-    const subject = (services.length ? 'Orçamento · ' + services.join(', ') : f.get('origem') === 'orcamento' ? 'Orçamento' : String(f.get('assunto') || '').trim()).slice(0, 80);
+    const subject = shortSubject(services.length ? 'Orçamento · ' + services.join(', ') : f.get('origem') === 'orcamento' ? 'Orçamento' : String(f.get('assunto') || '').trim());
     const context = [profile && 'Perfil: ' + profile, city && 'Cidade do edifício: ' + city, floors && 'Pavimentos: ' + floors, cars && 'Elevadores: ' + cars].filter(Boolean).join(' · ');
     const message = ((context ? context + '\n\n' : '') + String(f.get('mensagem') || '').trim()).slice(0, 5000);
     if (!name || !validEmail(email) || String(f.get('mensagem') || '').trim().length < 3) return redirect(back('invalido'));
     await q('INSERT INTO contact_messages (id,name,email,phone,company,subject,message,ip,created_at) VALUES (?,?,?,?,?,?,?,?,?)', randomUUID(), name, email, phone, company, subject, message, ipOf(request).slice(0, 64), now()).run();
-    const sent = await mailer.send({to: BRAND.email, replyTo: email, subject: `Contato pelo site · ${subject || 'mensagem'} · ${name}`,
+    const sent = await mailer.send({to: BRAND.email, replyTo: email, subject: shortSubject(`Contato pelo site · ${subject || 'mensagem'} · ${name}`),
       text: `Nome: ${name}\nE-mail: ${email}\nTelefone: ${phone || '—'}\nEmpresa/edifício: ${company || '—'}\nAssunto: ${subject || '—'}\n\n${message}`});
     // A mensagem já está registrada no banco; se o aviso por e-mail não saiu, a tela diz isso em vez de "enviada".
     return redirect(back(sent.delivered || !sent.configured ? 'enviado' : 'registrado'));

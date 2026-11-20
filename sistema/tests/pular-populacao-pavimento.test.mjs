@@ -40,10 +40,11 @@ test('desconto de 50% só vale no pavimento imediatamente acima ou abaixo com at
   assert.equal(discountAllowed({floor:1,distance:6},0),false);
 });
 
-test('desconto gravado fora da regra continua bloqueado no cálculo',()=>{
+test('desconto gravado fora da regra é ignorado no cálculo (D1)',()=>{
   const pc=defaultPopulationCalc('offices');
   pc.rows[0]={...pc.rows[0],floor:3,servedFloorMark:'3',amount:300,discount:'adjacent50',distance:3,conditionsConfirmed:true};
-  assert.throws(()=>calculatePopulation('offices',pc.rows,{accessFloor:0}),/50%/);
+  /* 9.5.7 (D1 aprovada pelo Fabio em 20/11/2026): 50% e desconto escolar são automáticos pela regra da NBR; fora da regra, não se aplicam (sem erro). A redução de 15% é manual, pelo flag da composição. */
+  assert.equal(calculatePopulation('offices',pc.rows,{accessFloor:0}).value,43,'no 3º andar o 50% gravado é ignorado: 300 m² / 7');
 });
 
 test('correção 6: desmarcar "não calcular" restaura os valores anteriores do pavimento',()=>{

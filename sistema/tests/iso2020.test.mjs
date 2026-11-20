@@ -51,3 +51,8 @@ test('Antecipação de destino: estimativa reduz paradas e ciclo nos dois métod
  const n=destinationEstimateNbr(g,cyc);assert.ok(n.gain>1);assert.ok(n.destination.stops<n.conventional.stops);
  let s=normalizeStudy(defaultStudy());s.destination={enabled:true,sectors:0};const c=recalculatePopulationAndStudies(s);assert.ok(c.results.destination?.rows?.length>0||c.results.groups);
 });
+test('ADS (NBR): T4 usa a lotação de cálculo do ADS = lotação × fator de ocupação, arredondada para cima (decisão de 19/11)',()=>{
+ const base={...defaultGroup(),count:4,capacity:8,stops:22,travel:63,speed:1.75};
+ const cyc={t1:72,t2:15.57,t3:42.83,t4:19.2,additional:6.2,total:155.8,acceleration:4,door:5.5,start:0,transferMode:'per-person',capacity:61.62,interval:38.95};
+ for(const [occ,P] of [[100,8],[80,7],[50,4]]){const n=destinationEstimateNbr({...base,cabinOccupancy:occ},cyc);assert.ok(Math.abs(n.destination.t4-P*2.4)<1e-9,`ocupação ${occ}%: T4 ${n.destination.t4} ≠ ${P} × 2,4`);}
+});

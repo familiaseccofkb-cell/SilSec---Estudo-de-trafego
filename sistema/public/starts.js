@@ -19,7 +19,7 @@ export function meanFlight(distance,speed,acceleration,jerk){
  return {distance,time,peakSpeed,peakAcceleration:Math.min(acceleration,Math.sqrt(peakSpeed*jerk)),fullSpeedDistance,cruiseDistance,regime,reachesNominal:regime==='full-speed'};
 }
 export function calculateStarts(study,groups,required){
- const capacity=groups.reduce((sum,g)=>sum+g.manufacturer.capacity,0),hasDemandAllocation=study.commonService,peakPeoplePerHour=hasDemandAllocation?(Number.isFinite(study.population)?Math.min(required*12,study.population):required*12):null;
+ const capacity=groups.reduce((sum,g)=>sum+g.manufacturer.capacity,0),hasDemandAllocation=study.commonService,peakPeoplePerHour=hasDemandAllocation?required*12:null;
  const rows=groups.map((calculated,i)=>{
   const g=study.groups[i],departuresPerCycle=calculated.stops,averageDistance=2*g.travel/departuresPerCycle,flight=meanFlight(averageDistance,g.speed,g.acceleration,g.jerk);
   const door=g.open+g.close-(g.preOpeningEnabled?g.preOpening||0:0),passenger=g.transferMode==='per-stop'?g.transferPerStop:nominalCapacity(g)*g.passenger/departuresPerCycle,allowance=.1*(door+passenger),startDelay=g.start/departuresPerCycle,dwell=study.operation.dwell;

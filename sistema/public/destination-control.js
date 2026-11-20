@@ -6,6 +6,8 @@ export const DESTINATION_SYSTEMS={generic:'Genérico · sem sistema específico'
 const LEGACY_DESTINATION_SYSTEMS=['port','kone','otis','agile'];
 export const destinationSystemLabel=k=>DESTINATION_SYSTEMS[k]||DESTINATION_SYSTEMS.other;
 export const ADS_METHOD_REFERENCE='Al-Sharif e Peters (2018), agrupamento por destinos por simulação Monte Carlo';
+// 9.5.7: no estudo, o ADS é calculado pela ISO 8100-32 (decisão do Fabio de 19/11/2026); cláusulas autorizadas por ele: 7 (cálculo), 5.3 e seção 8 (simulação).
+export const ADS_STUDY_METHOD_STATEMENT='O ADS-Antecipador de Destino deste estudo é calculado pelo método de cálculo da ISO 8100-32:2020 (cláusula 7), usado como referência de cálculo. A norma exige simulação para sistemas com controle de destino (5.3 e seção 8). Ele é uma referência de performance de atendimento, não uma garantia de desempenho de um produto. Cada fornecedor deve apresentar a simulação do seu próprio sistema.';
 export const ADS_METHOD_STATEMENT='O método de cálculo adotado neste sistema é o de Al-Sharif e Peters (2018), usado como referência de cálculo. Ele é uma referência de performance de atendimento, não uma garantia de desempenho de um produto. Cada fornecedor deve apresentar a simulação do seu próprio produto, com os parâmetros do equipamento, como base para futuras garantias de performance.';
 export const DESTINATION_METHODS={grouping:'Al-Sharif e Peters (2018) · agrupamento por destinos, Monte Carlo',documented:'TIV e paradas documentados pelo fabricante'};
 export const DESTINATION_SOURCES=[

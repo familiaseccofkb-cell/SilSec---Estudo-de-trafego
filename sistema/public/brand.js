@@ -13,12 +13,12 @@ export const BRAND = Object.freeze({
   logo: '/marca/silsec-engenharia.svg?v=9.5.7',
   credit: '',
   creditPhone: '',
-  // Vídeos exibidos no site (seção "Vídeos"). O primeiro aparece grande; os demais em lista.
-  // `file` (opcional): vídeo próprio servido pelo site, dentro de public/. Quando o arquivo existe no pacote, ele é exibido
-  // no lugar do YouTube; quando não existe, o site continua mostrando o vídeo do YouTube indicado em `id`.
-  // Para incluir um vídeo novo, publique no YouTube e acrescente o ID (o trecho depois de youtu.be/).
+  // Vídeos exibidos no site (seção "Veja em vídeo"), sempre pelo YouTube sem cookies (youtube-nocookie.com), sem autoplay.
+  // O primeiro aparece grande; os demais em lista. Para incluir um vídeo novo, publique no canal SilSec Engenharia
+  // e acrescente o ID (o trecho depois de youtu.be/).
+  // 9.5.7 · 19l (Fabio, 20/11/2026): vídeo do canal SilSec Engenharia no lugar do vídeo antigo (2NFZdsuN4_4).
   videos: Object.freeze([
-    Object.freeze({id: '2NFZdsuN4_4', title: 'Por que fazer um estudo de tráfego de elevadores', file: '/site/estudo-de-trafego.mp4'}),
+    Object.freeze({id: 'y_fxuLWYFJk', title: 'Por que fazer um estudo de tráfego de elevadores'}),
   ]),
 });
 export const contactLine = () => `${BRAND.phone} · ${BRAND.email}`;

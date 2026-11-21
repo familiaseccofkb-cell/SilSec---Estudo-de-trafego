@@ -1,3 +1,10 @@
+# SilSec · rascunho de 2026-11-20 (9.5.7, pacote 19l)
+
+- Inclui tudo do 19k (publicado em 20/11) e a troca do vídeo da página inicial pedida pelo Fabio:
+  - "Veja em vídeo" passa a mostrar o vídeo y_fxuLWYFJk do canal SilSec Engenharia (youtube-nocookie.com, 16:9, sem autoplay);
+  - sai o vídeo antigo 2NFZdsuN4_4 e a referência ao mp4 próprio (/site/estudo-de-trafego.mp4), que não existia no pacote.
+- Teste novo: tests/site-video.test.mjs.
+
 # SilSec · rascunho de 2026-11-20 (9.5.7, pacote 19k)
 
 - Inclui tudo do 19j (publicado em 20/11) e duas correções do site pedidas pelo Fabio:

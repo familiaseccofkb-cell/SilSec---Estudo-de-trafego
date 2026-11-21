@@ -190,10 +190,7 @@ table.data form{display:inline}
 /* Vídeos */
 .video-main{position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:var(--dark);box-shadow:0 18px 40px rgba(20,44,56,.18)}
 .video-main iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-.video-list{list-style:none;padding:0;margin:28px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px}
-.video-list a{display:block;color:inherit;text-decoration:none}
-.video-list img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;display:block;margin-bottom:8px}
-.video-list span{font-weight:600}
+.video-main+.video-main{margin-top:28px}
 .site-foot .credit{flex-basis:100%;margin:8px 0 0;padding-top:16px;border-top:1px solid rgba(255,255,255,.12);font-size:.85rem}
 .student-note{margin-top:32px;padding:18px 22px;border-left:4px solid var(--signal,var(--signal));background:var(--white,#fff);border-radius:8px}
 

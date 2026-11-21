@@ -58,11 +58,11 @@ const YT_ID = /^[A-Za-z0-9_-]{11}$/;
 function videosSection() {
   const list = BRAND.videos.filter(v => YT_ID.test(v.id));
   if (!list.length) return '';
-  const [main, ...rest] = list;
+  // 9.5.7 · 19m (Fabio, 21/11/2026): todos os vídeos abrem no player do site, um abaixo do outro.
+  const player = v => `<div class="video-main"><iframe src="https://www.youtube-nocookie.com/embed/${v.id}?rel=0" title="${esc(v.title)}" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>`;
   return `<section class="section" id="videos"><div class="wrap">
 <div class="section-head"><h2>Veja em vídeo</h2><p class="lead">Por que o estudo de tráfego importa e como a plataforma ajuda a decidir quantos elevadores, de que capacidade e velocidade.</p></div>
-<div class="video-main"><iframe src="https://www.youtube-nocookie.com/embed/${main.id}?rel=0" title="${esc(main.title)}" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
-${rest.length ? `<ul class="video-list">${rest.map(v => `<li><a href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${v.id}/hqdefault.jpg" alt="" width="480" height="360" loading="lazy"><span>${esc(v.title)}</span></a></li>`).join('')}</ul>` : ''}
+${list.map(player).join('\n')}
 </div></section>`;
 }
 

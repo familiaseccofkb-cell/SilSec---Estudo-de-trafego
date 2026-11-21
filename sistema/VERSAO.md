@@ -1,3 +1,11 @@
+# SilSec · rascunho de 2026-11-21 (9.5.7, pacote 19m)
+
+- Inclui tudo do 19l (publicado em 21/11) e o segundo vídeo da página inicial pedido pelo Fabio:
+  - "Veja em vídeo" mostra também 2ndckRtA65k ("Apresentação do Sistema de estudo de tráfego SilSec", canal SilSec Engenharia),
+    logo abaixo do primeiro, no mesmo player (youtube-nocookie.com, 16:9, sem autoplay);
+  - os vídeos seguintes ao primeiro deixam de ser miniatura com link e passam a abrir no player do site.
+- Teste: tests/site-video.test.mjs ganhou o caso dos dois vídeos.
+
 # SilSec · rascunho de 2026-11-20 (9.5.7, pacote 19l)
 
 - Inclui tudo do 19k (publicado em 20/11) e a troca do vídeo da página inicial pedida pelo Fabio:

@@ -16,3 +16,11 @@ test('página inicial: "Veja em vídeo" com o vídeo novo do YouTube, sem cookie
   assert.doesNotMatch(html, /2NFZdsuN4_4|invideo|\.mp4|<video/i);
   assert.ok(BRAND.videos.every(v => !('file' in v)), 'sem vídeo próprio servido pelo site');
 });
+
+// 9.5.7 · 19m (Fabio, 21/11/2026): segundo vídeo (2ndckRtA65k) logo abaixo do primeiro, também no player do site.
+test('página inicial: dois vídeos no player, o novo logo abaixo do primeiro', () => {
+  const html = homePage({plans: [{id: 'basic', summary: 'Básico'}, {id: 'advanced', summary: 'Completo'}], session: null, message: null});
+  const ids = [...html.matchAll(/<div class="video-main"><iframe src="https:\/\/www\.youtube-nocookie\.com\/embed\/([A-Za-z0-9_-]{11})\?rel=0"[^>]*><\/iframe><\/div>/g)].map(m => m[1]);
+  assert.deepEqual(ids, ['y_fxuLWYFJk', '2ndckRtA65k']);
+  assert.doesNotMatch(html, /video-list|i\.ytimg\.com|autoplay/);
+});

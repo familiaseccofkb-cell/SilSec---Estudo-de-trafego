@@ -14,11 +14,13 @@ export const BRAND = Object.freeze({
   credit: '',
   creditPhone: '',
   // Vídeos exibidos no site (seção "Veja em vídeo"), sempre pelo YouTube sem cookies (youtube-nocookie.com), sem autoplay.
-  // O primeiro aparece grande; os demais em lista. Para incluir um vídeo novo, publique no canal SilSec Engenharia
-  // e acrescente o ID (o trecho depois de youtu.be/).
+  // Cada vídeo aparece no player do site, um abaixo do outro, na ordem desta lista. Para incluir um vídeo novo,
+  // publique no canal SilSec Engenharia e acrescente o ID (o trecho depois de youtu.be/).
   // 9.5.7 · 19l (Fabio, 20/11/2026): vídeo do canal SilSec Engenharia no lugar do vídeo antigo (2NFZdsuN4_4).
+  // 9.5.7 · 19m (Fabio, 21/11/2026): segundo vídeo, logo abaixo do primeiro.
   videos: Object.freeze([
     Object.freeze({id: 'y_fxuLWYFJk', title: 'Por que fazer um estudo de tráfego de elevadores'}),
+    Object.freeze({id: '2ndckRtA65k', title: 'Apresentação do Sistema de estudo de tráfego SilSec'}),
   ]),
 });
 export const contactLine = () => `${BRAND.phone} · ${BRAND.email}`;

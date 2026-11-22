@@ -5,6 +5,9 @@ import {resolveLicenses, addCalendarMonths} from '../../public/licensing.js';
 import {homePage, servicesPage, modulesPage, quotePage, consolePage, notice, esc, fmtDate, fmtDateTime, brl, perMonth} from '../site/pages.mjs';
 import {APP_HOME} from './auth.mjs';
 
+// Site do sistema (TES): para onde vão as páginas do sistema que saíram do site da SilSec (19q).
+const TES_SITE = 'https://trafficestimatorsystem.com';
+
 const now = () => new Date().toISOString();
 const sha256 = v => createHash('sha256').update(v).digest('hex');
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 32 símbolos, sem 0/O/1/I
@@ -68,6 +71,8 @@ export function createCommerce({db, config, mailer, auth, log = console, fetcher
   const contactLimiter = rateLimiter(5, 10 * 60e3), keyLimiter = rateLimiter(15, 10 * 60e3), payLimiter = rateLimiter(10, 10 * 60e3);
   const html = (body, status = 200, extra = {}) => new Response(body, {status, headers: {'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow', ...extra}});
   const redirect = (location, status = 303) => new Response(null, {status, headers: {Location: location, 'Cache-Control': 'no-store'}});
+  // 19q: o site da SilSec não oferece mais o teste grátis do sistema (fica com quem já tem conta e com os clientes da consultoria).
+  const ofereceTeste = BRAND.id === 'tes' || config.desktop || config.lan;
   const ipOf = request => request.headers.get('x-silsec-client-ip') || 'local';
   const form = async request => { const raw = await request.text(); return new URLSearchParams(raw.length > 50000 ? '' : raw); };
   const mpReady = () => !!mp.accessToken;
@@ -116,7 +121,7 @@ export function createCommerce({db, config, mailer, auth, log = console, fetcher
 
   function activatePage({session, code = '', message, done}) {
     const body = done ? `<h1>Chave ativada</h1>${notice(message)}<p class="lead">${esc(done.text)}</p><div class="inline-actions">${done.actions}</div>` :
-      `<h1>Ativar chave de acesso</h1><p class="lead">Digite a chave que você recebeu por e-mail (cortesia, parceria ou turma). A ativação libera o acesso indicado na chave sem custo. Não tem chave? <a href="/experimentar">Teste 30 dias grátis</a>.</p>${notice(message)}
+      `<h1>Ativar chave de acesso</h1><p class="lead">Digite a chave que você recebeu por e-mail (cortesia, parceria ou turma). A ativação libera o acesso indicado na chave sem custo.${ofereceTeste ? ' Não tem chave? <a href="/experimentar">Teste 30 dias grátis</a>.' : ''}</p>${notice(message)}
 <div class="panel"><form class="stack" method="post" action="/ativar">
 <label class="field">Chave de acesso<input name="chave" required maxlength="24" autocomplete="off" spellcheck="false" placeholder="FSC-XXXX-XXXX-XXXX" value="${esc(code)}" style="font-size:1.2rem;letter-spacing:.06em;text-transform:uppercase"></label>
 <div><button class="button teal" type="submit">Ativar</button></div></form></div>
@@ -276,7 +281,9 @@ ${session ? `<p class="muted">Você está conectado como ${esc(session.email)}.<
   // ---------- Assinatura ----------
   async function subscriptionPage(request, session, message) {
     const member = await memberFor(session);
-    if (!member) return html(consolePage({title: 'Assinatura', session, body: `<h1>Assinatura</h1><p class="lead">Sua conta ainda não tem um acesso. Comece o teste grátis de 30 dias ou ative uma chave recebida.</p><div class="inline-actions"><a class="button teal" href="/experimentar">Testar 30 dias grátis</a><a class="button ghost" href="/ativar">Ativar chave</a></div>`}));
+    if (!member) return html(consolePage({title: 'Assinatura', session, body: ofereceTeste
+      ? `<h1>Assinatura</h1><p class="lead">Sua conta ainda não tem um acesso. Comece o teste grátis de 30 dias ou ative uma chave recebida.</p><div class="inline-actions"><a class="button teal" href="/experimentar">Testar 30 dias grátis</a><a class="button ghost" href="/ativar">Ativar chave</a></div>`
+      : `<h1>Assinatura</h1><p class="lead">Sua conta ainda não tem um acesso. Ative a chave que você recebeu ou fale com a ${esc(BRAND.name)}.</p><div class="inline-actions"><a class="button teal" href="/ativar">Ativar chave</a><a class="button ghost" href="/orcamento">Fale conosco</a></div>`}));
     const {ent} = await entitlements(member);
     const payments = (await q('SELECT * FROM payments WHERE member_id = ? ORDER BY created_at DESC LIMIT 20', member.id).all()).results;
     const adv = ent.advanced, bas = ent.basic;
@@ -425,7 +432,11 @@ ${history}`;
 
     if (path === '/webhooks/mercadopago') return method === 'POST' ? webhook(request) : new Response('ok');
     // TES: só as páginas que existem nela (/servicos e /orcamento voltam para a página inicial).
-    const publicas = BRAND.id === 'tes' ? ['/', '/modulos', '/experimentar'] : ['/', '/servicos', '/modulos', '/orcamento', '/experimentar'];
+    // SilSec 19q (Fabio, 22/11/2026): a SilSec não vende mais o sistema; as páginas do sistema estão na TES.
+    const publicas = BRAND.id === 'tes' ? ['/', '/modulos', '/experimentar'] : ['/', '/servicos', '/orcamento'];
+    // SilSec no site: /modulos e /experimentar mudaram para a TES (301 para a mesma página, com a consulta).
+    // Na versão de computador e na rede local nada muda.
+    if (BRAND.id !== 'tes' && !config.desktop && !config.lan && (path === '/modulos' || path === '/experimentar')) return redirect(TES_SITE + path + url.search, 301);
     if (path === '/robots.txt') return new Response(`User-agent: *\nAllow: /$\n${publicas.filter(p => p !== '/' && p !== '/experimentar').map(p => `Allow: ${p}\n`).join('')}Disallow: /sistema\nDisallow: /api/\nDisallow: /painel\nDisallow: /assinatura\nSitemap: ${auth.baseUrl(request)}/sitemap.xml\n`, {headers: {'Content-Type': 'text/plain; charset=utf-8'}});
     if (path === '/sitemap.xml') return new Response(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${publicas.map(p => `<url><loc>${esc(auth.baseUrl(request))}${p}</loc></url>`).join('')}</urlset>`, {headers: {'Content-Type': 'application/xml; charset=utf-8'}});
 

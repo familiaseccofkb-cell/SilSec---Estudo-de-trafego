@@ -28,7 +28,7 @@ const SILSEC = Object.freeze({
   // 9.5.7 · 19m (Fabio, 21/11/2026): segundo vídeo, logo abaixo do primeiro.
   videos: Object.freeze([
     Object.freeze({id: 'y_fxuLWYFJk', title: 'Por que fazer um estudo de tráfego de elevadores'}),
-    Object.freeze({id: '2ndckRtA65k', title: 'Apresentação do Sistema de estudo de tráfego SilSec'}),
+    // 19q (Fabio, 22/11/2026): a SilSec não vende mais o sistema; saiu o vídeo "Apresentação do Sistema de estudo de tráfego SilSec" (2ndckRtA65k).
   ]),
 });
 

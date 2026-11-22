@@ -77,9 +77,9 @@ test('site: página inicial pública, contato, robots e links antigos do program
   try {
     let r = await t.req('/');
     assert.equal(r.status, 200);
-    assert.match(r.text, /SilSec Engenharia/); assert.match(r.text, /\(11\) 98313-0055/); assert.doesNotMatch(r.text, /R\$\s?797,00/, 'preços ficam só na página dos módulos'); assert.match(r.text, /Sistema de estudo de tráfego Básico/); assert.match(r.text, /Solicite um orçamento/);
+    assert.match(r.text, /SilSec Engenharia/); assert.match(r.text, /\(11\) 98313-0055/); assert.doesNotMatch(r.text, /R\$\s?797,00/); assert.doesNotMatch(r.text, /Sistema de estudo de tráfego Básico/, '19q: a SilSec não vende o sistema'); assert.match(r.text, /Solicite um orçamento/);
     assert.equal(r.headers.get('x-robots-tag'), 'index, follow');
-    r = await t.req('/modulos'); assert.equal(r.status, 200); assert.match(r.text, /R\$\s?797,00/); assert.match(r.text, /R\$\s?397,00/);
+    r = await t.req('/modulos'); assert.equal(r.status, 301); assert.equal(r.location, 'https://trafficestimatorsystem.com/modulos', '19q: as páginas do sistema estão na TES');
     r = await t.req('/servicos'); assert.equal(r.status, 200); assert.match(r.text, /Vistorias técnicas e laudos/); assert.doesNotMatch(r.text, /Adequação de caixa e poço/);
     r = await t.req('/orcamento'); assert.equal(r.status, 200); assert.match(r.text, /name="servicos"/);
     r = await t.req('/contato', {method: 'POST', form: {origem: 'orcamento', nome: 'Gestora', email: 'gestora@adm.com', perfil: 'Administradora de condomínios', servicos: 'Vistoria técnica e laudo', pavimentos: '12', elevadores: '2', cidade: 'São Paulo', mensagem: 'Elevadores de 1998, muitas paradas.'}});
@@ -215,13 +215,15 @@ test('assinatura: valor divergente não libera acesso', async () => {
   } finally { await t.close(); }
 });
 
+// 19q (Fabio, 22/11/2026): o site da SilSec não oferece mais o teste grátis (vai para a TES, ver silsec-sem-modulos.test.mjs).
+// A lógica do teste continua na TES e na versão de rede local; aqui ela é conferida com a rede local (SILSEC_REDE=1).
 test('teste grátis independente: cadastro sem chave libera 30 dias do Completo uma única vez por e-mail', async () => {
-  const t = await boot();
+  const t = await boot({SILSEC_REDE: '1'});
   try {
     const page = await t.req('/experimentar');
     assert.equal(page.status, 200); assert.match(page.text, /30 dias/); assert.match(page.text, /Acesso educacional/);
     const home = await t.req('/');
-    assert.match(home.text, /Acesso educacional/); assert.doesNotMatch(home.text, /fabiosecco/i); const modulos = await t.req('/modulos'); assert.match(modulos.text, /href="\/experimentar"/); assert.match(modulos.text, /Acesso educacional/);
+    assert.doesNotMatch(home.text, /fabiosecco/i); const modulos = await t.req('/modulos'); assert.match(modulos.text, /href="\/experimentar"/); assert.match(modulos.text, /Acesso educacional/);
     const r = await t.req('/experimentar', {method: 'POST', user: 'novo', form: {nome: 'Ana Engenheira', email: 'Ana@Exemplo.com', perfil: 'estudante'}});
     assert.equal(r.status, 200); assert.match(r.text, /teste do plano Completo vale até/);
     const mail = t.sent.at(-1); assert.equal(mail.to, 'ana@exemplo.com');

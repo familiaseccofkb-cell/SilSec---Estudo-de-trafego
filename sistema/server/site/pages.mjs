@@ -24,7 +24,7 @@ ${minimal ? `<nav class="site-nav" aria-label="Principal">${session ? (BRAND.id 
 BRAND.id === 'tes' ? `<button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu">Menu</button>
 <nav class="site-nav" id="menu" aria-label="Principal">${link('/', 'O sistema', 'modulos')}<a href="mailto:${esc(BRAND.email)}">Contato</a>${area}</nav>` :
 `<button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu">Menu</button>
-<nav class="site-nav" id="menu" aria-label="Principal">${link('/servicos', 'Serviços', 'servicos')}${link('/modulos', 'Módulos de software', 'modulos')}${link('/#sobre', 'Sobre', 'sobre')}${link('/orcamento', 'Contato', 'orcamento')}${area}<a class="button small teal" href="/orcamento">Solicite um orçamento</a></nav>`}
+<nav class="site-nav" id="menu" aria-label="Principal">${link('/servicos', 'Serviços', 'servicos')}${link('/#sobre', 'Sobre', 'sobre')}${link('/orcamento', 'Contato', 'orcamento')}<a class="button small teal" href="/orcamento">Solicite um orçamento</a></nav>`}
 </div></header>`;
 }
 
@@ -36,11 +36,10 @@ function footer() {
 <div class="foot-base">© ${new Date().getFullYear()} ${esc(BRAND.name)}${BRAND.credit ? ` · ${esc(BRAND.credit)}` : ''}</div>
 </div></footer>`;
   return `<footer class="site-foot"><div class="wrap">
-<div><strong>${esc(BRAND.name)}</strong>Consultoria, vistorias, projetos e software para transporte vertical.</div>
+<div><strong>${esc(BRAND.name)}</strong>Consultoria, vistorias, projetos e estudos de tráfego para transporte vertical.</div>
 <div><small>Serviços</small><a href="/servicos#consultoria">Consultoria estratégica</a><br><a href="/servicos#novos-projetos">Novos projetos</a><br><a href="/servicos#vistorias">Vistorias e laudos</a><br><a href="/servicos#projetos">Projetos e adequações</a></div>
-<div><small>Módulos de software</small><a href="/modulos">Sistema de estudo de tráfego</a><br><a href="/entrar?volta=%2Fsistema">Acessar o sistema</a><br><a href="/ativar">Ativar chave de acesso</a></div>
 <div><small>Contato</small><a href="${BRAND.phoneHref}">${esc(BRAND.phone)}</a><br><a href="mailto:${esc(BRAND.email)}">${esc(BRAND.email)}</a><br>São Paulo · SP</div>
-<div class="foot-base">© ${new Date().getFullYear()} ${esc(BRAND.name)}${BRAND.credit ? ` · ${esc(BRAND.credit)}` : ''}</div>
+<div class="foot-base">© ${new Date().getFullYear()} ${esc(BRAND.name)}${BRAND.credit ? ` · ${esc(BRAND.credit)}` : ''} · <a href="/entrar?volta=%2Fsistema">Área do cliente</a><br><a href="https://trafficestimatorsystem.com">Conheça o TES, produto da SilSec Engenharia</a></div>
 </div></footer>`;
 }
 
@@ -69,7 +68,7 @@ function videosSection() {
   // 9.5.7 · 19m (Fabio, 21/11/2026): todos os vídeos abrem no player do site, um abaixo do outro.
   const player = v => `<div class="video-main"><iframe src="https://www.youtube-nocookie.com/embed/${v.id}?rel=0" title="${esc(v.title)}" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>`;
   return `<section class="section" id="videos"><div class="wrap">
-<div class="section-head"><h2>Veja em vídeo</h2><p class="lead">Por que o estudo de tráfego importa e como a plataforma ajuda a decidir quantos elevadores, de que capacidade e velocidade.</p></div>
+<div class="section-head"><h2>Veja em vídeo</h2><p class="lead">Por que o estudo de tráfego importa para decidir quantos elevadores, de que capacidade e velocidade.</p></div>
 ${list.map(player).join('\n')}
 </div></section>`;
 }
@@ -86,24 +85,16 @@ function ctaBand(title, text, label = 'Solicite um orçamento') {
   return `<section class="cta-band"><div class="wrap"><div><h2>${title}</h2><p>${text}</p></div>${CTA(label, 'button amber')}</div></section>`;
 }
 const planList = plans => Array.isArray(plans) ? plans : Object.values(plans || {});
-function moduleCards(plans, {prices = false} = {}) {
-  const list = planList(plans), basic = list.find(p => p.id === 'basic'), full = list.find(p => p.id === 'advanced');
-  const price = p => prices ? `<div class="price"><strong>${brl(p.annualCents)}</strong><span>por ano</span></div>` : '';
-  return `<div class="modules">
-<article class="module"><span class="kicker">Módulo</span><h3>Sistema de estudo de tráfego Básico</h3><p>${esc(basic.summary)}</p>${price(basic)}<a class="button ghost" href="/modulos#comparar">Detalhes do módulo</a></article>
-<article class="module featured"><span class="kicker">Módulo · mais completo</span><h3>Sistema de estudo de tráfego Completo</h3><p>${esc(full.summary)}</p>${price(full)}<a class="button amber" href="/modulos#comparar">Detalhes do módulo</a></article>
-</div>`;
-}
 
 export function homePage({plans, session, message}) {
   const msg = message ? `<p class="notice ${message.kind}" role="status">${esc(message.text)}</p>` : '';
-  return `${head({title: `${BRAND.name} · engenharia de transporte vertical: consultoria, vistorias, projetos e estudo de tráfego`, description: 'Consultoria para compra, contrato de manutenção e modernização de elevadores, vistorias técnicas com laudo, projetos de adequação e o sistema de estudo de tráfego (NBR 5665 e ISO 8100-32).', index: true, canonical: BRAND.site + '/'})}
+  return `${head({title: `${BRAND.name} · engenharia de transporte vertical: consultoria, vistorias, projetos e estudo de tráfego`, description: 'Consultoria para compra, contrato de manutenção e modernização de elevadores, vistorias técnicas com laudo, projetos de adequação e estudos de tráfego (NBR 5665 e ISO 8100-32).', index: true, canonical: BRAND.site + '/'})}
 <body>${header({session})}
 <main id="conteudo">${msg}
 <section class="hero company"><div class="wrap">
 <div class="hero-copy"><span class="kicker">Engenharia de transporte vertical</span>
 <h1>Decisões sobre elevadores com base em engenharia, não em opinião.</h1>
-<p class="lead">Consultoria para compra, contrato de manutenção e modernização de elevadores, vistorias técnicas com laudo e projetos de adequação — com o apoio dos nossos módulos de software de estudo de tráfego.</p>
+<p class="lead">Consultoria para compra, contrato de manutenção e modernização de elevadores, vistorias técnicas com laudo, projetos de adequação e estudos de tráfego.</p>
 <div class="hero-actions">${CTA('Solicite um orçamento', 'button amber')}<a class="button ghost light" href="/servicos">Conhecer os serviços</a></div>
 <p class="hero-contact">Atendimento a condomínios, construtoras, escritórios de projeto e administradoras · São Paulo e região</p></div>
 <aside class="hero-steps" aria-label="Como atuamos"><span class="kicker">Como atuamos</span>
@@ -119,13 +110,8 @@ export function homePage({plans, session, message}) {
 <article class="service"><span class="service-icon">${icon.blueprint}</span><h3>Consultoria para novos projetos</h3><p>Quantos elevadores, com que capacidade e velocidade, e que espaço reservar para caixa, poço e casa de máquinas — definido na prancheta, antes que custe caro mudar na obra.</p></article>
 <article class="service"><span class="service-icon">${icon.survey}</span><h3>Vistorias técnicas e laudos</h3><p>Inspeção do equipamento e da casa de máquinas, registro fotográfico e laudo assinado por engenheiro com ART.</p></article>
 <article class="service"><span class="service-icon">${icon.project}</span><h3>Projetos e adequações</h3><p>Projeto elétrico e adequações de obra para instalação ou troca de elevadores, com equipe parceira para as disciplinas mecânica e civil.</p></article>
-<article class="service"><span class="service-icon">${icon.traffic}</span><h3>Estudo de tráfego</h3><p>Dimensionamento pela NBR 5665 e pela ISO 8100-32, entregue como serviço ou pelos nossos módulos de software.</p></article>
+<article class="service"><span class="service-icon">${icon.traffic}</span><h3>Estudo de tráfego</h3><p>Dimensionamento pela NBR 5665 e pela ISO 8100-32, entregue como serviço de engenharia, com memória de cálculo.</p></article>
 </div></div></section>
-
-<section class="section alt" id="modulos"><div class="wrap">
-<div class="section-head"><div><span class="kicker">Módulos de software</span><h2>Serviços adicionais que você usa quando quiser</h2></div><p>A mesma engenharia que aplicamos na consultoria, em forma de plataforma on-line. Contrate como módulo adicional, por assinatura anual, com 30 dias para testar. Planos e valores na página do sistema.</p></div>
-${moduleCards(plans)}
-</div></section>
 
 <section class="section" id="para-quem"><div class="wrap about">
 <div><span class="kicker">Para quem</span><h2>Quem decide sobre elevadores — e precisa decidir bem</h2></div>
@@ -133,12 +119,11 @@ ${moduleCards(plans)}
 <div><strong>Síndicos e administradoras</strong><span>Contratos de manutenção, modernização e laudos para assembleias.</span></div>
 <div><strong>Construtoras e incorporadoras</strong><span>Especificação, estudo de tráfego e comparação de propostas de fornecedores.</span></div>
 <div><strong>Escritórios de arquitetura e engenharia</strong><span>Dimensionamento normativo integrado ao projeto, com memória de cálculo.</span></div>
-<div><strong>Estudantes e professores</strong><span>Módulos de software para turmas, com as premissas explicadas passo a passo. <a href="/modulos#ensino">Acesso educacional</a>.</span></div>
 </div></div></section>
 
 <section class="section alt" id="sobre"><div class="wrap about">
 <div><span class="kicker">Sobre a SilSec</span><h2>Engenharia independente dos fabricantes</h2>
-<p class="lead">A ${esc(BRAND.name)} nasceu para tornar o estudo de tráfego de elevadores acessível a quem projeta, especifica e compra elevadores. Hoje reúne consultoria, vistorias, projetos e a plataforma de estudos — sem vender equipamentos nem manutenção, para que o parecer seja só de engenharia.</p>
+<p class="lead">A ${esc(BRAND.name)} nasceu para tornar o estudo de tráfego de elevadores acessível a quem projeta, especifica e compra elevadores. Hoje reúne consultoria, vistorias, projetos e estudos de tráfego — sem vender equipamentos nem manutenção, para que o parecer seja só de engenharia.</p>
 <p>Cada resultado vem com a memória de cálculo e as premissas usadas, para que você entenda e possa conferir a decisão.</p></div>
 <div class="stats"><div><strong>NBR 5665</strong><span>Cálculo de tráfego brasileiro</span></div><div><strong>ISO 8100-32</strong><span>Edição 2020, com proveniência</span></div><div><strong>ART</strong><span>Responsabilidade técnica registrada</span></div></div>
 </div></section>
@@ -164,7 +149,7 @@ export function servicesPage({session}) {
 <div><strong class="kicker">Quando pedir uma vistoria</strong><ul class="two-col"><li>Antes de renovar ou trocar a mantenedora</li><li>Para decidir entre reparo e modernização</li><li>Após ocorrência com usuário preso ou acidente</li><li>Para assembleia aprovar investimento</li><li>Na entrega da obra ou no recebimento de elevador novo</li><li>Em disputa com fabricante ou mantenedora</li></ul></div></article>
 
 <article class="service-block" id="projetos"><div><span class="kicker">04 · Projetos e adequações</span><h2>Projeto elétrico e adequações de obra</h2><p>Projeto e acompanhamento das instalações elétricas de elevadores e das adequações necessárias à instalação ou troca. Disciplinas mecânica e civil com engenheiros parceiros, cada um com a própria ART vinculada.</p>${CTA()}</div>
-<div class="minis three"><div><strong>Instalações elétricas</strong><span>Alimentação, quadro, aterramento e iluminação de casa de máquinas e poço.</span></div><div><strong>Gestão da intervenção</strong><span>Cronograma, interface com a mantenedora e aceite técnico ao final.</span></div><div><strong>Estudo de tráfego</strong><span>NBR 5665 e ISO 8100-32, entregue como laudo ou pelo módulo de software.</span></div></div></article>
+<div class="minis three"><div><strong>Instalações elétricas</strong><span>Alimentação, quadro, aterramento e iluminação de casa de máquinas e poço.</span></div><div><strong>Gestão da intervenção</strong><span>Cronograma, interface com a mantenedora e aceite técnico ao final.</span></div><div><strong>Estudo de tráfego</strong><span>NBR 5665 e ISO 8100-32, entregue como laudo, com memória de cálculo.</span></div></div></article>
 </div></section>
 
 <section class="section"><div class="wrap about"><div><span class="kicker">Como contratar</span><h2>Três passos, sem surpresa no valor</h2></div>
@@ -238,7 +223,7 @@ export function quotePage({session, message, preset = ''}) {
 <div>${msg}<form class="stack card" method="post" action="/contato"><input type="hidden" name="origem" value="orcamento">
 <div class="row2"><label class="field">Seu nome<input name="nome" required maxlength="200" autocomplete="name"></label><label class="field">Você é<select name="perfil"><option>Síndico ou conselheiro</option><option>Administradora de condomínios</option><option>Construtora ou incorporadora</option><option>Escritório de arquitetura ou engenharia</option><option>Estudante ou professor</option><option>Outro</option></select></label></div>
 <div class="row2"><label class="field">E-mail<input name="email" type="email" required maxlength="254" autocomplete="email"></label><label class="field">Telefone ou WhatsApp<input name="telefone" maxlength="40" autocomplete="tel" inputmode="tel"></label></div>
-<fieldset class="checks"><legend>O que você precisa</legend>${check('Consultoria para compra de elevadores', 'Consultoria para compra de elevadores')}${check('Consultoria para novo projeto (quantos elevadores, caixa, poço e casa de máquinas)', 'Consultoria para novo projeto (quantos elevadores, caixa, poço e casa de máquinas)')}${check('Contrato de manutenção', 'Contrato de manutenção')}${check('Modernização', 'Modernização')}${check('Vistoria técnica e laudo', 'Vistoria técnica e laudo')}${check('Projeto e adequações de obra', 'Projeto e adequações de obra')}${check('Módulos de software para equipe ou turma', 'Módulos de software para equipe ou turma', preset === 'cursos')}</fieldset>
+<fieldset class="checks"><legend>O que você precisa</legend>${check('Consultoria para compra de elevadores', 'Consultoria para compra de elevadores')}${check('Consultoria para novo projeto (quantos elevadores, caixa, poço e casa de máquinas)', 'Consultoria para novo projeto (quantos elevadores, caixa, poço e casa de máquinas)')}${check('Contrato de manutenção', 'Contrato de manutenção')}${check('Modernização', 'Modernização')}${check('Vistoria técnica e laudo', 'Vistoria técnica e laudo')}${check('Projeto e adequações de obra', 'Projeto e adequações de obra')}</fieldset>
 <div class="row3"><label class="field">Cidade do edifício<input name="cidade" maxlength="120" placeholder="São Paulo" autocomplete="address-level2"></label><label class="field">Pavimentos<input name="pavimentos" type="number" min="1" max="200" inputmode="numeric"></label><label class="field">Elevadores<input name="elevadores" type="number" min="0" max="60" inputmode="numeric"></label></div>
 <label class="field">Conte o caso<textarea name="mensagem" required maxlength="5000" rows="5" placeholder="Idade dos elevadores, fabricante, o que está acontecendo e qual decisão precisa ser tomada."></textarea></label>
 <div class="hp" aria-hidden="true"><label>Não preencha<input name="site" tabindex="-1" autocomplete="off"></label></div>

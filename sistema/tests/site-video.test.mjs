@@ -18,9 +18,11 @@ test('página inicial: "Veja em vídeo" com o vídeo novo do YouTube, sem cookie
 });
 
 // 9.5.7 · 19m (Fabio, 21/11/2026): segundo vídeo (2ndckRtA65k) logo abaixo do primeiro, também no player do site.
-test('página inicial: dois vídeos no player, o novo logo abaixo do primeiro', () => {
+// 19q (Fabio, 22/11/2026): a SilSec não vende mais o sistema; o vídeo de apresentação do sistema (2ndckRtA65k) saiu.
+test('página inicial: só o vídeo do estudo de tráfego, sem o de apresentação do sistema', () => {
   const html = homePage({plans: [{id: 'basic', summary: 'Básico'}, {id: 'advanced', summary: 'Completo'}], session: null, message: null});
   const ids = [...html.matchAll(/<div class="video-main"><iframe src="https:\/\/www\.youtube-nocookie\.com\/embed\/([A-Za-z0-9_-]{11})\?rel=0"[^>]*><\/iframe><\/div>/g)].map(m => m[1]);
-  assert.deepEqual(ids, ['y_fxuLWYFJk', '2ndckRtA65k']);
+  assert.deepEqual(ids, ['y_fxuLWYFJk']);
+  assert.doesNotMatch(html, /2ndckRtA65k|como a plataforma ajuda/);
   assert.doesNotMatch(html, /video-list|i\.ytimg\.com|autoplay/);
 });

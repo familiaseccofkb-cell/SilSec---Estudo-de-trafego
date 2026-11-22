@@ -1,3 +1,17 @@
+# SilSec 19q · o site da SilSec não vende mais o sistema · 2026-11-22 (sobre 0f0467a, Node 24)
+
+- Decisão do Fabio (22/11, "seguir recomendações"): o sistema de estudo de tráfego é vendido só na TES (trafficestimatorsystem.com).
+  - Saem do site da SilSec: menu "Módulos de software"; botão "Acessar o sistema" do topo; seção "Serviços adicionais…" com os
+    cartões Básico/Completo; cartão de ensino ("Acesso educacional"); vídeo de apresentação do sistema (2ndckRtA65k); coluna
+    "Módulos de software" do rodapé; opção "Módulos de software para equipe ou turma" do orçamento; frases "módulos de software"
+    da abertura, do cartão Estudo de tráfego, do Sobre e de /servicos; /modulos e /experimentar do sitemap e do robots.
+  - /modulos e /experimentar: 301 para a mesma página na TES (com a consulta). Na versão de computador e na rede local nada muda.
+  - Rodapé: "Área do cliente" (/entrar) e a linha "Conheça o TES, produto da SilSec Engenharia" com link para a TES.
+  - Login, sistema, renovação e /ativar continuam na SilSec para quem já tem conta e para os clientes da consultoria;
+    /ativar e a assinatura sem acesso não oferecem mais o teste grátis.
+- TES: nenhuma mudança (todas as páginas idênticas antes × depois). Cálculo: nenhuma mudança.
+- Testes: 623/623 em Node 24.22.3 (novo: silsec-sem-modulos); números do cálculo iguais aos da 19o e do 19m.
+
 # SilSec 19p · Node 24 · 2026-11-22 (conteúdo da 19o)
 
 - Decisão do Fabio (22/11): os dois sites em Node 24. A 19p é a 19o sem nenhuma mudança de código; só este registro.

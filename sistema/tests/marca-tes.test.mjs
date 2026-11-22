@@ -81,12 +81,17 @@ test('site na marca TES: página do sistema com logo TES; da SilSec só "Produto
   assert.doesNotMatch(h, /href="\/(orcamento|servicos)/);
 });
 
-test('site na marca SilSec não cita a TES', async () => {
+// 19q (Fabio, 22/11/2026): a única menção à TES na SilSec é a linha do rodapé, com link para o site da TES.
+const LINHA_TES = '<a href="https://trafficestimatorsystem.com">Conheça o TES, produto da SilSec Engenharia</a>';
+test('site na marca SilSec não cita a TES, fora a linha do rodapé', async () => {
   const {modulesPage, homePage, servicesPage} = await import('../server/site/pages.mjs');
   const {salePlans} = await import('../server/platform/plans.mjs');
   for (const h of [modulesPage({plans: salePlans({}), session: null}), homePage({plans: salePlans({}), session: null}), servicesPage({session: null})]) {
-    assert.doesNotMatch(h, /traffic estimator|trafficestimator|logo-tes/i);
-    assert.doesNotMatch(h, /\bTES\b/);
+    assert.equal(h.split(LINHA_TES).length, 2, 'a linha do TES aparece uma vez');
+    assert.match(h.slice(h.indexOf('<footer')), /Conheça o TES/, 'e fica no rodapé');
+    const resto = h.split(LINHA_TES).join('');
+    assert.doesNotMatch(resto, /traffic estimator|trafficestimator|logo-tes/i);
+    assert.doesNotMatch(resto, /\bTES\b/);
   }
 });
 

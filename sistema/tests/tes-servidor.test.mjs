@@ -32,8 +32,10 @@ test('motor/: o navegador carrega os arquivos .js do cálculo; nada além disso 
   assert.equal(r.shell, '<title>SilSec Engenharia | Estudos de tráfego</title>');
   assert.notEqual(r['/vistorias'].status, 404, 'na SilSec as vistorias continuam');
   assert.doesNotMatch(r['/favicon.svg'].body, /<image/, 'na SilSec o favicon é o de sempre');
-  assert.match(r['/robots.txt'].body, /Allow: \/servicos\nAllow: \/modulos\nAllow: \/orcamento\n/);
-  assert.equal(r['/sitemap.xml'].body.match(/<url>/g).length, 5);
+  // 19q: na SilSec, robots e sitemap sem as páginas do sistema (estão na TES)
+  assert.match(r['/robots.txt'].body, /Allow: \/servicos\nAllow: \/orcamento\n/);
+  assert.doesNotMatch(r['/robots.txt'].body + r['/sitemap.xml'].body, /modulos|experimentar/);
+  assert.equal(r['/sitemap.xml'].body.match(/<url>/g).length, 3);
 });
 
 test('marca TES: tela do sistema com título TES e sem a rota de vistorias', () => {

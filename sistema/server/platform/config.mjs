@@ -37,6 +37,8 @@ export function readConfig(env = process.env) {
     production: env.NODE_ENV === 'production',
     // Modo computador: um único usuário local, sem login, servidor só em 127.0.0.1 (SILSEC_DESKTOP=1).
     desktop: env.SILSEC_DESKTOP === '1',
+    // Rede local (rede-local.mjs): vários computadores da rede, cada um com login; sem proxy na frente (SILSEC_REDE=1).
+    lan: env.SILSEC_REDE === '1',
     db: driver === 'mysql'
       ? {driver, host: env.DB_HOST || 'localhost', port: int(env.DB_PORT, 3306), user: env.DB_USER, password: env.DB_PASSWORD || '', database: env.DB_NAME, socketPath: env.DB_SOCKET || '', connectionLimit: int(env.DB_CONNECTIONS, 5)}
       : {driver: 'sqlite', file: env.SQLITE_FILE || join(dataDir, 'silsec.sqlite')},

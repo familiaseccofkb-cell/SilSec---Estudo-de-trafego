@@ -1,3 +1,13 @@
+# SilSec · rede local (Opção A) · fase 1 · 2026-11-21 (base 9.5.7 / 19m)
+
+- Versão para rede local: um computador servidor com MariaDB local; os outros abrem pelo navegador, com login. O site online não muda.
+  - rede-local.mjs: inicializador (configuração protegida em ProgramData, porta padrão 3980, 3957 recusada, banco só em 127.0.0.1,
+    cadastro fechado, só o administrador local como dono, sem e-mail/IA/pagamento); comandos "verificar" e "usuario".
+  - Só com SILSEC_REDE=1 (config.lan): origem pelo Host em http, sem X-Forwarded-* e sem HSTS (http.mjs, app.mjs, server.mjs, config.mjs).
+  - instaladores/rede-local: instalar, verificar e desinstalar (.ps1) e LEIA-ME. Os .ps1 ainda não foram executados num Windows de teste.
+- Teste: tests/rede-local.test.mjs (4 casos); 599/599. MariaDB 13.0.2 (extraído do .msi, sem instalar): migrações 0001–0008, login pela rede e conflito 409.
+- Pacote de teste: silsec-rede-local-fase1-teste-2026-11-21.zip · SHA-256 55d8158caac5fa3ecf82b0725bdd36c09b54e0ed25610f7aa051ac49c702dcb5.
+
 # SilSec · rascunho de 2026-11-21 (9.5.7, pacote 19m)
 
 - Inclui tudo do 19l (publicado em 21/11) e o segundo vídeo da página inicial pedido pelo Fabio:

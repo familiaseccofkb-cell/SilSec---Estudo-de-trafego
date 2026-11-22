@@ -38,7 +38,7 @@ export async function createApp(config, {log = console, db: givenDb, mailer: giv
   const devconsole = createDevConsole({db, auth, config, commerce, log});
   const env = apiEnv(config, db, bucket);
   const staticCache = new Map();
-  const hsts = config.production ? {'Strict-Transport-Security': 'max-age=15552000'} : {};
+  const hsts = config.production && !config.lan ? {'Strict-Transport-Security': 'max-age=15552000'} : {};
 
   async function serveStatic(pathname, req, res) {
     let rel;
@@ -101,7 +101,7 @@ export async function createApp(config, {log = console, db: givenDb, mailer: giv
       const blocked = await devconsole.maintenance(new Request(url, {headers: probeHeaders}));
       if (blocked) return sendWebResponse(res, blocked, {...SECURITY, ...hsts}, head);
 
-      const ip = clientIp(req, true);
+      const ip = clientIp(req, !config.lan);
       if (path.startsWith('/api/') || path === '/api') {
         const request = await toWebRequest(req, origin, {bodyLimit: 8 * 1024 * 1024, ip});
         const user = await auth.sessionUser(request);

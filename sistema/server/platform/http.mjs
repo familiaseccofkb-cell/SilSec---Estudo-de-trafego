@@ -9,6 +9,8 @@ export function clientIp(req, trustProxy) {
 }
 
 export function requestOrigin(req, config) {
+  // Rede local (SILSEC_REDE=1): não há proxy na frente; vale o endereço que o navegador usou (nome ou IP), sem cabeçalhos X-Forwarded-*.
+  if (config.lan) return (req.socket?.encrypted ? 'https' : 'http') + '://' + String(req.headers.host || 'localhost').trim();
   if (config.appUrl) {
     // Quando APP_URL é definido, ele vale para o domínio principal; outros domínios (www, temporário) usam o Host recebido.
     const app = new URL(config.appUrl);

@@ -1,0 +1,50 @@
+SilSec Engenharia · versão para REDE LOCAL (Opção A) · FASE 1 · pacote de teste
+
+O QUE É
+- Um computador da rede (o "servidor") roda o SilSec e o banco MariaDB. Os outros computadores
+  (até 5 ao mesmo tempo) abrem o endereço do servidor no navegador e entram com o próprio usuário.
+- O sistema online (silsec-engenharia.com.br) continua igual; esta versão não envia nada ao site.
+- Fase 1: rede local, banco, ligação automática com o Windows e instalação.
+  Ainda NÃO tem: licença validada no site (fase 2), botão "Enviar" (fase 3), backup e restauração (fase 4).
+
+CONTEÚDO
+- app\                        programa (mesmo código da versão 9.5.7 + inicializador rede-local.mjs)
+- node\node.exe               Node.js usado pelo programa
+- mariadb-13.0.2-winx64.msi   instalador do banco
+- instalar-rede-local.ps1     instala ou atualiza (rodar como Administrador)
+- verificar-rede-local.ps1    mostra a situação (não altera nada)
+- desinstalar-rede-local.ps1  remove o programa; mantém banco, estudos e configuração
+
+INSTALAR (num PC de TESTE primeiro, nunca num PC com dados importantes nesta fase)
+1. Extraia esta pasta para um local fora do OneDrive (ex.: C:\SilSec-instalacao).
+2. Abra o PowerShell como Administrador nessa pasta e rode:
+     powershell -ExecutionPolicy Bypass -File .\instalar-rede-local.ps1 -AdminEmail seu@email.com.br
+3. Crie a senha do administrador quando pedir (mínimo 10 caracteres; não aparece na tela).
+4. No fim, o instalador mostra os dois endereços:
+     neste PC:          http://localhost:3980/sistema
+     outros PCs:        http://NOME-DO-PC:3980/sistema
+   A rede do Windows precisa estar como "Privada" para os outros PCs acessarem.
+
+OPÇÕES
+  -Porta 3980         porta do programa (a 3957 é recusada)
+  -PortaBanco 3307    porta do MariaDB (só neste PC; não abre no firewall)
+  -AdminNome "Nome"
+
+CONTAS
+- Só o administrador entra de início. Para outra pessoa:
+  1. o administrador inclui o e-mail em "Equipe e acessos";
+  2. no servidor, como Administrador, cria a senha:
+       "C:\Program Files\SilSec Rede Local\node\node.exe" "C:\Program Files\SilSec Rede Local\app\rede-local.mjs" usuario email@empresa.com.br "Nome"
+- Fase 1: contas comuns entram, mas os módulos (Básico/Completo) só são liberados com a licença da fase 2.
+  O administrador local já usa tudo.
+
+ONDE FICAM AS COISAS
+- Programa:      C:\Program Files\SilSec Rede Local
+- Banco e dados: C:\ProgramData\SilSec Rede Local  (mariadb, config, logs, backups)
+- Configuração:  C:\ProgramData\SilSec Rede Local\config  (só Administradores e o sistema leem; senhas geradas na instalação)
+- Registro:      C:\ProgramData\SilSec Rede Local\logs\servidor.log
+
+LIMITES CONHECIDOS DA FASE 1
+- Rede sem HTTPS (as senhas passam abertas dentro da rede do escritório). HTTPS local depende da decisão 6.
+- Sem e-mail: "esqueci a senha" não envia link; o administrador troca a senha pelo comando acima.
+- Instalador em PowerShell; o .exe com ícone (Go) vem depois. Sem assinatura digital (decisão 8).

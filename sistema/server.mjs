@@ -25,7 +25,7 @@ try {
   const express = (await import('express')).default;
   const web = express();
   web.disable('x-powered-by');
-  web.set('trust proxy', true);
+  web.set('trust proxy', !config.lan);
   web.use((req, res) => { app.handler(req, res); });
   listener = web;
 } catch { /* sem Express: segue com o servidor nativo */ }

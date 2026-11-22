@@ -424,8 +424,10 @@ ${history}`;
     if (!site.includes(path) && !path.startsWith('/painel/')) return null;
 
     if (path === '/webhooks/mercadopago') return method === 'POST' ? webhook(request) : new Response('ok');
-    if (path === '/robots.txt') return new Response(`User-agent: *\nAllow: /$\nAllow: /servicos\nAllow: /modulos\nAllow: /orcamento\nDisallow: /sistema\nDisallow: /api/\nDisallow: /painel\nDisallow: /assinatura\nSitemap: ${auth.baseUrl(request)}/sitemap.xml\n`, {headers: {'Content-Type': 'text/plain; charset=utf-8'}});
-    if (path === '/sitemap.xml') return new Response(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${esc(auth.baseUrl(request))}/</loc></url><url><loc>${esc(auth.baseUrl(request))}/servicos</loc></url><url><loc>${esc(auth.baseUrl(request))}/modulos</loc></url><url><loc>${esc(auth.baseUrl(request))}/orcamento</loc></url><url><loc>${esc(auth.baseUrl(request))}/experimentar</loc></url></urlset>`, {headers: {'Content-Type': 'application/xml; charset=utf-8'}});
+    // TES: só as páginas que existem nela (/servicos e /orcamento voltam para a página inicial).
+    const publicas = BRAND.id === 'tes' ? ['/', '/modulos', '/experimentar'] : ['/', '/servicos', '/modulos', '/orcamento', '/experimentar'];
+    if (path === '/robots.txt') return new Response(`User-agent: *\nAllow: /$\n${publicas.filter(p => p !== '/' && p !== '/experimentar').map(p => `Allow: ${p}\n`).join('')}Disallow: /sistema\nDisallow: /api/\nDisallow: /painel\nDisallow: /assinatura\nSitemap: ${auth.baseUrl(request)}/sitemap.xml\n`, {headers: {'Content-Type': 'text/plain; charset=utf-8'}});
+    if (path === '/sitemap.xml') return new Response(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${publicas.map(p => `<url><loc>${esc(auth.baseUrl(request))}${p}</loc></url>`).join('')}</urlset>`, {headers: {'Content-Type': 'application/xml; charset=utf-8'}});
 
     const session = await auth.sessionUser(request);
     if (path === '/' && config.desktop) return redirect(APP_HOME, 302);

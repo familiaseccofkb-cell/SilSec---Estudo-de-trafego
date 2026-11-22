@@ -2,9 +2,14 @@
 // Na marca SilSec só brand.js muda (sai apenas com o perfil SilSec); os demais saem iguais ao disco.
 import {BRAND, MARCAS} from '../../public/brand.js';
 
-const SILSEC = MARCAS.silsec;
+// No pacote TES, public/brand.js já vem gravado só com o perfil TES (scripts/materializar-marca.mjs); aí as trocas dos
+// manuais não acham nada para trocar, e basta o e-mail/telefone de origem dos manuais gerados.
+const SILSEC = MARCAS.silsec || {email: 'contato@silsec-engenharia.com.br', phone: BRAND.phone};
 // Manuais gerados de help.js (scripts/generate-help.mjs) com a marca SilSec: na TES saem sem nenhuma referência à SilSec.
+// Links do manual para documentos internos da SilSec (páginas que não existem na TES).
+const LINKS_INTERNOS_SILSEC = '<p><a href="/silsec-especificacao.html">Especificação para revisar e usar em outros chats</a> · <a href="/silsec-comercializacao.html">Como preparar a comercialização</a> · <a href="/identidade-silsec.html">Identidade visual aprovada</a></p>';
 const MANUAL = [
+  [LINKS_INTERNOS_SILSEC, () => ''],
   [SILSEC.email, m => m.email],
   [SILSEC.phone, m => m.phone],
   ['/marca/silsec-engenharia.svg', m => m.logo.split('?')[0]],
@@ -44,6 +49,11 @@ const TROCAS = {
     ...['\r\n', '\n'].map(nl => [`,${nl}    {"name": "Vistorias", "url": "/vistorias", "icons": [{"src": "/icones/icone-192.png", "sizes": "192x192"}]}`, () => '']),
   ],
   'sw.js': [['// SilSec · service worker', m => `// ${m.short} · service worker`], ["const VERSAO = 'silsec-v", m => `const VERSAO = '${m.id}-v`], ['<title>Sem conexão · SilSec</title>', m => `<title>Sem conexão · ${m.short}</title>`], ['<p>O SilSec guarda', m => `<p>O ${m.short} guarda`]],
+  // Módulos do navegador: na TES saem sem os links internos da SilSec e sem os comentários que citam a SilSec.
+  'help.js': [[LINKS_INTERNOS_SILSEC, () => '']],
+  'analysis-charts.js': [['(Guia SilSec de Tráfego)', () => '(guia visual de tráfego)']],
+  'presentation.js': [['(cores SilSec)', () => '(cores da marca)']],
+  'manufacturer-performance.js': [['comparação com o cálculo do sistema SilSec.', () => 'comparação com o cálculo do sistema.']],
   'explicacao-dos-calculos.html': MANUAL,
   'manual-do-usuario.html': MANUAL,
 };

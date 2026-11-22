@@ -1,3 +1,22 @@
+# SilSec 19p · Node 24 · 2026-11-22 (conteúdo da 19o)
+
+- Decisão do Fabio (22/11): os dois sites em Node 24. A 19p é a 19o sem nenhuma mudança de código; só este registro.
+- Testes em Node 24.22.3: 616/616 no código da 19o (commit 4e25f42); números do cálculo iguais aos da 19o (Node 22) e do 19m.
+- Na Hostinger: trocar a versão do Node do site silsec-engenharia.com.br de 22 para 24 (painel); sem variável, banco ou DNS novos.
+
+# TES 1.0.2 · estáticos já na marca TES no pacote · 2026-11-22 (sobre 4e25f42)
+
+- Defeito em produção (TES 1.0.1): a CDN da Hostinger entrega public/ direto, sem passar pelo Node; favicon, ícones, manifesto,
+  brand.js (padrão SilSec no navegador), index.html, sw.js, manuais e CSS saíam como no disco (SilSec).
+- scripts/materializar-marca.mjs: grava em public/ do pacote TES os arquivos já com a marca TES, com as mesmas regras do
+  server/platform/marca.mjs (ícones TES nos caminhos padrão; brand.js só com o perfil TES; arquivos só da SilSec removidos).
+  Exige --gravar; na SilSec não muda nada. O pacote SilSec não muda.
+- marca.mjs: na TES, o manual e help.js saem sem os links para documentos internos da SilSec (especificação, comercialização,
+  identidade visual) e sem três comentários que citavam a SilSec; funciona com brand.js só da TES.
+- robots.txt e sitemap.xml da TES só com as páginas que existem nela (/, /modulos, /experimentar); SilSec igual a antes.
+- Teste novo tests/tes-estaticos.test.mjs (servidor desligado: nenhum "SilSec" fora de "Produto da SilSec Engenharia").
+  619/619 em Node 24.22.3; números do cálculo iguais ao 19m.
+
 # SilSec 19o e TES 1.0.1 · preparo da publicação · 2026-11-22 (sobre 4fe4676)
 
 - Aprovação do Fabio para publicação (22/11): na TES, rodapé "Produto da SilSec Engenharia" (sem CNPJ), telefone +55 (11) 98313-0055 (nas duas marcas, também nos manuais),

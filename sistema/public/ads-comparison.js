@@ -3,6 +3,7 @@
 // Convencional: despacho coletivo; cada cabina embarca quem espera, até a lotação.
 // ADS: os destinos de cada grupo são divididos em setores contínuos; cada viagem a partir do acesso embarca
 // somente passageiros do mesmo setor (o do passageiro que espera há mais tempo). Não reproduz a alocação real do fabricante.
+import {BRAND} from './brand.js';
 import {loadForDemand} from './destination-estimate.js';
 import {simulateTraffic,WAIT_LIMITS,TRAVEL_LIMITS} from './traffic-simulation.js';
 import {performanceInputs} from './traffic-performance.js';
@@ -70,7 +71,7 @@ const cache=new WeakMap();
 export function adsComparisonHtml(study,result){
  // 9.5.7 (pedido do Fabio): sem a opção "Estimar sistema com antecipação de destino", mostra só a chamada convencional; o cálculo é o mesmo nos dois casos.
  const withAds=study?.destination?.enabled===true;
- const title=withAds?'Comparativo de cálculo do sistema SilSec · chamada convencional × ADS-Antecipador de Destino':'Cálculo do sistema SilSec · chamada convencional';
+ const title=withAds?'Comparativo de cálculo do sistema '+BRAND.short+' · chamada convencional × ADS-Antecipador de Destino':'Cálculo do sistema '+BRAND.short+' · chamada convencional';
  if(!result)return `<div class="card card-body below"><h3>${title}${contextHelpButton(withAds?'comparativoAds':'calculoConvencional')}</h3><p class="small-copy">Calcule o estudo para ver ${withAds?'o comparativo':'o resultado'}.</p></div>`;
  let c=cache.get(result);if(!c){try{c=adsComparison(study,result);}catch(e){c={error:String(e?.message||'erro na simulação')};}cache.set(result,c);}
  const head=`<h3>${title}${contextHelpButton(withAds?'comparativoAds':'calculoConvencional')}</h3>`;

@@ -108,9 +108,9 @@ Substituir Aplicar em todos por Copiar distância, abrindo flags dos pavimentos.
 
 Na proposta do fornecedor, incluir Antecipador de destino por grupo. Ocupação média inicial de 80%, editável entre 1% e 100% em passos de 1% ou por digitação. Utilizar P = lotação nominal × ocupação/100 na capacidade, PPH e cenário energético da proposta. Preservar a referência convencional NBR/ISO de forma independente.
 
-Oferecer método genérico de agrupamento por destinos com Monte Carlo e método de RTT/paradas/distância documentados pelo fabricante. Identificar sistema genérico, Schindler PORT, KONE Destination, Otis Compass 360, TK Elevator AGILE ou outro. Não inventar algoritmos ou multiplicadores específicos de marca. O documentado exige referência e confirmação das mesmas condições do estudo.
+Oferecer método genérico de agrupamento por destinos com Monte Carlo e método de TIV/paradas/distância documentados pelo fabricante. Identificar sistema genérico, Schindler PORT, KONE Destination, Otis Compass 360, TK Elevator AGILE ou outro. Não inventar algoritmos ou multiplicadores específicos de marca. O documentado exige referência e confirmação das mesmas condições do estudo.
 
-Calcular tempos por deslocamento, considerando velocidade, aceleração, jerk, portas, transferência e demais parâmetros declarados. Usar as probabilidades de destino da população adotada por andar, ou premissa uniforme explicitada. Registrar semente, lotes efetivos e erro amostral. Comparar graficamente com o convencional à mesma ocupação. Apresentar método, ocupação, paradas, RTT, capacidade, intervalo e PPH no sistema, relatório e PowerPoint editável.
+Calcular tempos por deslocamento, considerando velocidade, aceleração, jerk, portas, transferência e demais parâmetros declarados. Usar as probabilidades de destino da população adotada por andar, ou premissa uniforme explicitada. Registrar semente, lotes efetivos e erro amostral. Comparar graficamente com o convencional à mesma ocupação. Apresentar método, ocupação, paradas, TIV, capacidade, intervalo e PPH no sistema, relatório e PowerPoint editável.
 
 Identificar a estimativa como pico de entrada por lotes: não é simulação normativa de despacho, não calcula filas/espera e não comprova ganhos em almoço e saída. Solicitar validação por simulação documentada do fabricante antes da decisão de contratação. Preservar a população, geometria, arquivos e acessos existentes; atualizar manual e descrição e manter hospedagem privada.
 
@@ -292,11 +292,11 @@ No ISO, registrar FC, Pcalc, atrasos inicial e de fechamento, pré-abertura e or
 
 **Alternativa ISO:** Pcalc = lotação nominal × FC. N = destinos sem o acesso, isto é, paradas totais − 1. S = N × [1 − (1 − 1/N)^Pcalc]. H = N − soma de (i/N)^Pcalc, de i=1 até N−1. df = percurso/N; tv = df/velocidade. O flight time considera a distância e os regimes de aceleração/jerk das fórmulas 17–19.
 
-Calcular tperf = fechamento + atraso inicial + flight time − pré-abertura + abertura + atraso de fechamento. ts = tperf − tv. RTT = 2Htv + (S+1)ts + 2Pcalc × transferência por sentido.
+Calcular tperf = fechamento + atraso inicial + flight time − pré-abertura + abertura + atraso de fechamento. ts = tperf − tv. TIV = 2Htv + (S+1)ts + 2Pcalc × transferência por sentido.
 
-Ch = 300Pcalc × quantidade/RTT. Intervalo = RTT/quantidade para grupo homogêneo. Percentual exibido = 100Ch/população. Não aplicar o adicional NBR de 10% nem o tempo de transferência NBR a esse motor.
+Ch = 300Pcalc × quantidade/TIV. Intervalo = TIV/quantidade para grupo homogêneo. Percentual exibido = 100Ch/população. Não aplicar o adicional NBR de 10% nem o tempo de transferência NBR a esse motor.
 
-Para RTT diferentes, identificar a consolidação por taxas como aproximação de projeto. Intervalo não é tempo médio de espera. O mínimo deve reavaliar o critério da quantidade, capacidade e intervalo, mantendo proporções. Exibir mínimo e advertências na tela e relatório.
+Para TIV diferentes, identificar a consolidação por taxas como aproximação de projeto. Intervalo não é tempo médio de espera. O mínimo deve reavaliar o critério da quantidade, capacidade e intervalo, mantendo proporções. Exibir mínimo e advertências na tela e relatório.
 
 Os exemplos do documento têm inconsistências de performance, utilização e ocupação. Validar as equações com entradas explícitas e exemplos independentes; não copiar os campos inconsistentes nem afirmar validação integral do documento.
 
@@ -308,7 +308,7 @@ Extrapolar a demanda de cinco minutos por 12 como hipótese de pico sustentado. 
 
 Na NBR, percurso médio por partida = 2 × percurso / partidas prováveis do ciclo. Manter o perfil cinemático e os tempos adicionais do indicador existente.
 
-No ISO, partidas por ciclo = S+1; percurso médio = 2Hdf/(S+1); tempo entre partidas = RTT/(S+1); máximo = 3.600×(S+1)/RTT. Não reutilizar a aproximação de distância da NBR.
+No ISO, partidas por ciclo = S+1; percurso médio = 2Hdf/(S+1); tempo entre partidas = TIV/(S+1); máximo = 3.600×(S+1)/TIV. Não reutilizar a aproximação de distância da NBR.
 
 Zero no limite FAB significa não informado. Quando houver limite, adotar o menor entre ele e o máximo pelos tempos. Alertar quando a necessidade exceder o máximo. Incluir na comparação e no relatório. Não apresentar estimativa operacional como limite térmico certificado.
 
@@ -322,7 +322,7 @@ Desenhar velocidade em função do tempo com fases de aceleração, velocidade c
 
 Na NBR, o painel usa movimento e tempos do fabricante, transferência de lotação×tempo por pessoa, adicional operacional de 10% sobre portas/transferência, partida por ciclo rateada pelas paradas prováveis e permanência informada. Não alterar o ciclo normativo existente.
 
-Na opção ISO, utilizar a base escolhida no estudo, Pcalc e transferência por sentido: fechamento + atraso inicial + movimento − pré-abertura + abertura + atraso de fechamento + 2Pcalc×tempo por pessoa. Não aplicar adicional de 10% nem permanência NBR. A pré-abertura representada deve caber no movimento e na abertura; indicar casos não representáveis sem modificar o RTT.
+Na opção ISO, utilizar a base escolhida no estudo, Pcalc e transferência por sentido: fechamento + atraso inicial + movimento − pré-abertura + abertura + atraso de fechamento + 2Pcalc×tempo por pessoa. Não aplicar adicional de 10% nem permanência NBR. A pré-abertura representada deve caber no movimento e na abertura; indicar casos não representáveis sem modificar o TIV.
 
 PPH teórico de cada percurso = 3.600/tempo total. O limite do fabricante restringe o PPH adotado quando informado. A hipótese repete a viagem e a transferência descritas; não confundir com o máximo pelo ciclo do estudo, com o intervalo entre elevadores ou com as partidas necessárias para atender a população.
 
@@ -420,7 +420,7 @@ Cada integrante acessa seus registros. Administrador acessa todos e pode delegar
 
 Manter marca e contatos da empresa no cabeçalho/rodapé e a logomarca no sistema. Gerar relatório HTML independente e impressão para PDF.
 
-Na NBR, manter o formulário do Anexo A. No ISO do documento, usar o formulário parametrizado do Anexo D, com S, H, Pcalc, performance, RTT, capacidade, intervalo, critérios, conclusão nas premissas e autoria. Não emitir Anexo C nem afirmar que foi executada a simulação de duas horas.
+Na NBR, manter o formulário do Anexo A. No ISO do documento, usar o formulário parametrizado do Anexo D, com S, H, Pcalc, performance, TIV, capacidade, intervalo, critérios, conclusão nas premissas e autoria. Não emitir Anexo C nem afirmar que foi executada a simulação de duas horas.
 
 Links de consulta guardam uma versão imutável com campos e resultados, sem edição pelo convidado. Devem permitir relatório, validade e revogação. As versões anteriores permanecem históricas; sua abertura não recalcula o conteúdo compartilhado com um motor novo. A hospedagem continua restrita ao proprietário até autorização para incluir terceiros.
 

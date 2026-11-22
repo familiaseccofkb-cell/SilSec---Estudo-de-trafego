@@ -1,0 +1,9 @@
+{
+  "name": "@silsec/tes-motor",
+  "version": "1.0.0",
+  "description": "Traffic Estimator System (TES) · motor de cálculo de tráfego de elevadores (NBR 5665, ISO 8100-32 e comparativo convencional × ADS), usado pela TES e pela SilSec Engenharia",
+  "private": true,
+  "type": "module",
+  "main": "index.mjs",
+  "exports": {".": "./index.mjs"}
+}

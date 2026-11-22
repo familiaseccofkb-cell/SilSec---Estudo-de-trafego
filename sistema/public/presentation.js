@@ -21,7 +21,7 @@ function paragraphs(text,max=850){const chunks=[];let pending='';for(const line 
 export function buildPresentation(study,result,brand,PptxGenJS){
  study=result?.calculationStudy||study;
  if(!result?.groups||(result.model||(result.iso?'iso8100':'nbr5665'))!==(study.trafficModel||'nbr5665'))throw Error('Calcule o estudo completo antes de gerar a apresentação.');
- const pptx=new PptxGenJS();pptx.layout='LAYOUT_WIDE';pptx.author=brand.companyName||'SilSec';pptx.subject='Estudo de tráfego e comparação energética';pptx.title=study.name;pptx.company=brand.companyName||'';pptx.lang='pt-BR';pptx.theme={headFontFace:'Arial',bodyFontFace:'Arial',lang:'pt-BR'};
+ const pptx=new PptxGenJS();pptx.layout='LAYOUT_WIDE';pptx.author=brand.companyName||BRAND.short;pptx.subject='Estudo de tráfego e comparação energética';pptx.title=study.name;pptx.company=brand.companyName||'';pptx.lang='pt-BR';pptx.theme={headFontFace:'Arial',bodyFontFace:'Arial',lang:'pt-BR'};
  const chartIds=[],slides=[],seen=[];
  // 9.5.7 (Fabio, 20/11/2026): registra o texto visível de cada slide para montar, no final, a página de siglas utilizadas.
  const rec=v=>{if(v==null)return;if(typeof v==='string'||typeof v==='number')seen.push(String(v));else if(Array.isArray(v))v.forEach(rec);else if(typeof v==='object')rec(v.text??v.name??v.labels??v.title);};

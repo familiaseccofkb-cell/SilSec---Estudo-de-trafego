@@ -1,3 +1,4 @@
+import {BRAND} from '../../public/brand.js';
 // Envio de e-mails transacionais (confirmação de cadastro, recuperação de senha, chaves de acesso, contato) via SMTP.
 // Na Hostinger: smtp.hostinger.com, porta 465, caixa contato@silsec-engenharia.com.br (padrão) — basta definir SMTP_PASSWORD.
 // Sem SMTP configurado, o link é registrado no log do servidor (hPanel → Node.js → Logs) para o administrador.
@@ -70,7 +71,7 @@ export function createMailer(smtp, log = console, {createTransport} = {}) {
     // Envio de teste pelo painel do administrador.
     async test(to) {
       const started = Date.now();
-      const r = await this.send({to, subject: 'Teste de envio · SilSec', text: `Este é um e-mail de teste enviado pelo painel do administrador em ${new Date().toLocaleString('pt-BR')}. Se você o recebeu, o envio está funcionando.`});
+      const r = await this.send({to, subject: 'Teste de envio · '+BRAND.short, text: `Este é um e-mail de teste enviado pelo painel do administrador em ${new Date().toLocaleString('pt-BR')}. Se você o recebeu, o envio está funcionando.`});
       return {...r, ms: Date.now() - started};
     },
   };

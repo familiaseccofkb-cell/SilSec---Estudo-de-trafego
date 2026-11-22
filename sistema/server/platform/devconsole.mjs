@@ -1,6 +1,7 @@
 // Console do desenvolvedor (/admin): gestão central de usuários, acessos, pagamentos, projetos, manutenção e cópias de
 // segurança. Todos os aplicativos (site, computador, Android e iOS) usam este mesmo banco, então tudo é controlado daqui.
 // Só administradores ativos entram; toda ação fica registrada na auditoria.
+import {BRAND} from '../../public/brand.js';
 import {randomUUID} from 'node:crypto';
 import {resolveLicenses, addCalendarMonths} from '../../public/licensing.js';
 import {ROLES} from '../../public/procurement.js';
@@ -50,7 +51,7 @@ export function createDevConsole({db, auth, config, commerce, log = console}) {
     const path = new URL(request.url).pathname;
     if (path === '/saude' || path.startsWith(ADMIN_BASE) || ['/entrar', '/sair', '/esqueci-senha', '/redefinir-senha', '/verificar', '/manifest.webmanifest', '/sw.js'].includes(path) || /\.(css|js|svg|png|ico|woff2)$/.test(path)) return null;
     if (await adminFor(await auth.sessionUser(request))) return null;
-    const text = s.maintenance_message || 'O SilSec está em manutenção. Voltamos em instantes.';
+    const text = s.maintenance_message || 'O '+BRAND.short+' está em manutenção. Voltamos em instantes.';
     if (path.startsWith('/api/')) return Response.json({error: text, maintenance: true}, {status: 503, headers: {'Retry-After': '600'}});
     return html(consolePage({title: 'Manutenção', session: null, body: `<h1>Em manutenção</h1><p class="lead">${esc(text)}</p>`}), 503);
   }
@@ -247,7 +248,7 @@ ${grants.length ? `<div class="table-wrap"><table class="data mini"><thead><tr><
   async function systemPage(session, message) {
     const s = await settings(), migrations = (await q('SELECT name, applied_at FROM schema_migrations ORDER BY name').all().catch(() => ({results: []}))).results;
     const body = `<div class="panel"><h2>Modo de manutenção</h2><p>Quando ligado, o site, os aplicativos de computador e de celular mostram a mensagem abaixo e só administradores conseguem usar o sistema. Use durante atualizações ou em caso de problema.</p>
-<form class="stack" method="post" action="${ADMIN_BASE}/sistema/manutencao"><label class="field">Mensagem para os usuários<input name="mensagem" maxlength="300" value="${esc(s.maintenance_message || 'O SilSec está em manutenção. Voltamos em instantes.')}"></label><div>${s.maintenance === '1' ? '<button class="button teal" name="ligar" value="0">Desligar manutenção</button>' : '<button class="button" name="ligar" value="1">Ligar manutenção</button>'}</div></form></div>
+<form class="stack" method="post" action="${ADMIN_BASE}/sistema/manutencao"><label class="field">Mensagem para os usuários<input name="mensagem" maxlength="300" value="${esc(s.maintenance_message || 'O '+BRAND.short+' está em manutenção. Voltamos em instantes.')}"></label><div>${s.maintenance === '1' ? '<button class="button teal" name="ligar" value="0">Desligar manutenção</button>' : '<button class="button" name="ligar" value="1">Ligar manutenção</button>'}</div></form></div>
 <div class="panel"><h2>Aviso para todos os usuários</h2><p class="muted">Mostrado no topo do programa em todos os aparelhos (deixe vazio para retirar).</p><form class="stack" method="post" action="${ADMIN_BASE}/sistema/aviso"><label class="field">Aviso<input name="aviso" maxlength="300" value="${esc(s.announcement || '')}"></label><div><button class="button small">Salvar aviso</button></div></form></div>
 <div class="panel"><h2>Cópia de segurança</h2><p>Baixa todos os dados do sistema (usuários, acessos, pagamentos, projetos, clientes, vistorias e auditoria) em um arquivo JSON. Senhas saem só como hash. Os anexos ficam fora desta cópia; a Hostinger mantém cópias completas do banco em Backups.</p><a class="button small" href="${ADMIN_BASE}/sistema/backup.json">Baixar cópia de segurança</a></div>
 <div class="panel"><h2>Banco de dados</h2><p>${esc(db.dialect)} · ${migrations.length} migração(ões) aplicada(s): ${migrations.map(x => esc(x.name)).join(', ')}</p></div>
@@ -271,7 +272,7 @@ ${mailPanel(session)}`;
   }
 
   async function backup(admin) {
-    const out = {app: 'SilSec', generatedAt: now(), generatedBy: admin.email, tables: {}};
+    const out = {app: BRAND.short, generatedAt: now(), generatedBy: admin.email, tables: {}};
     for (const t of BACKUP_TABLES) { try { out.tables[t] = (await q(`SELECT * FROM ${t}`).all()).results; } catch { out.tables[t] = null; } }
     await audit(admin, 'backup', {tables: Object.keys(out.tables).length});
     return new Response(JSON.stringify(out), {headers: {'Content-Type': 'application/json; charset=utf-8', 'Content-Disposition': `attachment; filename="silsec-backup-${now().slice(0, 10)}.json"`, 'Cache-Control': 'no-store'}});

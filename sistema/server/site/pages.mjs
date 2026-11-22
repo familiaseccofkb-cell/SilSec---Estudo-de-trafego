@@ -12,21 +12,29 @@ function head({title, description, index = false, canonical = ''}) {
 <meta name="robots" content="${index ? 'index,follow' : 'noindex,nofollow'}"><meta name="theme-color" content="#142c38">
 ${canonical ? `<link rel="canonical" href="${esc(canonical)}">` : ''}
 <meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(description)}"><meta property="og:type" content="website">
-<link rel="icon" href="/favicon.svg"><link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="SilSec"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><script src="/pwa.js" defer></script>${FONTS}<link rel="stylesheet" href="/site.css"></head>`;
+<link rel="icon" href="/favicon.svg"><link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="${esc(BRAND.short)}"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><script src="/pwa.js" defer></script>${FONTS}<link rel="stylesheet" href="/site.css"></head>`;
 }
 
 function header({session, minimal = false, active = ''}) {
   const area = session ? `<a class="button small ghost" href="/sistema">Acessar o sistema</a>` : `<a class="button small ghost" href="/entrar?volta=%2Fsistema">Acessar o sistema</a>`;
   const link = (href, label, key) => `<a href="${href}"${active === key ? ' aria-current="page"' : ''}>${label}</a>`;
   return `<a class="skip" href="#conteudo">Ir para o conteúdo</a><header class="site-head"><div class="wrap">
-<a class="logo" href="/" aria-label="${esc(BRAND.name)} · início"><img src="${BRAND.logo}" alt="${esc(BRAND.name)}" width="480" height="200"></a>
+<a class="logo" href="/" aria-label="${esc(BRAND.name)} · início"><img src="${BRAND.logo}" alt="${esc(BRAND.name)}" width="${BRAND.logoWidth}" height="${BRAND.logoHeight}"></a>
 ${minimal ? `<nav class="site-nav" aria-label="Principal">${session ? '<a href="/vistorias">Vistorias</a><a href="/assinatura">Assinatura</a><a href="/sair">Sair</a>' : ''}${area}</nav>` :
+BRAND.id === 'tes' ? `<button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu">Menu</button>
+<nav class="site-nav" id="menu" aria-label="Principal">${link('/', 'O sistema', 'modulos')}<a href="mailto:${esc(BRAND.email)}">Contato</a>${area}</nav>` :
 `<button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu">Menu</button>
 <nav class="site-nav" id="menu" aria-label="Principal">${link('/servicos', 'Serviços', 'servicos')}${link('/modulos', 'Módulos de software', 'modulos')}${link('/#sobre', 'Sobre', 'sobre')}${link('/orcamento', 'Contato', 'orcamento')}${area}<a class="button small teal" href="/orcamento">Solicite um orçamento</a></nav>`}
 </div></header>`;
 }
 
 function footer() {
+  if (BRAND.id === 'tes') return `<footer class="site-foot"><div class="wrap">
+<div><strong>${esc(BRAND.name)}</strong>${esc(BRAND.tagline)} pela NBR 5665 e pela ISO 8100-32.</div>
+<div><small>O sistema</small><a href="/">Conheça o sistema</a><br><a href="/entrar?volta=%2Fsistema">Acessar o sistema</a><br><a href="/ativar">Ativar chave de acesso</a></div>
+<div><small>Contato</small><a href="${BRAND.phoneHref}">${esc(BRAND.phone)}</a><br><a href="mailto:${esc(BRAND.email)}">${esc(BRAND.email)}</a></div>
+<div class="foot-base">© ${new Date().getFullYear()} ${esc(BRAND.name)}</div>
+</div></footer>`;
   return `<footer class="site-foot"><div class="wrap">
 <div><strong>${esc(BRAND.name)}</strong>Consultoria, vistorias, projetos e software para transporte vertical.</div>
 <div><small>Serviços</small><a href="/servicos#consultoria">Consultoria estratégica</a><br><a href="/servicos#novos-projetos">Novos projetos</a><br><a href="/servicos#vistorias">Vistorias e laudos</a><br><a href="/servicos#projetos">Projetos e adequações</a></div>
@@ -165,7 +173,7 @@ ${ctaBand('Precisa de um parecer para a próxima assembleia?', 'Envie o caso e r
 </main>${footer()}${NAV_SCRIPT}</body></html>`;
 }
 
-export function modulesPage({plans, session}) {
+function modulesPageBase({plans, session}) {
   const list = planList(plans), basic = list.find(p => p.id === 'basic'), full = list.find(p => p.id === 'advanced');
   const plan = (p, featured) => `<article class="plan${featured ? ' featured' : ''}"><span class="kicker">Módulo ${featured ? 'Completo' : 'Básico'}</span><h3>Sistema de estudo de tráfego ${featured ? 'Completo · NBR + ISO' : 'Básico · NBR 5665'}</h3>
 <div class="price"><strong>${brl(p.annualCents)}</strong><span>por ano</span></div><div class="per">Equivale a ${perMonth(p.annualCents)} por mês</div>
@@ -195,6 +203,26 @@ export function modulesPage({plans, session}) {
 
 <section class="section alt"><div class="wrap"><div class="minis four"><div><strong>No computador e no celular</strong><span>Aplicativo instalável, funciona sem conexão e sincroniza ao voltar.</span></div><div><strong>Memória de cálculo</strong><span>Cada número com a fórmula, a premissa e a referência normativa.</span></div><div><strong>Compartilhamento</strong><span>Link de leitura para cliente ou fornecedor, sem precisar de conta.</span></div><div><strong>Manual e explicação dos cálculos</strong><span>Documentação completa dentro do sistema, em português.</span></div></div></div></section>
 </main>${footer()}${NAV_SCRIPT}</body></html>`;
+}
+
+// Marca TES: a página do sistema não cita a SilSec Engenharia nem os serviços dela (pedido do Fabio, 22/11/2026).
+function tesTexto(html) {
+  const trocas = [
+    [', como módulo adicional aos serviços da SilSec: ', ': '],
+    ['Módulos de software · serviços adicionais', 'Sistema de estudo de tráfego'],
+    ['A engenharia da SilSec, em forma de plataforma', 'Estudo de tráfego de elevadores, em forma de plataforma'],
+    [' Contrate como módulo adicional aos serviços ou use de forma independente, por assinatura anual.', ' Por assinatura anual.'],
+    ['— fale com a SilSec.', '— fale conosco.'],
+    ['<a href="/orcamento?assunto=cursos">Fale com a SilSec</a>', `<a href="mailto:${esc(BRAND.email)}">Fale conosco</a>`],
+  ];
+  for (const [de, para] of trocas) html = html.split(de).join(para);
+  // Seção "Como se encaixa nos serviços" (laudos e revisão assinada) é da engenharia, não do sistema.
+  return html.replace(/<section[^>]*>(?:(?!<section)[\s\S])*?Como se encaixa nos serviços[\s\S]*?<\/section>\s*/, '');
+}
+
+export function modulesPage(args) {
+  const html = modulesPageBase(args);
+  return BRAND.id === 'tes' ? tesTexto(html) : html;
 }
 
 export function quotePage({session, message, preset = ''}) {

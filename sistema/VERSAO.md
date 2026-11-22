@@ -1,3 +1,13 @@
+# TES / SilSec · separação das identidades · 2026-11-22 (base 6c40581)
+
+- Marca configurável por SILSEC_MARCA (silsec | tes), um só código: TES com logo próprio (public/marca/tes), contato@trafficestimatorsystem.com e nenhuma menção à SilSec; SilSec igual a antes e sem citar a TES.
+  - server/platform/marca.mjs: brand.js entregue só com o perfil da marca ativa; título, manifesto, manuais, service worker e comentários de CSS ajustados na TES; arquivos de uma marca não são entregues na outra.
+  - Na TES, /servicos, /orcamento e /contato voltam para a página inicial (a página do sistema). Rede local sai como TES (MARCA=silsec volta).
+- autoFillCar (NBR): tempo adicional de partida vazio (não 0 s), sinalizado; resultado pelo fabricante só depois de informado.
+- RTT removido dos textos e da tabela de siglas (TIV, decisão D6).
+- motor/ (@silsec/tes-motor): ponto de entrada único do cálculo, com avaliarEstudo(); arquivos do cálculo continuam em public/ (mudança física depende de aprovação).
+- Testes: 614/614 (novos: motor-compartilhado, tes-pendencias, marca-tes). Números do motor idênticos aos de antes em 5 estudos NBR/ISO com e sem ADS.
+
 # SilSec · rede local (Opção A) · fase 1 · 2026-11-21 (base 9.5.7 / 19m)
 
 - Versão para rede local: um computador servidor com MariaDB local; os outros abrem pelo navegador, com login. O site online não muda.

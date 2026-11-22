@@ -58,6 +58,8 @@ export function montarAmbiente(cfg, base = {}) {
   for (const k of Object.keys(env)) if (/^(SMTP_|AI_|OPENAI_|MP_|DATABASE_URL$|SQLITE_FILE$|SILSEC_DESKTOP$)/.test(k)) delete env[k];
   Object.assign(env, {
     SILSEC_REDE: '1', NODE_ENV: 'production',
+    // A versão offline é da TES (Traffic Estimator System); MARCA=silsec no arquivo de configuração volta à marca SilSec.
+    SILSEC_MARCA: String(cfg.MARCA || 'tes').toLowerCase() === 'silsec' ? 'silsec' : 'tes',
     HOST: cfg.HOST || '0.0.0.0', PORT: String(porta),
     APP_URL: (cfg.ENDERECO || `http://${hostname()}:${porta}`).replace(/\/+$/, ''),
     DB_DRIVER: 'mysql', DB_HOST: dbHost, DB_PORT: String(cfg.DB_PORT || 3306),

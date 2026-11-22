@@ -5,7 +5,6 @@ export const SIGLAS=[
  ['NBR','Norma Brasileira (ABNT)'],
  ['ISO','International Organization for Standardization (Organização Internacional de Normalização)'],
  ['TIV','Tempo de Ida e Volta'],
- ['RTT','Round Trip Time (tempo de ida e volta)'],
  ['PSH','Pessoas por hora no pico equivalente'],
  ['PPH','Partidas por hora, por elevador'],
  ['FAB','Cálculo com os dados do fabricante'],

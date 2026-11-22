@@ -1,6 +1,12 @@
 // Identidade exibida no programa, nas páginas de acesso, nos e-mails e nos relatórios.
 // Altere aqui para trocar nome, telefone ou e-mail em todo o sistema.
-export const BRAND = Object.freeze({
+// Marca ativa: 'silsec' (SilSec Engenharia, silsec-engenharia.com.br) ou 'tes' (Traffic Estimator System, trafficestimatorsystem.com).
+// No servidor vem de SILSEC_MARCA; no navegador, o servidor troca a linha abaixo ao entregar /brand.js (server/platform/marca.mjs).
+const MARCA_SERVIDOR = 'silsec';
+const escolhida = (typeof process !== 'undefined' && process.env?.SILSEC_MARCA) || MARCA_SERVIDOR;
+
+const SILSEC = Object.freeze({
+  id: 'silsec',
   name: 'SilSec Engenharia',
   short: 'SilSec',
   tagline: 'Estudos de tráfego de elevadores',
@@ -11,6 +17,8 @@ export const BRAND = Object.freeze({
   site: 'https://silsec-engenharia.com.br',
   // ?v=… força navegador e CDN a buscarem o logo novo; troque o número quando o arquivo do logo mudar.
   logo: '/marca/silsec-engenharia.svg?v=9.5.7',
+  logoWidth: 480,
+  logoHeight: 200,
   credit: '',
   creditPhone: '',
   // Vídeos exibidos no site (seção "Veja em vídeo"), sempre pelo YouTube sem cookies (youtube-nocookie.com), sem autoplay.
@@ -23,5 +31,30 @@ export const BRAND = Object.freeze({
     Object.freeze({id: '2ndckRtA65k', title: 'Apresentação do Sistema de estudo de tráfego SilSec'}),
   ]),
 });
+
+// TES · Traffic Estimator System: plataforma de cálculo de tráfego. Sem nenhuma referência à SilSec (pedido do Fabio, 22/11/2026).
+// 21/11/2026: contato e domínio pedidos pelo Fabio; logo = DownloadsSilSecLogotipo TES.png (reduzido para o site).
+const TES = Object.freeze({
+  id: 'tes',
+  name: 'Traffic Estimator System',
+  short: 'TES',
+  tagline: 'Cálculo de tráfego de elevadores',
+  phone: '(11) 98313-0055',
+  phoneHref: 'tel:+5511983130055',
+  whatsappHref: 'https://wa.me/5511983130055',
+  email: 'contato@trafficestimatorsystem.com',
+  site: 'https://trafficestimatorsystem.com',
+  logo: '/marca/tes/logo-tes-512.png?v=1',
+  logoWidth: 512,
+  logoHeight: 512,
+  credit: '',
+  creditPhone: '',
+  // Vídeos do canal Traffic Estimator System: incluir os IDs quando o Fabio enviar (os da SilSec não entram aqui).
+  videos: Object.freeze([]),
+});
+
+export const MARCAS = Object.freeze({silsec: SILSEC, tes: TES});
+export const BRAND = MARCAS[escolhida] || SILSEC;
+
 export const contactLine = () => `${BRAND.phone} · ${BRAND.email}`;
 export const creditLine = () => '';

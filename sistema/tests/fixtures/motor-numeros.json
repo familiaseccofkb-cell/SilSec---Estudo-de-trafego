@@ -1,0 +1,70 @@
+{
+ "origem": "números de antes da separação TES/SilSec (base 6c40581), 21/11/2026",
+ "casos": {
+  "nbr-100": {
+   "sha256": "bd48e98d62bc17b65a808cec15724492f1e5ce56997f7b2a7ed1e4f0fb893143",
+   "grupos": [
+    {
+     "ciclo": 118.7662045,
+     "capacidade": 15.1558265887
+    },
+    {
+     "ciclo": 119.669725645,
+     "capacidade": 40.1103952911
+    }
+   ]
+  },
+  "nbr-80-ads": {
+   "sha256": "4a47ab18acb7786b7ce2a8b5d8b3a83099ef153756892aa2a539f4d90fce17f2",
+   "grupos": [
+    {
+     "ciclo": 118.7662045,
+     "capacidade": 15.1558265887
+    },
+    {
+     "ciclo": 119.669725645,
+     "capacidade": 40.1103952911
+    }
+   ]
+  },
+  "nbr-50-ads": {
+   "sha256": "1faecb6a36328b95a700712482dfd419ac8738934ac9f3f849912a5cc0889132",
+   "grupos": [
+    {
+     "ciclo": 118.7662045,
+     "capacidade": 15.1558265887
+    },
+    {
+     "ciclo": 119.669725645,
+     "capacidade": 40.1103952911
+    }
+   ]
+  },
+  "iso-80": {
+   "sha256": "e30504aac7fac9da3049092a0d932d562dce2280fea7a0a11a87289e92ef44ce",
+   "grupos": [
+    {
+     "ciclo": 134.003448668,
+     "capacidade": 10.7459920943
+    },
+    {
+     "ciclo": 125.923448299,
+     "capacidade": 30.494717639
+    }
+   ]
+  },
+  "iso-80-ads": {
+   "sha256": "a8853a3e61d0028fbc147fab4da0f891badb2a815bd42d48b507be1f3a1458d3",
+   "grupos": [
+    {
+     "ciclo": 134.003448668,
+     "capacidade": 10.7459920943
+    },
+    {
+     "ciclo": 125.923448299,
+     "capacidade": 30.494717639
+    }
+   ]
+  }
+ }
+}

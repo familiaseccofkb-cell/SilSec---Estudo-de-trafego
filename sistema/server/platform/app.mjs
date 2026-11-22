@@ -15,6 +15,7 @@ import {apiEnv} from './config.mjs';
 import {clientIp, requestOrigin, toWebRequest, sendWebResponse} from './http.mjs';
 import {infoPage} from './auth-pages.mjs';
 
+import {ajustarArquivoMarca, arquivoDaMarca} from './marca.mjs';
 const PUBLIC_DIR = resolve(fileURLToPath(new URL('../../public/', import.meta.url)));
 const VERSION = JSON.parse(await readFile(new URL('../../package.json', import.meta.url), 'utf8')).version;
 const TYPES = {'.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.ico': 'image/x-icon', '.md': 'text/markdown; charset=utf-8', '.txt': 'text/plain; charset=utf-8', '.woff2': 'font/woff2', '.pdf': 'application/pdf', '.webmanifest': 'application/manifest+json; charset=utf-8'};
@@ -45,13 +46,13 @@ export async function createApp(config, {log = console, db: givenDb, mailer: giv
     try { rel = decodeURIComponent(pathname).replace(/^\/+/, ''); } catch { return false; }
     if (!rel || rel.endsWith('/')) return false;
     const file = normalize(join(PUBLIC_DIR, rel));
-    if (!file.startsWith(PUBLIC_DIR + sep) || rel.split('/').some(p => p.startsWith('.')) || HIDDEN.has(rel)) return false;
+    if (!file.startsWith(PUBLIC_DIR + sep) || rel.split('/').some(p => p.startsWith('.')) || HIDDEN.has(rel) || !arquivoDaMarca(rel)) return false;
     let info;
     try { info = await stat(file); } catch { return false; }
     if (!info.isFile()) return false;
     let entry = staticCache.get(file);
     if (!entry || entry.mtime !== info.mtimeMs) {
-      const body = await readFile(file);
+      const body = ajustarArquivoMarca(rel, await readFile(file));
       entry = {body, mtime: info.mtimeMs, etag: '"' + createHash('sha1').update(body).digest('base64url').slice(0, 20) + '"'};
       staticCache.set(file, entry);
     }

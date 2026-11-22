@@ -429,6 +429,9 @@ ${history}`;
 
     const session = await auth.sessionUser(request);
     if (path === '/' && config.desktop) return redirect(APP_HOME, 302);
+    // Marca TES (SILSEC_MARCA=tes): o site é só do sistema; serviços, vistorias e orçamento não existem nele.
+    if (BRAND.id === 'tes' && ['/servicos', '/orcamento'].includes(path)) return redirect('/', 302);
+    if (BRAND.id === 'tes' && path === '/' && !['share', 'supplierInvite', 'project'].some(k => url.searchParams.has(k))) return html(modulesPage({plans, session}), 200, {'X-Robots-Tag': 'index, follow', 'Cache-Control': session ? 'no-store' : 'public, max-age=300'});
     if (path === '/') {
       // Links antigos do programa (consulta compartilhada, convite, projeto) continuam funcionando.
       if (['share', 'supplierInvite', 'project'].some(k => url.searchParams.has(k))) return redirect(APP_HOME + url.search, 302);
@@ -443,7 +446,7 @@ ${history}`;
       const message = {enviado: {kind: 'ok', text: 'Solicitação enviada. Retornamos em até dois dias úteis com escopo, prazo e valor.'}, invalido: {kind: 'error', text: 'Preencha nome, e-mail e a descrição do caso.'}, limite: {kind: 'error', text: 'Muitas mensagens seguidas. Tente novamente em alguns minutos.'}, erro: {kind: 'error', text: 'Não foi possível enviar. Tente novamente.'}, registrado: {kind: 'error', text: 'Sua solicitação foi registrada, mas o aviso por e-mail não pôde ser enviado agora. Se não houver retorno em dois dias úteis, chame no WhatsApp.'}}[flag] || null;
       return html(quotePage({session, message, preset: url.searchParams.get('assunto') || ''}), 200, {'X-Robots-Tag': 'index, follow', 'Cache-Control': 'no-store'});
     }
-    if (path === '/contato') return method === 'POST' ? contact(request) : redirect('/orcamento');
+    if (path === '/contato') return method === 'POST' ? contact(request) : redirect(BRAND.id === 'tes' ? '/' : '/orcamento');
     if (path === '/ativar') return activate(request, session);
     if (path === '/experimentar') return startTrial(request, session);
 

@@ -33,7 +33,7 @@ function footer() {
 <div><strong>${esc(BRAND.name)}</strong>${esc(BRAND.tagline)} pela NBR 5665 e pela ISO 8100-32.</div>
 <div><small>O sistema</small><a href="/">Conheça o sistema</a><br><a href="/entrar?volta=%2Fsistema">Acessar o sistema</a><br><a href="/ativar">Ativar chave de acesso</a></div>
 <div><small>Contato</small><a href="${BRAND.phoneHref}">${esc(BRAND.phone)}</a><br><a href="mailto:${esc(BRAND.email)}">${esc(BRAND.email)}</a></div>
-<div class="foot-base">© ${new Date().getFullYear()} ${esc(BRAND.name)}</div>
+<div class="foot-base">© ${new Date().getFullYear()} ${esc(BRAND.name)}${BRAND.credit ? ` · ${esc(BRAND.credit)}` : ''}</div>
 </div></footer>`;
   return `<footer class="site-foot"><div class="wrap">
 <div><strong>${esc(BRAND.name)}</strong>Consultoria, vistorias, projetos e software para transporte vertical.</div>

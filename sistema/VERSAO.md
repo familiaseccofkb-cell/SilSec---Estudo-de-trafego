@@ -1,3 +1,14 @@
+# SilSec 19o e TES 1.0.1 · preparo da publicação · 2026-11-22 (sobre 4fe4676)
+
+- Aprovação do Fabio para publicação (22/11): na TES, rodapé "Produto da SilSec Engenharia" (sem CNPJ), telefone +55 (11) 98313-0055 (nas duas marcas, também nos manuais),
+  contato@trafficestimatorsystem.com e logo TES transparente (Downloads\Logotipo TES (sem fundo).png) em todas as telas com logo.
+  - Favicon e ícones do app instalado da TES feitos do símbolo do logo TES (public/marca/tes); na SilSec continuam os de sempre.
+  - Manifesto do app TES sem o atalho "Vistorias"; logo TES (quadrado) com altura máxima de 150 px no menu do sistema.
+  - Crédito do rodapé só aparece quando preenchido (na SilSec some um "·" solto no rodapé do sistema).
+- Pacotes: silsec-producao-9.5.7-19o (SILSEC_MARCA ausente ou silsec; Node 22) e tes-producao-1.0.1 (mesmo código, SILSEC_MARCA=tes; Node 24).
+  Sem migração de banco nova (db/ igual ao 19m).
+- Testes: 616/616. Números do motor idênticos aos de antes.
+
 # TES · motor de cálculo em motor/ · 2026-11-22 (sobre 0db6e5c)
 
 - Aprovado pelo Fabio (22/11): cálculo movido para motor/ (@silsec/tes-motor). 31 arquivos movidos inteiros; 14 divididos (cálculo em motor/, funções de tela em public/). motor/ não importa nada de tela.

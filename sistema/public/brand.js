@@ -10,7 +10,7 @@ const SILSEC = Object.freeze({
   name: 'SilSec Engenharia',
   short: 'SilSec',
   tagline: 'Estudos de tráfego de elevadores',
-  phone: '(11) 98313-0055',
+  phone: '+55 (11) 98313-0055',
   phoneHref: 'tel:+5511983130055',
   whatsappHref: 'https://wa.me/5511983130055',
   email: 'contato@silsec-engenharia.com.br',
@@ -32,22 +32,23 @@ const SILSEC = Object.freeze({
   ]),
 });
 
-// TES · Traffic Estimator System: plataforma de cálculo de tráfego. Sem nenhuma referência à SilSec (pedido do Fabio, 22/11/2026).
-// 21/11/2026: contato e domínio pedidos pelo Fabio; logo = DownloadsSilSecLogotipo TES.png (reduzido para o site).
+// TES · Traffic Estimator System: plataforma de cálculo de tráfego. Sem referências à SilSec, exceto a menção de produto
+// "Produto da SilSec Engenharia" no rodapé (aprovação do Fabio para publicação, 22/11/2026).
+// Logo e ícones = Downloads\Logotipo TES (sem fundo).png, PNG transparente (reduzido para o site; ícones com o símbolo).
 const TES = Object.freeze({
   id: 'tes',
   name: 'Traffic Estimator System',
   short: 'TES',
   tagline: 'Cálculo de tráfego de elevadores',
-  phone: '(11) 98313-0055',
+  phone: '+55 (11) 98313-0055',
   phoneHref: 'tel:+5511983130055',
   whatsappHref: 'https://wa.me/5511983130055',
   email: 'contato@trafficestimatorsystem.com',
   site: 'https://trafficestimatorsystem.com',
-  logo: '/marca/tes/logo-tes-512.png?v=1',
+  logo: '/marca/tes/logo-tes-512.png?v=2',
   logoWidth: 512,
   logoHeight: 512,
-  credit: '',
+  credit: 'Produto da SilSec Engenharia',
   creditPhone: '',
   // Vídeos do canal Traffic Estimator System: incluir os IDs quando o Fabio enviar (os da SilSec não entram aqui).
   videos: Object.freeze([]),

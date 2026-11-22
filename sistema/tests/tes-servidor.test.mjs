@@ -15,7 +15,7 @@ const roda = marca => JSON.parse(execFileSync(process.execPath, ['--input-type=m
   const app = await createApp(config, {db: await openSqlite(':memory:'), mailer: {configured: false, async send() { return {delivered: false}; }}, log: {log() {}, warn() {}, error() {}}});
   const srv = createServer(app.handler); await new Promise(r => srv.listen(0, '127.0.0.1', r));
   const base = 'http://127.0.0.1:' + srv.address().port, out = {};
-  for (const p of ['/motor/engine.js', '/motor/fleet.js', '/motor/index.mjs', '/motor/package.json', '/motor/..%2Fserver.mjs', '/engine.js', '/vistorias']) {
+  for (const p of ['/motor/engine.js', '/motor/fleet.js', '/motor/index.mjs', '/motor/package.json', '/motor/..%2Fserver.mjs', '/engine.js', '/vistorias', '/favicon.svg', '/icones/icone-192.png']) {
     const r = await fetch(base + p, {redirect: 'manual'}); out[p] = {status: r.status, body: r.status === 200 ? (await r.text()).slice(0, 400) : ''};
   }
   const shell = await fetch(base + '/sistema?share=teste'); out.shell = (await shell.text()).match(/<title>[^<]*<\\/title>/)?.[0] || '';
@@ -31,11 +31,14 @@ test('motor/: o navegador carrega os arquivos .js do cálculo; nada além disso 
   assert.match(r['/engine.js'].body, /export \* from '\.\.\/motor\/engine\.js'/);
   assert.equal(r.shell, '<title>SilSec Engenharia | Estudos de tráfego</title>');
   assert.notEqual(r['/vistorias'].status, 404, 'na SilSec as vistorias continuam');
+  assert.doesNotMatch(r['/favicon.svg'].body, /<image/, 'na SilSec o favicon é o de sempre');
 });
 
 test('marca TES: tela do sistema com título TES e sem a rota de vistorias', () => {
   const r = roda('tes');
   assert.equal(r.shell, '<title>Traffic Estimator System | Estudos de tráfego</title>');
   assert.equal(r['/vistorias'].status, 404);
+  assert.match(r['/favicon.svg'].body, /<image width="64"/, 'favicon da TES (símbolo do logo TES)');
+  assert.equal(r['/icones/icone-192.png'].status, 200);
   assert.equal(r['/motor/engine.js'].status, 200);
 });

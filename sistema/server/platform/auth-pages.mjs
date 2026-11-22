@@ -34,7 +34,7 @@ export function page({title, heading, lead = '', body, message = null}) {
 <aside class="auth-side"><div><span class="auth-logo"><img src="${BRAND.logo}" alt="${esc(BRAND.name)}" width="${BRAND.logoWidth}" height="${BRAND.logoHeight}"></span>
 <h2>Estudos de tráfego de elevadores, do cadastro ao relatório.</h2>
 <p>Motores NBR e ISO independentes, escadas rolantes, propostas de fornecedores, relatórios e apresentações em um só lugar.</p></div>
-<div class="auth-contact"><strong>${esc(BRAND.name)}</strong><a href="${BRAND.phoneHref}">${esc(BRAND.phone)}</a><a href="mailto:${esc(BRAND.email)}">${esc(BRAND.email)}</a><small style="display:block;margin-top:10px;opacity:.8">${esc(BRAND.credit)} · ${esc(BRAND.creditPhone)}</small></div></aside>
+<div class="auth-contact"><strong>${esc(BRAND.name)}</strong><a href="${BRAND.phoneHref}">${esc(BRAND.phone)}</a><a href="mailto:${esc(BRAND.email)}">${esc(BRAND.email)}</a>${BRAND.credit ? `<small style="display:block;margin-top:10px;opacity:.8">${esc(BRAND.credit)}${BRAND.creditPhone ? ` · ${esc(BRAND.creditPhone)}` : ""}</small>` : ""}</div></aside>
 <main class="auth-main" id="main"><div class="auth-card">
 <h1>${esc(heading)}</h1>${lead ? `<p class="lead">${lead}</p>` : ''}
 ${message ? `<p class="auth-msg ${message.kind === 'ok' ? 'ok' : 'erro'}" role="${message.kind === 'ok' ? 'status' : 'alert'}">${esc(message.text)}</p>` : ''}

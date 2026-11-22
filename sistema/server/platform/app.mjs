@@ -15,7 +15,7 @@ import {apiEnv} from './config.mjs';
 import {clientIp, requestOrigin, toWebRequest, sendWebResponse} from './http.mjs';
 import {infoPage} from './auth-pages.mjs';
 
-import {ajustarArquivoMarca, arquivoDaMarca} from './marca.mjs';
+import {ajustarArquivoMarca, arquivoDaMarca, arquivoFisicoDaMarca} from './marca.mjs';
 const PUBLIC_DIR = resolve(fileURLToPath(new URL('../../public/', import.meta.url)));
 const MOTOR_DIR = resolve(fileURLToPath(new URL('../../motor/', import.meta.url)));
 const VERSION = JSON.parse(await readFile(new URL('../../package.json', import.meta.url), 'utf8')).version;
@@ -48,7 +48,7 @@ export async function createApp(config, {log = console, db: givenDb, mailer: giv
     if (!rel || rel.endsWith('/')) return false;
     // Motor de cálculo compartilhado (TES): o navegador carrega /motor/<arquivo>.js da pasta motor/ (só .js).
     const motor = /^motor\/[a-z0-9-]+\.js$/.test(rel), baseDir = motor ? MOTOR_DIR : PUBLIC_DIR;
-    const file = normalize(motor ? join(MOTOR_DIR, rel.slice(6)) : join(PUBLIC_DIR, rel));
+    const file = normalize(motor ? join(MOTOR_DIR, rel.slice(6)) : join(PUBLIC_DIR, arquivoFisicoDaMarca(rel)));
     if (!file.startsWith(baseDir + sep) || rel.split('/').some(p => p.startsWith('.')) || HIDDEN.has(rel) || !arquivoDaMarca(rel)) return false;
     let info;
     try { info = await stat(file); } catch { return false; }

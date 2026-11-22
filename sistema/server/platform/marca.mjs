@@ -15,6 +15,18 @@ const MANUAL = [
 // Arquivos que só existem para uma das marcas (pedido do Fabio, 22/11/2026: nenhuma referência cruzada).
 const SO_SILSEC = /^(marca\/silsec[^/]*|silsec-brand\/.*|identidade-silsec\.html|silsec-comercializacao\.html|silsec-especificacao\.html)$/;
 const SO_TES = /^marca\/tes\//;
+// Ícones (aba do navegador e app instalado): na TES saem os da pasta marca/tes/, feitos do símbolo do logo TES.
+const ICONES_TES = Object.freeze({
+  'favicon.svg': 'marca/tes/favicon.svg',
+  'apple-touch-icon.png': 'marca/tes/apple-touch-icon.png',
+  'icones/apple-touch-icon.png': 'marca/tes/apple-touch-icon.png',
+  'icones/icone-192.png': 'marca/tes/icone-192.png',
+  'icones/icone-512.png': 'marca/tes/icone-512.png',
+  'icones/icone-maskable-512.png': 'marca/tes/icone-maskable-512.png',
+});
+export function arquivoFisicoDaMarca(rel, marca = BRAND) {
+  return marca.id === 'tes' ? ICONES_TES[rel] || rel : rel;
+}
 export function arquivoDaMarca(rel, marca = BRAND) {
   return marca.id === 'tes' ? !SO_SILSEC.test(rel) : !SO_TES.test(rel);
 }
@@ -28,6 +40,8 @@ const TROCAS = {
     ['"short_name": "SilSec"', m => `"short_name": "${m.short}"`],
     // Vistorias são da SilSec Engenharia, não da TES.
     ['NBR 5665 e ISO 8100-32, vistorias e relatórios.', () => 'NBR 5665 e ISO 8100-32, com memória de cálculo e relatórios.'],
+    // atalho do app instalado para /vistorias: na TES essa rota não existe
+    ...['\r\n', '\n'].map(nl => [`,${nl}    {"name": "Vistorias", "url": "/vistorias", "icons": [{"src": "/icones/icone-192.png", "sizes": "192x192"}]}`, () => '']),
   ],
   'sw.js': [['// SilSec · service worker', m => `// ${m.short} · service worker`], ["const VERSAO = 'silsec-v", m => `const VERSAO = '${m.id}-v`], ['<title>Sem conexão · SilSec</title>', m => `<title>Sem conexão · ${m.short}</title>`], ['<p>O SilSec guarda', m => `<p>O ${m.short} guarda`]],
   'explicacao-dos-calculos.html': MANUAL,

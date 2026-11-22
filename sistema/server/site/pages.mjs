@@ -20,7 +20,7 @@ function header({session, minimal = false, active = ''}) {
   const link = (href, label, key) => `<a href="${href}"${active === key ? ' aria-current="page"' : ''}>${label}</a>`;
   return `<a class="skip" href="#conteudo">Ir para o conteúdo</a><header class="site-head"><div class="wrap">
 <a class="logo" href="/" aria-label="${esc(BRAND.name)} · início"><img src="${BRAND.logo}" alt="${esc(BRAND.name)}" width="${BRAND.logoWidth}" height="${BRAND.logoHeight}"></a>
-${minimal ? `<nav class="site-nav" aria-label="Principal">${session ? '<a href="/vistorias">Vistorias</a><a href="/assinatura">Assinatura</a><a href="/sair">Sair</a>' : ''}${area}</nav>` :
+${minimal ? `<nav class="site-nav" aria-label="Principal">${session ? (BRAND.id === 'tes' ? '' : '<a href="/vistorias">Vistorias</a>') + '<a href="/assinatura">Assinatura</a><a href="/sair">Sair</a>' : ''}${area}</nav>` :
 BRAND.id === 'tes' ? `<button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu">Menu</button>
 <nav class="site-nav" id="menu" aria-label="Principal">${link('/', 'O sistema', 'modulos')}<a href="mailto:${esc(BRAND.email)}">Contato</a>${area}</nav>` :
 `<button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu">Menu</button>

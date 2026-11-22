@@ -1,105 +1,13 @@
 import {displayValue} from './display-number.js';
 import {contextHelpButton} from './context-help.js';
-import {fleetCars,changeCar} from './fleet.js';
-import {linkedCarIndex,heightWarnings,syncDimensionalDoor} from './silsec-dimensions.js';
+import {fleetCars} from './fleet.js';
+import {heightWarnings} from './silsec-dimensions.js';
 import {cabinAreaHtml} from './cabin-area.js';
 import {CABIN_TYPES,shaftReferenceHtml} from './shaft-reference.js';
-import {emptyDimensionReference,dimensionReferenceForm,dimensionReferenceHtml,dimensionReferenceReport,applyDimensionReference,MACHINE_ROOMS,FABRICATION_TYPES} from './dimension-reference.js';
-const escapeText=x=>String(x??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
-const copy=x=>structuredClone(x),n=(v,min=0,max=50000)=>typeof v==='number'&&Number.isFinite(v)&&v>=min&&v<=max;
-export const SUPPLY_TYPES={new:'Obra nova',retrofit:'Retrofit / modernização',existing:'Substituição total'};
-export const SITE_FIELDS=[['shaftWidth','Frente da caixa'],['shaftDepth','Lado / profundidade da caixa'],['headroom','Última altura disponível'],['pit','Profundidade do poço'],['cabinWidth','Frente interna da cabina'],['cabinDepth','Lado interno da cabina'],['cabinHeight','Altura interna da cabina'],['doorWidth','Abertura livre da porta'],['doorHeight','Altura livre da porta']];
-export const PRODUCT_FIELDS=[['shaftWidthMin','Frente mínima da caixa'],['shaftWidthMax','Frente máxima da caixa'],['shaftDepthMin','Lado mínimo da caixa'],['shaftDepthMax','Lado máximo da caixa'],['headroomMin','Última altura mínima'],['headroomMax','Última altura máxima'],['pitMin','Poço mínimo'],['pitMax','Poço máximo'],['cabinWidth','Frente interna da cabina'],['cabinDepth','Lado interno da cabina'],['cabinHeight','Altura interna da cabina'],['doorWidth','Abertura livre da porta'],['doorHeight','Altura livre da porta']];
-export const DOOR_TYPES={central:'Central',lateral:'Lateral',vertical:'Vertical'};
-export const DOOR_ARRANGEMENTS={same:'Acessos na mesma face',opposite:'Acessos opostos',adjacent:'Acessos em faces adjacentes'};
-export function emptySiteDimensions(){return {...Object.fromEntries(SITE_FIELDS.map(([k])=>[k,null])),doorType:'',doorCount:null};}
-export function emptyProductDimensions(){return {version:1,machineRoom:'',fabrication:'',cabinType:'',...Object.fromEntries(PRODUCT_FIELDS.map(([k])=>[k,null])),doorType:'',doorCount:null,doorArrangement:'',existingDoorType:'',doorAction:'',survey:emptySiteDimensions(),surveyConfirmed:false,surveyDate:'',surveyor:'',notes:''};}
-export function normalizeStudyDimensions(study){if(!study.supplyCondition)study.supplyCondition={type:''};study.groups?.forEach(g=>{g.siteDimensions={...emptySiteDimensions(),...g.siteDimensions};g.dimensionReference={...emptyDimensionReference(),...g.dimensionReference};applyDimensionReference(g);});return study;}
-export function validateSiteDimensions(d,prefix='Dimensões existentes'){const errors=[];for(const [k,label] of SITE_FIELDS)if(!n(d?.[k],k==='pit'?0:.01))errors.push(`${prefix}: preencher ${label.toLowerCase()} em mm.`);if(!DOOR_TYPES[d?.doorType])errors.push(prefix+': selecionar o tipo de porta existente.');if(!Number.isInteger(d?.doorCount)||!n(d.doorCount,1,4))errors.push(prefix+': informar de 1 a 4 portas da cabina.');return errors;}
-export function validateStudyDimensions(study){if(study.supplyCondition?.version!==1)return [];if(!SUPPLY_TYPES[study.supplyCondition.type])return ['Selecione a condição de fornecimento: obra nova, retrofit ou substituição total.'];if(study.supplyCondition.type==='new')return [];return study.groups.flatMap((g,i)=>[...validateSiteDimensions(g.siteDimensions,`Grupo ${i+1} · levantamento do gestor`),...validateCarSiteDimensions(g,i)]);}
-export function validateCarSiteDimensions(g,i){
- const errors=[];
- (g.dimensionCars||[]).forEach((entry,j)=>{
-  const d=entry?.siteDimensions;if(!d)return;
-  for(const [k,label] of SITE_FIELDS){
-   const v=d[k];if(v===null||v===undefined||v==='')continue;
-   if(k==='doorWidth'){if(!n(v,300,4000))errors.push(`Grupo ${i+1} · elevador ${j+1}: ${label.toLowerCase()} deve estar entre 300 e 4000 mm.`);}
-   else if(!n(v,k==='pit'?0:.01,50000))errors.push(`Grupo ${i+1} · elevador ${j+1}: ${label.toLowerCase()} deve estar entre 0 e 50000 mm.`);
-  }
-  if(d.doorType!==undefined&&d.doorType!==''&&d.doorType!==null&&!DOOR_TYPES[d.doorType])errors.push(`Grupo ${i+1} · elevador ${j+1}: tipo de porta existente inválido.`);
-  if(d.doorCount!==undefined&&d.doorCount!==null&&d.doorCount!==''&&(!Number.isInteger(d.doorCount)||!n(d.doorCount,1,4)))errors.push(`Grupo ${i+1} · elevador ${j+1}: informar de 1 a 4 portas da cabina.`);
- });
- return errors;
-}
-export function validateProductDimensions(d,{required=false,condition='',group,site}={}){if(!d)return required?['Fornecedor: preencher os parâmetros dimensionais do produto.']:[];const errors=[];if(d.version!==1)errors.push('Versão dos parâmetros dimensionais inválida.');for(const [k,label] of PRODUCT_FIELDS)if(!n(d[k],k.startsWith('pit')?0:.01))errors.push('Fornecedor: preencher '+label.toLowerCase()+' em mm.');for(const axis of ['shaftWidth','shaftDepth','pit','headroom'])if(n(d[axis+'Min'])&&n(d[axis+'Max'])&&d[axis+'Min']>d[axis+'Max'])errors.push('Fornecedor: o mínimo de '+axis+' não pode superar o máximo.');if(!DOOR_TYPES[d.doorType])errors.push('Fornecedor: escolha porta central, lateral ou vertical.');if(!Number.isInteger(d.doorCount)||!n(d.doorCount,1,4))errors.push('Fornecedor: informe de 1 a 4 portas da cabina.');if(!DOOR_ARRANGEMENTS[d.doorArrangement])errors.push('Fornecedor: informe a disposição dos acessos da cabina.');if(n(d.doorHeight)&&n(d.cabinHeight)&&d.doorHeight>d.cabinHeight)errors.push('A altura da porta não pode superar a altura interna de cabina declarada.');if(n(d.cabinWidth)&&n(d.shaftWidthMin)&&d.cabinWidth>=d.shaftWidthMin)errors.push('Frente interna de cabina deve ser menor que a frente mínima de caixa declarada.');if(n(d.cabinDepth)&&n(d.shaftDepthMin)&&d.cabinDepth>=d.shaftDepthMin)errors.push('Lado interno de cabina deve ser menor que o lado mínimo de caixa declarado.');if(n(d.doorWidth)&&n(d.cabinWidth)&&d.doorWidth>d.cabinWidth)errors.push('Abertura de porta superior à frente interna de cabina declarada.');if(d.doorArrangement==='adjacent'&&n(d.doorWidth)&&n(d.cabinDepth)&&d.doorWidth>d.cabinDepth)errors.push('Abertura de porta em face adjacente superior ao lado interno da cabina.');if(group){if(d.doorType&&group.door&&d.doorType!==group.door)errors.push('Tipo de porta dimensional difere da porta dos dados do elevador.');if(n(d.doorWidth)&&n(group.width)&&d.doorWidth!==group.width)errors.push('Abertura dimensional da porta difere da abertura dos dados do elevador.');}if(['retrofit','existing'].includes(condition)){errors.push(...validateSiteDimensions(d.survey,'Fornecedor · medição em campo'));if(d.surveyConfirmed!==true)errors.push('Fornecedor: conferir as dimensões em loco e confirmar o levantamento.');if(!/^\d{4}-\d{2}-\d{2}$/.test(d.surveyDate||'')||!d.surveyor?.trim())errors.push('Fornecedor: informe data e responsável pelo levantamento em campo.');if(!DOOR_TYPES[d.existingDoorType])errors.push('Fornecedor: informar o tipo da porta a substituir ou manter.');if(!['replace','keep'].includes(d.doorAction))errors.push('Fornecedor: selecionar substituir ou manter as portas existentes.');if(d.survey?.doorType&&d.existingDoorType&&d.survey.doorType!==d.existingDoorType)errors.push('Tipo de porta a manter/substituir difere do tipo medido em campo.');if(d.doorAction==='keep'&&d.existingDoorType!==d.doorType)errors.push('Porta mantida: o tipo existente deve coincidir com o tipo fornecido.');}if(typeof d.notes!=='string'||d.notes.length>2000||typeof d.surveyor!=='string'||d.surveyor.length>200)errors.push('Texto de dimensões inválido.');return [...new Set(errors)];}
-export function dimensionalAssessment(d,site,condition){if(!d)return {available:false,issues:[],differences:[],checks:[]};const errors=validateProductDimensions(d,{condition}),measured=['retrofit','existing'].includes(condition)?d.survey:null,checks=[],issues=[...errors],differences=[];if(measured)for(const [key,label] of [['shaftWidth','Frente de caixa'],['shaftDepth','Lado de caixa'],['headroom','Última altura'],['pit','Poço']]){const value=measured[key],min=d[key+'Min'],max=d[key+'Max'],pass=n(value)&&n(min)&&n(max)&&value>=min&&value<=max;checks.push({key,label,value,min,max,pass});if(!pass)issues.push(label+': medida em campo fora da faixa de instalação declarada pelo fornecedor.');}if(measured&&site)for(const [k,label] of SITE_FIELDS)if(n(measured[k])&&n(site[k])&&Math.abs(measured[k]-site[k])>.5)differences.push(label+': gestor '+site[k]+' mm; campo '+measured[k]+' mm.');return {available:true,checks,issues:[...new Set(issues)],differences,pass:!issues.length};}
-export function dimensionalKey(g){const d=g.product?.dimensions;if(!d)return '';return [g.door,d.cabinHeight,d.doorHeight,d.cabinWidth,d.cabinDepth,d.doorWidth,d.doorCount,d.doorArrangement,...(d.cabinType?[d.cabinType]:[]),...(d.machineRoom||d.fabrication?[d.machineRoom||'',d.fabrication||'']:[])].join('|');}
-export function reusableCatalogData(data){const result={};for(const k of ['capacity','speed','width','door','acceleration','jerk','open','close','passenger','start','startsLimit','preOpeningEnabled','preOpening','product'])if(data[k]!==undefined)result[k]=copy(data[k]);if(result.product?.dimensions){const d=result.product.dimensions;d.survey=emptySiteDimensions();d.surveyConfirmed=false;d.surveyDate='';d.surveyor='';d.existingDoorType='';d.doorAction='';d.notes='';}return result;}
-export function applyCatalogGroup(group,record){const g=copy(group),data=reusableCatalogData(record.data);for(const key of ['capacity','speed','width','door','acceleration','jerk','open','close','passenger','start','startsLimit','preOpeningEnabled','preOpening'])if(data[key]!==undefined)g[key]=copy(data[key]);g.product=copy(data.product);if(g.cars)g.cars=g.cars.map(car=>({...car,...Object.fromEntries(['capacity','speed','width','door'].map(k=>[k,g[k]]))}));if(g.iso)g.iso={...g.iso,source:'manufacturer',preOpening:g.preOpeningEnabled?g.preOpening:0};g.timingSource='Catálogo: '+record.company+' · '+(data.product.model||'produto')+' · revisão '+record.revision+' · cadastro por '+record.updatedEmail;return g;}
+import {dimensionReferenceForm,dimensionReferenceHtml,dimensionReferenceReport,applyDimensionReference,MACHINE_ROOMS,FABRICATION_TYPES} from './dimension-reference.js';
+import {escapeText,SUPPLY_TYPES,SITE_FIELDS,PRODUCT_FIELDS,DOOR_TYPES,DOOR_ARRANGEMENTS,emptyProductDimensions,dimensionalAssessment,SITE_TABLE_ROWS,carSiteDimensionValues,carHeightWarnings} from '../motor/dimensions.js';
+export * from '../motor/dimensions.js';
 export function supplyConditionForm(study,h){const {select}=h;return `<section class="card card-body"><h2>Condição de fornecimento</h2>${select('Obra nova, retrofit ou Substituição total','supplyCondition.type',{'':'Selecionar condição',...SUPPLY_TYPES},'O gestor informa as dimensões existentes no retrofit/substituição total. O fornecedor registra seu produto e seu próprio levantamento em campo.')}<p class="small-copy">Dimensões e faixas são declarações documentadas do fabricante. Relações entre velocidade, cabina, portas, poço e última altura são consultadas por configuração no catálogo; não são deduzidas como mínimos normativos universais.</p></section>`;}
-const SITE_TABLE_ROWS=()=>[...SITE_FIELDS.map(([k,l])=>({k,l:l+' existente (mm)',t:'number'})),{k:'doorType',l:'Tipo de porta existente',t:'select'},{k:'doorCount',l:'Quantidade de portas da cabina existente',t:'number'}];
-export function carSiteDimensionValues(g,j,study){
- // Cada elevador mostra só o que foi digitado para ele: nenhuma medida herda do grupo (o grupo apenas espelha o elevador vinculado,
- // para a avaliação dimensional do produto). Assim o que se digita no elevador 1 não "vaza" para os outros.
- const own=g.dimensionCars?.[j]?.siteDimensions||{};
- const values={...emptySiteDimensions(),...own};
- delete values.carId;
- // Abertura da porta: o valor digitado para este elevador vale primeiro; depois a largura real do elevador;
- // o valor do grupo só quando o elevador não tem largura.
- if(!Number.isFinite(own.doorWidth)){
-  const car=study?fleetCars(study,g)[j]:null;
-  values.doorWidth=Number.isFinite(car?.width)?car.width:(Number.isFinite(g.siteDimensions?.doorWidth)?g.siteDimensions.doorWidth:null);
- }
- return values;
-}
-export function carHeightWarnings(study,g){const cars=fleetCars(study,g);return cars.length?cars.flatMap((c,j)=>heightWarnings(carSiteDimensionValues(g,j,study)).map(w=>({...w,unit:j+1}))):heightWarnings(g.siteDimensions).map(w=>({...w,unit:null}));}
-// Medidas descartadas na última abertura de estudo (fora de faixa); o aplicativo avisa o usuário.
-export const sanitizeReport={discarded:[]};
-export function sanitizeCarSiteDimensions(study){
- sanitizeReport.discarded=[];
- for(const [gi,g] of (study.groups||[]).entries()){
-  // Estudo anterior à tabela por elevador: o levantamento guardado no grupo pertence ao elevador vinculado; os demais ficam vazios.
-  const hasOwn=(g.dimensionCars||[]).some(e=>e?.siteDimensions&&Object.entries(e.siteDimensions).some(([k,v])=>k!=='carId'&&v!==null&&v!==undefined&&v!==''));
-  const groupHas=g.siteDimensions&&[...SITE_FIELDS.map(([k])=>k),'doorType','doorCount'].some(k=>k!=='doorWidth'&&g.siteDimensions[k]!==null&&g.siteDimensions[k]!==undefined&&g.siteDimensions[k]!=='');
-  if(!hasOwn&&groupHas&&fleetCars(study,g).length){const j=linkedCarIndex(study,g);g.dimensionCars=g.dimensionCars||[];const d={...g.siteDimensions};delete d.carId;g.dimensionCars[j]={...(g.dimensionCars[j]||{}),siteDimensions:d};}
-  if(!Array.isArray(g.dimensionCars))continue;g.dimensionCars=g.dimensionCars.map(entry=>{if(!entry?.siteDimensions)return entry;const d={...entry.siteDimensions};for(const [k] of SITE_FIELDS){const v=d[k];if(v===null||v===undefined||v==='')continue;const ok=k==='doorWidth'?n(v,300,4000):n(v,k==='pit'?0:.01,50000);if(!ok){d[k]=null;sanitizeReport.discarded.push(`Grupo ${gi+1} · elevador ${g.dimensionCars.indexOf(entry)+1} · ${SITE_FIELDS.find(([kk])=>kk===k)[1].toLowerCase()}: ${v} mm`);}}if(d.doorType!==undefined&&d.doorType!==null&&d.doorType!==''&&!DOOR_TYPES[d.doorType]){d.doorType=null;sanitizeReport.discarded.push(`Grupo ${gi+1} · elevador ${g.dimensionCars.indexOf(entry)+1} · tipo de porta inválido`);}if(d.doorCount!==undefined&&d.doorCount!==null&&d.doorCount!==''&&(!Number.isInteger(d.doorCount)||!n(d.doorCount,1,4))){const bad=d.doorCount;d.doorCount=null;sanitizeReport.discarded.push(`Grupo ${gi+1} · elevador ${g.dimensionCars.indexOf(entry)+1} · quantidade de portas: ${bad}`);}return {...entry,siteDimensions:d};});}
- return study;
-}
-export function setCarSiteDimension(study,i,j,key,value){
- const s=copy(study),g=s.groups[i];
- if(!g)throw Error('Grupo não encontrado.');
- if(!SITE_FIELDS.some(([k])=>k===key)&&!['doorType','doorCount'].includes(key))throw Error('Campo dimensional inválido.');
- if(value!==null&&value!==undefined&&value!==''){
-  if(key==='doorType'){if(!DOOR_TYPES[value])throw Error('Tipo de porta existente inválido.');}
-  else if(key==='doorCount'){if(!Number.isInteger(value)||value<1||value>4)throw Error('Informar de 1 a 4 portas da cabina.');}
-  else if(key==='doorWidth'){if(!Number.isFinite(value)||value<300||value>4000)throw Error('A abertura em mm deve estar entre 300 e 4000.');}
-  else if(!Number.isFinite(value)||value<0||value>50000)throw Error('A medida em mm deve estar entre 0 e 50000.');
- }
- const cars=fleetCars(s,g);
- if(!cars[j])throw Error('Elevador não encontrado.');
- g.dimensionCars=g.dimensionCars||[];
- g.dimensionCars[j]={...(g.dimensionCars[j]||{}),siteDimensions:{...(g.dimensionCars[j]?.siteDimensions||{}),[key]:value}};
- g.siteDimensions={...emptySiteDimensions(),...g.siteDimensions};
- const linked=linkedCarIndex(s,g);
- if(j===linked&&key!=='doorWidth')g.siteDimensions[key]=value;
- if(key==='doorWidth'){
-  if(j===linked){g.siteDimensions.doorWidth=value;syncDimensionalDoor(s,i,true);}
-  else return changeCar(s,i,j,'width',value);
- }
- return s;
-}
-export function copyCarSiteDimensions(study,i,source){
- const g0=study.groups[i];
- if(!g0)throw Error('Grupo não encontrado.');
- const cars=fleetCars(study,g0);
- if(!cars[source])throw Error('Elevador de origem não encontrado.');
- // Copia só o que foi digitado para o elevador de origem (nada herdado); a porta usa a largura real do elevador.
- const own=g0.dimensionCars?.[source]?.siteDimensions||{};
- const values={...own,doorWidth:carSiteDimensionValues(g0,source,study).doorWidth};
- let out=study;
- cars.forEach((_,j)=>{if(j===source)return;for(const r of SITE_TABLE_ROWS()){const v=values[r.k];if(v===null||v===undefined||v==='')continue;out=setCarSiteDimension(out,i,j,r.k,v);}});
- return out;
-}
 function carDimensionTable(g,i,study){
  const cars=fleetCars(study,g);
  if(!cars.length)return `<p>Sem elevadores cadastrados neste grupo: as medidas são informadas para o grupo.</p><div class="fields">${SITE_TABLE_ROWS().map(r=>`<label>${escapeText(r.l)}${contextHelpButton('groups.siteDimensions.'+r.k)}${r.t==='select'?`<select data-path="groups.${i}.siteDimensions.${r.k}">${Object.entries(DOOR_TYPES).map(([v,t])=>`<option value="${v}" ${g.siteDimensions?.[r.k]===v?'selected':''}>${t}</option>`).join('')}</select>`:`<input type="number" min="0" max="50000" data-path="groups.${i}.siteDimensions.${r.k}" value="${escapeText(displayValue(g.siteDimensions?.[r.k])??'')}">`}</label>`).join('')}</div>`;

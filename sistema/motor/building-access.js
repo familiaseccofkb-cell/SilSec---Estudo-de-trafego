@@ -1,0 +1,5 @@
+// Access is a physical row identity, independent of the label shown on its button.
+export const FLOOR_MARK_REFERENCE='ABNT NBR 16858-3:2022, item 5.4.2.3.2 a)';
+export function accessRowIndex(table){const rows=table?.rows||[];return table?.accessRowId!==undefined?rows.findIndex(r=>r.id===table.accessRowId):rows.findIndex(r=>r.mark==='0');}
+export function accessRow(table){return table?.rows?.[accessRowIndex(table)]||null;}
+export function accessMarkNotice(table){if(!table?.enabled)return '';const row=accessRow(table);if(!row||row.mark==='0')return '';return `Atenção à marcação dos andares: o acesso principal está no andar “${row.mark}”, com a nomenclatura cadastrada preservada. ${FLOOR_MARK_REFERENCE}: os símbolos dos botões devem ser consistentes com a nomenclatura dos pavimentos do edifício; a sequência −2, −1, 0, 1, 2 etc. é preferencial. Acesso pelo subsolo ou uso de outra marcação não caracteriza, isoladamente, descumprimento desse item. Verifique a correspondência entre os botões, as indicações e a nomenclatura adotada no edifício. O aviso não bloqueia o cálculo.`;}

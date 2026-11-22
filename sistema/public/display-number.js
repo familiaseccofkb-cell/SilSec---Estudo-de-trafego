@@ -1,2 +1,2 @@
-// Valor exibido em campos numéricos: até 3 casas decimais. Não altera o valor guardado nem os cálculos.
-export const displayValue=v=>typeof v==='number'?(Number.isFinite(v)?String(Number(v.toFixed(3))):''):v;
+// TES · display-number.js foi movido para motor/display-number.js (motor de cálculo compartilhado). Este arquivo só reexporta.
+export * from '../motor/display-number.js';

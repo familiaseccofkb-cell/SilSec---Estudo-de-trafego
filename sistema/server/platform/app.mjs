@@ -17,6 +17,7 @@ import {infoPage} from './auth-pages.mjs';
 
 import {ajustarArquivoMarca, arquivoDaMarca} from './marca.mjs';
 const PUBLIC_DIR = resolve(fileURLToPath(new URL('../../public/', import.meta.url)));
+const MOTOR_DIR = resolve(fileURLToPath(new URL('../../motor/', import.meta.url)));
 const VERSION = JSON.parse(await readFile(new URL('../../package.json', import.meta.url), 'utf8')).version;
 const TYPES = {'.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.ico': 'image/x-icon', '.md': 'text/markdown; charset=utf-8', '.txt': 'text/plain; charset=utf-8', '.woff2': 'font/woff2', '.pdf': 'application/pdf', '.webmanifest': 'application/manifest+json; charset=utf-8'};
 const SECURITY = {
@@ -45,8 +46,10 @@ export async function createApp(config, {log = console, db: givenDb, mailer: giv
     let rel;
     try { rel = decodeURIComponent(pathname).replace(/^\/+/, ''); } catch { return false; }
     if (!rel || rel.endsWith('/')) return false;
-    const file = normalize(join(PUBLIC_DIR, rel));
-    if (!file.startsWith(PUBLIC_DIR + sep) || rel.split('/').some(p => p.startsWith('.')) || HIDDEN.has(rel) || !arquivoDaMarca(rel)) return false;
+    // Motor de cálculo compartilhado (TES): o navegador carrega /motor/<arquivo>.js da pasta motor/ (só .js).
+    const motor = /^motor\/[a-z0-9-]+\.js$/.test(rel), baseDir = motor ? MOTOR_DIR : PUBLIC_DIR;
+    const file = normalize(motor ? join(MOTOR_DIR, rel.slice(6)) : join(PUBLIC_DIR, rel));
+    if (!file.startsWith(baseDir + sep) || rel.split('/').some(p => p.startsWith('.')) || HIDDEN.has(rel) || !arquivoDaMarca(rel)) return false;
     let info;
     try { info = await stat(file); } catch { return false; }
     if (!info.isFile()) return false;
@@ -67,7 +70,7 @@ export async function createApp(config, {log = console, db: givenDb, mailer: giv
   }
 
   async function serveShell(res, head) {
-    let body = await readFile(join(PUBLIC_DIR, 'index.html'));
+    let body = ajustarArquivoMarca('index.html', await readFile(join(PUBLIC_DIR, 'index.html')));
     const notice = (await devconsole.settings()).announcement;
     if (notice) body = Buffer.from(body.toString('utf8').replace('<div id="app"></div>', `<div class="system-announcement" role="status" style="background:#fff4d6;color:#4a3800;padding:10px 16px;text-align:center;font:14px system-ui,sans-serif;border-bottom:1px solid #e8d49a">${String(notice).replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';')}</div><div id="app"></div>`));
     res.writeHead(200, {...SECURITY, ...hsts, 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'private, no-store'});
@@ -123,7 +126,8 @@ export async function createApp(config, {log = console, db: givenDb, mailer: giv
       const request = await toWebRequest(req, origin, {bodyLimit: path.startsWith('/vistorias/') ? 40 * 1024 * 1024 : 256 * 1024, ip});
       const authResponse = await auth.handle(request);
       if (authResponse) return sendWebResponse(res, authResponse, {...SECURITY, ...hsts}, head);
-      const inspectionResponse = await inspections.handle(request);
+      // Vistorias são da SilSec Engenharia: na marca TES a rota não existe.
+      const inspectionResponse = config.marca === 'tes' ? null : await inspections.handle(request);
       if (inspectionResponse) return sendWebResponse(res, inspectionResponse, {...SECURITY, ...hsts}, head);
       const consoleResponse = await devconsole.handle(request);
       if (consoleResponse) return sendWebResponse(res, consoleResponse, {...SECURITY, ...hsts}, head);

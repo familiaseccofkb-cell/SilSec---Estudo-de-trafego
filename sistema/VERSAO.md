@@ -1,3 +1,11 @@
+# TES · motor de cálculo em motor/ · 2026-11-22 (sobre 0db6e5c)
+
+- Aprovado pelo Fabio (22/11): cálculo movido para motor/ (@silsec/tes-motor). 31 arquivos movidos inteiros; 14 divididos (cálculo em motor/, funções de tela em public/). motor/ não importa nada de tela.
+  - public/<arquivo>.js continua e reexporta o cálculo (export *): telas, testes e links não mudam. Servidor entrega /motor/<arquivo>.js (só .js).
+  - Lista completa: TES-motor-arquivos-movidos-2026-11-22.md (DownloadsSilSec).
+- Marca TES na tela do sistema: título da aba pela marca; sem link nem rota de vistorias (serviço da SilSec).
+- Testes: 616/616 (novo: tes-servidor). Números do motor idênticos aos de antes; 84 módulos carregados no navegador e as 17 telas do sistema TES sem SilSec/vistorias.
+
 # TES / SilSec · separação das identidades · 2026-11-22 (base 6c40581)
 
 - Marca configurável por SILSEC_MARCA (silsec | tes), um só código: TES com logo próprio (public/marca/tes), contato@trafficestimatorsystem.com e nenhuma menção à SilSec; SilSec igual a antes e sem citar a TES.

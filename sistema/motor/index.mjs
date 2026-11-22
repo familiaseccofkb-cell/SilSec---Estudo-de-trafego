@@ -1,26 +1,25 @@
-// Traffic Estimator System (TES) · motor de cálculo compartilhado (etapa A: ponto de entrada único).
-// A TES (site, sistema e versão offline) e a SilSec Engenharia (avaliação do estudo de tráfego) chamam o cálculo SOMENTE por aqui.
-// Nesta etapa os arquivos do cálculo continuam em public/ (o navegador os carrega de lá); a mudança física para esta pasta
-// depende de separar engine.js dos módulos de tela que ele ainda importa (report, basic, dimensions, building-floors, study-inputs).
+// Traffic Estimator System (TES) · motor de cálculo compartilhado.
+// A TES (site, sistema e versão offline) e a SilSec Engenharia (avaliação do estudo de tráfego) chamam o cálculo por aqui.
+// Os arquivos desta pasta não importam nada de tela (public/); public/<arquivo>.js só reexporta o cálculo daqui.
 // Nenhuma fórmula foi alterada: tests/motor-compartilhado.test.mjs compara os números com os de antes da separação.
 export {
   ENGINE_VERSION, USES, DOORS, MAX_GROUPS, SPEED_OPTIONS,
   defaultStudy, defaultGroup, validateStudy, calculateStudy, calculateGroup, recalculatePopulationAndStudies,
   minimumElevators, minimumMessage, simulate, motionCheck, trafficRate, studyInterval, maxInterval,
-} from '../public/engine.js';
-export {normalizeStudy} from '../public/state.js';
-export {switchTrafficModel} from '../public/models.js';
-export {calculateBasic} from '../public/basic.js';
-export {validateIsoStudy, calculateIsoStudy} from '../public/iso-engine.js';
-export {destinationEstimate} from '../public/destination-estimate.js';
-export {destinationEstimateIsoForNbr} from '../public/destination-iso.js';
-export {adsComparison, adsComparisonValues} from '../public/ads-comparison.js';
-export {autoFillCar} from '../public/car-controls.js';
-export {simulateTraffic} from '../public/traffic-simulation.js';
+} from './engine.js';
+export {normalizeStudy} from './state.js';
+export {switchTrafficModel} from './models.js';
+export {calculateBasic} from './basic.js';
+export {validateIsoStudy, calculateIsoStudy} from './iso-engine.js';
+export {destinationEstimate} from './destination-estimate.js';
+export {destinationEstimateIsoForNbr} from './destination-iso.js';
+export {adsComparison, adsComparisonValues} from './ads-comparison.js';
+export {autoFillCar} from './car-controls.js';
+export {simulateTraffic} from './traffic-simulation.js';
 
-import {recalculatePopulationAndStudies} from '../public/engine.js';
-import {normalizeStudy} from '../public/state.js';
-import {adsComparison} from '../public/ads-comparison.js';
+import {recalculatePopulationAndStudies} from './engine.js';
+import {normalizeStudy} from './state.js';
+import {adsComparison} from './ads-comparison.js';
 
 export const MOTOR_NOME = 'Traffic Estimator System';
 export const MOTOR_VERSAO = '1.0.0';

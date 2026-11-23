@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {ESCALATOR_STANDARDS,defaultEscalators,layoutEscalators,escalatorCapacity,calculateEscalators} from '../public/escalators.js';
-import {defaultPopulationRow,calculatePopulation,defaultPopulationCalc,populationSnapshot,populationOptions,populationStatus} from '../public/population.js';
-import {defaultStudy,defaultAuxiliary,calculateStudy,validateStudy,clone,recalculatePopulationAndStudies} from '../public/engine.js';
-import {decodeImport,saveScenario,initialState} from '../public/state.js';
+import {ESCALATOR_STANDARDS,defaultEscalators,layoutEscalators,escalatorCapacity,calculateEscalators} from '../www/escalators.js';
+import {defaultPopulationRow,calculatePopulation,defaultPopulationCalc,populationSnapshot,populationOptions,populationStatus} from '../www/population.js';
+import {defaultStudy,defaultAuxiliary,calculateStudy,validateStudy,clone,recalculatePopulationAndStudies} from '../www/engine.js';
+import {decodeImport,saveScenario,initialState} from '../www/state.js';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-8,`${a} != ${b}`);
 const row=(floor,amount=700,extra={})=>({...defaultPopulationRow('offices'),floor,amount,label:'Pavimento '+floor,...extra});
 function network(above=3,below=0){const x=defaultEscalators();Object.assign(x,{enabled:true,capacityBasis:'manufacturer',aboveCount:above,belowCount:below,capacityConfirmed:true});layoutEscalators(x,0);x.links.forEach(link=>Object.assign(link,{served:true,upPresent:true,downPresent:true,pairConfirmed:true,geometryConfirmed:true,capacityUpHourly:6750,capacityDownHourly:6750,capacitySource:'Ficha técnica de teste'}));return x;}

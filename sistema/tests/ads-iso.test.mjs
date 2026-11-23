@@ -2,11 +2,11 @@
 // com o FC da ISO: passageiros por viagem = lotação × FC, sem arredondar (decisão de 19/11).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultStudy,defaultGroup,recalculatePopulationAndStudies,calculateStudy} from '../public/engine.js';
-import {normalizeStudy} from '../public/state.js';
-import {annexPages} from '../public/report.js';
-import {destinationEstimateIsoForNbr} from '../public/destination-iso.js';
-import {probableStopsRange} from '../public/ads-comparison.js';
+import {defaultStudy,defaultGroup,recalculatePopulationAndStudies,calculateStudy} from '../www/engine.js';
+import {normalizeStudy} from '../www/state.js';
+import {annexPages} from '../www/report.js';
+import {destinationEstimateIsoForNbr} from '../www/destination-iso.js';
+import {probableStopsRange} from '../www/ads-comparison.js';
 
 const run=(oc,ads)=>{const s=normalizeStudy(defaultStudy());s.groups.forEach(g=>{g.cabinOccupancy=oc;});s.destination={enabled:ads,sectors:0};return recalculatePopulationAndStudies(s);};
 const nbrNumbers=r=>JSON.stringify({groups:r.groups.map(g=>({total:g.normative.total,capacity:g.normative.capacity,interval:g.normative.interval,stops:g.stops})),required:r.required,starts:r.starts});

@@ -1,4 +1,4 @@
-// TES · motor de cálculo: parte de cálculo de ads-comparison.js (a parte de tela ficou em public/ads-comparison.js).
+// Motor de cálculo: parte de cálculo de ads-comparison.js (a parte de tela ficou em www/ads-comparison.js).
 import {loadForDemand} from './destination-estimate.js';
 import {simulateTraffic,WAIT_LIMITS,TRAVEL_LIMITS} from './traffic-simulation.js';
 import {performanceInputs} from './traffic-performance.js';

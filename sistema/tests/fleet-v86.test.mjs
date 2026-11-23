@@ -1,11 +1,11 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {defaultStudy,recalculatePopulationAndStudies,calculateGroup,validateStudy} from '../public/engine.js';
-import {normalizeStudy,decodeImport} from '../public/state.js';
-import {changeCar,fleetCars,capacityMass,fleetTable,projectFleet,fleetMassMemory} from '../public/fleet.js';
-import {ensureFloorCompositions,resizeFloorTable} from '../public/building-floors.js';
-import {referencePower} from '../public/procurement.js';
-import {allStudyCharts} from '../public/analysis-charts.js';
-import {annexPages} from '../public/report.js';
+import {defaultStudy,recalculatePopulationAndStudies,calculateGroup,validateStudy} from '../www/engine.js';
+import {normalizeStudy,decodeImport} from '../www/state.js';
+import {changeCar,fleetCars,capacityMass,fleetTable,projectFleet,fleetMassMemory} from '../www/fleet.js';
+import {ensureFloorCompositions,resizeFloorTable} from '../www/building-floors.js';
+import {referencePower} from '../www/procurement.js';
+import {allStudyCharts} from '../www/analysis-charts.js';
+import {annexPages} from '../www/report.js';
 const h={esc:String,f:String},near=(a,b)=>assert.ok(Math.abs(a-b)<1e-7,`${a} != ${b}`);
 function sample(){const s=normalizeStudy(defaultStudy());s.groupCalculationVersion=1;return s;}
 test('v8.6: capacidade é única; massas e velocidades derivadas independentes por elevador',()=>{let s=sample();s.groups[0].count=2;s=changeCar(s,0,0,'capacity',10);s=changeCar(s,0,0,'personMassKg',80);s=changeCar(s,0,1,'personMassKg',70);s=changeCar(s,0,1,'speed',1.33);const cars=fleetCars(s,s.groups[0]);assert.equal(capacityMass(cars[0]),800);assert.equal(capacityMass(cars[1]),420);const p=projectFleet(s);assert.equal(p.groups[0].capacity,10);assert.equal(p.groups[1].speed,1.33);const c=recalculatePopulationAndStudies(s);near(c.results.groups[0].normative.capacity,calculateGroup(p.groups[0],'precision').normative.capacity);assert.equal(s.groups[0].capacity,6);const html=fleetTable(s,0,h);assert.match(html,/capacityKg">800 kg/);assert.match(html,/speedMpm">79.80000000000001 m\/min/);assert.match(html,/person-mass-options/);assert.match(fleetMassMemory(c.results.calculationStudy,h),/800/);});

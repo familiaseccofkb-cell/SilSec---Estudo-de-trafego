@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultStudy} from '../public/engine.js';
-import {normalizeFloorTable} from '../public/building-floors.js';
-import {fleetCars} from '../public/fleet.js';
-import {setCarSiteDimension,copyCarSiteDimensions,carSiteDimensionValues,siteDimensionsForm} from '../public/dimensions.js';
+import {defaultStudy} from '../www/engine.js';
+import {normalizeFloorTable} from '../www/building-floors.js';
+import {fleetCars} from '../www/fleet.js';
+import {setCarSiteDimension,copyCarSiteDimensions,carSiteDimensionValues,siteDimensionsForm} from '../www/dimensions.js';
 
 function fleetStudy(){
   const s=defaultStudy();
@@ -51,9 +51,9 @@ test('o formulário mostra uma coluna por elevador e não mostra a unidade vincu
   assert.doesNotMatch(html,/Unidade vinculada ao levantamento/);
 });
 
-import {resizeFleet,changeCar} from '../public/fleet.js';
-import {validateCarSiteDimensions} from '../public/dimensions.js';
-import {copySiteDimensions} from '../public/silsec-dimensions.js';
+import {resizeFleet,changeCar} from '../www/fleet.js';
+import {validateCarSiteDimensions} from '../www/dimensions.js';
+import {copySiteDimensions} from '../www/silsec-dimensions.js';
 
 function fleet3(){
   let s=fleetStudy();
@@ -139,7 +139,7 @@ test('altura e demais medidas digitadas no elevador 1 não aparecem nos outros e
 });
 
 test('alerta de altura só no elevador com a medida baixa',async()=>{
-  const {carHeightWarnings}=await import('../public/dimensions.js');
+  const {carHeightWarnings}=await import('../www/dimensions.js');
   const s=fleetStudy();s.groups[0].count=3;
   const out=setCarSiteDimension(s,0,0,'cabinHeight',1500);
   const units=carHeightWarnings(out,out.groups[0]).map(w=>w.unit);
@@ -156,7 +156,7 @@ test('copiar coluna de um elevador sem valor próprio não apaga os valores dos 
 });
 
 test('estudo antigo (só levantamento do grupo) migra as medidas para o elevador vinculado',async()=>{
-  const {sanitizeCarSiteDimensions}=await import('../public/dimensions.js');
+  const {sanitizeCarSiteDimensions}=await import('../www/dimensions.js');
   const s=fleetStudy();s.groups[0].count=3;
   s.groups[0].siteDimensions={...s.groups[0].siteDimensions,cabinHeight:2300,shaftWidth:1800};
   delete s.groups[0].dimensionCars;

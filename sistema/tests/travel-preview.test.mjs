@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultStudy,recalculatePopulationAndStudies} from '../public/engine.js';
-import {normalizeStudy} from '../public/state.js';
-import {changeCar} from '../public/fleet.js';
-import {switchTrafficModel} from '../public/models.js';
-import {calculateTravelPreview} from '../public/travel-preview.js';
+import {defaultStudy,recalculatePopulationAndStudies} from '../www/engine.js';
+import {normalizeStudy} from '../www/state.js';
+import {changeCar} from '../www/fleet.js';
+import {switchTrafficModel} from '../www/models.js';
+import {calculateTravelPreview} from '../www/travel-preview.js';
 
 for(const model of ['nbr5665','iso8100']){
  test(`prévia ${model}: velocidade por unidade, tempos e curvas coincidem com o cálculo completo`,()=>{

@@ -1,4 +1,4 @@
-// TES · motor de cálculo: parte de cálculo de transport-config.js (a parte de tela ficou em public/transport-config.js).
+// Motor de cálculo: parte de cálculo de transport-config.js (a parte de tela ficou em www/transport-config.js).
 import {transportCapacity} from './transport-capacity.js';
 import {accessRowIndex} from './building-access.js';
 export function transportOptions(s){const c={version:1,escalators:s.populationCalc?.escalators?.enabled?true:null,walkways:null,...s.transportEquipment};const rolling=Object.hasOwn(c,'rolling')?c.rolling:c.escalators===true||c.walkways===true?true:c.escalators===false&&c.walkways===false?false:null;return {...c,rolling,...(Object.hasOwn(c,'rolling')?{escalators:rolling,walkways:rolling}:{})};}

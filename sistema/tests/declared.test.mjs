@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {normalizeStudy,decodeImport,restoreState,initialState} from '../public/state.js';
-import {defaultStudy,clone,populationComponent,recalculatePopulationAndStudies,calculateStudy} from '../public/engine.js';
-import {appendFloorComposition,setServedFloor,setFloorMark,setStreetAccess,moveFloorComposition,copyFloorComposition} from '../public/floors.js';
-import {populationSnapshot} from '../public/population.js';
-import {defaultEscalators,layoutEscalators} from '../public/escalators.js';
+import {normalizeStudy,decodeImport,restoreState,initialState} from '../www/state.js';
+import {defaultStudy,clone,populationComponent,recalculatePopulationAndStudies,calculateStudy} from '../www/engine.js';
+import {appendFloorComposition,setServedFloor,setFloorMark,setStreetAccess,moveFloorComposition,copyFloorComposition} from '../www/floors.js';
+import {populationSnapshot} from '../www/population.js';
+import {defaultEscalators,layoutEscalators} from '../www/escalators.js';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-8,`${a} != ${b}`);
 function example(){const s=normalizeStudy(defaultStudy());Object.assign(s.populationCalc.rows[0],{label:'Administração',amount:280});s.populationCalc=appendFloorComposition(s.populationCalc,{...clone(s.populationCalc.rows[0]),label:'Recepção',amount:140});s.populationCalc=setServedFloor(s.populationCalc,1,'1');return s;}
 function network(){const n=defaultEscalators();Object.assign(n,{enabled:true,capacityBasis:'manufacturer',aboveCount:1,belowCount:0,capacityConfirmed:true});layoutEscalators(n,0);n.links.forEach(l=>Object.assign(l,{served:true,upPresent:true,downPresent:true,pairConfirmed:true,geometryConfirmed:true,capacityUpHourly:4500,capacityDownHourly:4500,capacitySource:'Ficha técnica de teste',widthUp:600,widthDown:600}));return n;}

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {D1,R2} from './helpers/sqlite-d1.mjs';
 import {handleApi} from '../server/api.mjs';
-import {defaultStudy} from '../public/engine.js';
+import {defaultStudy} from '../www/engine.js';
 
 async function setup(){
   const env={DB:new D1(),BUCKET:new R2(),SITE_OWNER_EMAIL:'owner@test.dev'};

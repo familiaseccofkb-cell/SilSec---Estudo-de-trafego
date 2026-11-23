@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultStudy,recalculatePopulationAndStudies,populationComponent} from '../public/engine.js';
-import {tractionGeometry,ROPE_DIAMETERS} from '../public/traction-energy.js';
+import {defaultStudy,recalculatePopulationAndStudies,populationComponent} from '../www/engine.js';
+import {tractionGeometry,ROPE_DIAMETERS} from '../www/traction-energy.js';
 import {supplierSpec} from './traction-fixture.mjs';
-import {energyCharts,allStudyCharts} from '../public/analysis-charts.js';
-import {calculateEnergy,validateEnergy} from '../public/energy.js';
-import {energySection} from '../public/analysis-view.js';
-import {normalizeStudy,decodeImport} from '../public/state.js';
-import {switchTrafficModel} from '../public/models.js';
-import {appendFloorComposition} from '../public/floors.js';
+import {energyCharts,allStudyCharts} from '../www/analysis-charts.js';
+import {calculateEnergy,validateEnergy} from '../www/energy.js';
+import {energySection} from '../www/analysis-view.js';
+import {normalizeStudy,decodeImport} from '../www/state.js';
+import {switchTrafficModel} from '../www/models.js';
+import {appendFloorComposition} from '../www/floors.js';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-8*Math.max(1,Math.abs(b)),`${a} != ${b}`);
 test('tração: conversões em polegadas e referência 40d são exatas, sem certificar cabos pequenos',()=>{
  const expected=[160,240,381,508,635];for(const [i,d] of Object.keys(ROPE_DIAMETERS).map(Number).sort((a,b)=>a-b).entries()){const g=tractionGeometry(supplierSpec({suspension:'rope',ropeDiameterMm:d,sheaveDiameterMm:40*d}),1);near(g.referenceDiameter,expected[i]);near(g.ropeRatio,40);if(d<8)assert.ok(g.warnings.some(w=>w.includes('abaixo de 8 mm')));else assert.ok(!g.warnings.some(w=>w.includes('abaixo de 8 mm')));}

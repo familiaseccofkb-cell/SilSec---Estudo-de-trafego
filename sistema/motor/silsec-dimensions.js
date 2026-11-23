@@ -1,4 +1,4 @@
-// TES · motor de cálculo: parte de cálculo de silsec-dimensions.js (a parte de tela ficou em public/silsec-dimensions.js).
+// Motor de cálculo: parte de cálculo de silsec-dimensions.js (a parte de tela ficou em www/silsec-dimensions.js).
 import {fleetCars,changeCar} from './fleet.js';
 export function linkedCarIndex(study,g){const cars=fleetCars(study,g);const i=cars.findIndex(c=>c.id===g.siteDimensions?.carId);return i<0?0:i;}
 export function syncDimensionalDoor(study,index,fromDimensions=false){

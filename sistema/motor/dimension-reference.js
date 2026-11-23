@@ -1,4 +1,4 @@
-// TES · motor de cálculo: parte de cálculo de dimension-reference.js (a parte de tela ficou em public/dimension-reference.js).
+// Motor de cálculo: parte de cálculo de dimension-reference.js (a parte de tela ficou em www/dimension-reference.js).
 import {applyShaftReference,shaftReferenceStatus,SHAFT_FIELDS} from './shaft-reference.js';
 import {DIMENSION_REFERENCE_DATA as DATA} from './dimension-reference-data.js';
 import {fleetCars} from './fleet.js';

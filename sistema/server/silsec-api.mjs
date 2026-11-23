@@ -1,6 +1,6 @@
 import {one,rows,run,reject,organizationFor,supplierScope,isSupplier,isClient,normalizeCnpj,newToken,tokenHash} from './tenant.mjs';
-import {fullAccess} from '../public/procurement.js';
-import {scoreOffers,configurationKey,priceBenchmark,normalizeCommercial} from '../public/silsec-evaluation.js';
+import {fullAccess} from '../www/procurement.js';
+import {scoreOffers,configurationKey,priceBenchmark,normalizeCommercial} from '../www/silsec-evaluation.js';
 import {analyzeContract} from './contract-ai.mjs';
 const now=()=>new Date().toISOString(),id=()=>crypto.randomUUID();
 const audit=async(db,user,project,event,data)=>run(db,'INSERT INTO audit_log(project_id,actor_id,actor_email,event,data_json,created_at) VALUES(?,?,?,?,?,?)',[project,user.id,user.email,event,JSON.stringify(data),now()]);

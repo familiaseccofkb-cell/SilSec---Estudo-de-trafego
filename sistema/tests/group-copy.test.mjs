@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultStudy,defaultGroup} from '../public/engine.js';
-import {copyStudyGroups,groupCopyDialog} from '../public/group-copy.js';
-import {SUPPLY_TYPES,supplyConditionForm,validateStudyDimensions} from '../public/dimensions.js';
+import {defaultStudy,defaultGroup} from '../www/engine.js';
+import {copyStudyGroups,groupCopyDialog} from '../www/group-copy.js';
+import {SUPPLY_TYPES,supplyConditionForm,validateStudyDimensions} from '../www/dimensions.js';
 function fixture(){const s=defaultStudy();s.groups.push(defaultGroup(2));s.groups[0].product={dimensions:{cabinHeight:2300}};s.groups[0].speed=2;s.groups[1].speed=3;s.groups[2].speed=4;s.floorTable={rows:[{served:{g1:true,g2:false,g3:false}},{served:{g1:false,g2:true,g3:true}}]};return s;}
 test('cópia múltipla preserva origem, identidades e grupos não selecionados sem compartilhar objetos',()=>{const s=fixture(),before=structuredClone(s),r=copyStudyGroups(s,0,[1,2,1]);assert.deepEqual(r.destinations,[1,2]);assert.equal(r.study.groups.length,3);for(const i of [1,2]){assert.equal(r.study.groups[i].id,s.groups[i].id);assert.equal(r.study.groups[i].label,s.groups[i].label);assert.equal(r.study.groups[i].speed,2);assert.equal(r.study.floorTable.rows[0].served[s.groups[i].id],true);assert.equal(r.study.floorTable.rows[1].served[s.groups[i].id],false);}r.study.groups[1].product.dimensions.cabinHeight=2600;assert.equal(r.study.groups[2].product.dimensions.cabinHeight,2300);assert.deepEqual(r.study.groups[0],s.groups[0]);assert.deepEqual(s,before);const one=copyStudyGroups(s,0,[1]);assert.deepEqual(one.study.groups[2],s.groups[2]);});
 test('seleções inválidas são recusadas antes de alterar o estudo; novo grupo respeita limite e IDs únicos',()=>{const s=fixture(),before=structuredClone(s);for(const [source,targets] of [[0,[]],[0,[0]],[0,[1,99]],[99,[1]],[0,['1']]])assert.throws(()=>copyStudyGroups(s,source,targets));assert.deepEqual(s,before);s.groups[1].id='g4';const r=copyStudyGroups(s,0,[2,'new']);assert.equal(r.study.groups.at(-1).id,'g2');assert.equal(new Set(r.study.groups.map(g=>g.id)).size,4);assert.equal(r.study.floorTable.rows[0].served.g2,true);const full=fixture();full.groups=Array.from({length:20},(_,i)=>defaultGroup(i));assert.throws(()=>copyStudyGroups(full,0,[1,'new']),/20 grupos/);});

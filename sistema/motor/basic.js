@@ -1,4 +1,4 @@
-// TES · motor de cálculo: parte de cálculo de basic.js (a parte de tela ficou em public/basic.js).
+// Motor de cálculo: parte de cálculo de basic.js (a parte de tela ficou em www/basic.js).
 import {calculateGroup,USES,DOORS,ENGINE_VERSION,maxInterval,minimumElevators} from './engine.js';
 import {normalizeStudyRecords} from './records.js';
 export const numeric=(v,min,max,int=false)=>typeof v==='number'&&Number.isFinite(v)&&v>=min&&v<=max&&(!int||Number.isInteger(v));

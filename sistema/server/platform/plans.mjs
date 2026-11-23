@@ -1,5 +1,5 @@
 // Planos da anuidade. O preço cobrado vem sempre do servidor (nunca do navegador).
-import {PLANS} from '../../public/licensing.js';
+import {PLANS} from '../../www/licensing.js';
 
 const reais = v => { const n = Number(String(v ?? '').replace(/\./g, '').replace(',', '.')); return Number.isFinite(n) && n > 0 ? Math.round(n * 100) : null; };
 

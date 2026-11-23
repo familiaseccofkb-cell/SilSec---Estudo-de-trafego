@@ -1,4 +1,4 @@
-// TES · motor de cálculo: parte de cálculo de shaft-reference.js (a parte de tela ficou em public/shaft-reference.js).
+// Motor de cálculo: parte de cálculo de shaft-reference.js (a parte de tela ficou em www/shaft-reference.js).
 import {SHAFT_REFERENCE_DATA as DATA} from './shaft-reference-data.js';
 export const CABIN_TYPES={conventional:'Convencional',deep:'Profunda',stretcher:'Maca',bed:'Leito'};
 export const SHAFT_FIELDS={cabinWidth:'Frente da cabina',cabinDepth:'Lado da cabina',shaftWidthMin:'Frente mínima da caixa',shaftWidthMax:'Frente máxima da caixa',shaftDepthMin:'Lado mínimo da caixa',shaftDepthMax:'Lado máximo da caixa'};

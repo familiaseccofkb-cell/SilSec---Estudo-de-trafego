@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultStudy,recalculatePopulationAndStudies} from '../public/engine.js';
-import {normalizeStudy} from '../public/state.js';
-import {selectEscalatorFloor,transportOptions} from '../public/transport-config.js';
-import {remodelEscalators} from '../public/escalator-editor.js';
+import {defaultStudy,recalculatePopulationAndStudies} from '../www/engine.js';
+import {normalizeStudy} from '../www/state.js';
+import {selectEscalatorFloor,transportOptions} from '../www/transport-config.js';
+import {remodelEscalators} from '../www/escalator-editor.js';
 
 function withEscalators(){
   let s=normalizeStudy(defaultStudy());
@@ -25,7 +25,7 @@ test('escadas (editor v2): trechos andar a andar pela tabela de pavimentos calcu
 });
 
 test('escadas (editor v1) continuam restritas a andares com composição',async()=>{
-  const {validateEscalators}=await import('../public/escalators.js');
+  const {validateEscalators}=await import('../www/escalators.js');
   const errors=validateEscalators({enabled:true,graphVersion:1,periodMinutes:5,demandPercent:100,utilizationPercent:100,capacityBasis:'manufacturer',capacityConfirmed:true,allowedFloors:[1],links:[{from:0,floor:1,served:true,rise:4,banks:[{count:1,capacity:1000}]},{from:1,floor:2,served:true,rise:4,banks:[{count:1,capacity:1000}]}]},0);
   assert.ok(errors.some(e=>/composição cadastrada/.test(e)));
 });

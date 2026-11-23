@@ -1,4 +1,4 @@
-// TES · motor de cálculo: parte de cálculo de car-controls.js (a parte de tela ficou em public/car-controls.js).
+// Motor de cálculo: parte de cálculo de car-controls.js (a parte de tela ficou em www/car-controls.js).
 import {cabinOccupancy,nominalCapacity} from './cabin-occupancy.js';
 import {fleetCars,resizeFleet,changeCar,TIMING_FIELDS,CAR_FIELDS,probableCarStops,manufacturerDoorData,doorDivergence} from './fleet.js';
 import {DOORS,motionCheck,accelerationMessage,jerkMessage} from './engine.js';

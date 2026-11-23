@@ -8,7 +8,7 @@ import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const source = readFileSync(join(here, '..', 'public', 'app.js'), 'utf8');
+const source = readFileSync(join(here, '..', 'www', 'app.js'), 'utf8');
 
 function functionSource(name, next) {
   const start = source.indexOf(`function ${name}(`);

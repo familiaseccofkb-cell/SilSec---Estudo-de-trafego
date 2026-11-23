@@ -1,21 +1,26 @@
-// Grava em public/ os arquivos estáticos já com a marca ativa (SILSEC_MARCA).
-// Motivo (22/11/2026): na Hostinger, os arquivos de public/ são entregues direto pela CDN, sem passar pelo Node; então os
-// ajustes de marca feitos ao entregar (server/platform/marca.mjs) não acontecem. Este script aplica as MESMAS regras no
-// pacote, antes do envio: CDN e Node passam a entregar o mesmo conteúdo.
-// Uso, só numa cópia do pacote (altera public/ no lugar): SILSEC_MARCA=tes node scripts/materializar-marca.mjs --gravar
+// Grava em www/ os arquivos estáticos já com a marca ativa (SILSEC_MARCA).
+// Motivo (22/11/2026): na Hostinger, a pasta public/ do pacote era entregue direto pelo servidor web, sem passar pelo
+// Node. Desde a TES 1.0.4 / SilSec 19r os arquivos do navegador ficam em www/ e tudo passa pelo Node; o script continua
+// gravando a marca no pacote, para o disco já sair igual ao que o Node entrega.
+// Uso, só numa cópia do pacote (altera www/ no lugar): SILSEC_MARCA=tes node scripts/materializar-marca.mjs --gravar
 import {readdir, readFile, writeFile, rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {BRAND} from '../public/brand.js';
+import {BRAND} from '../www/brand.js';
 import {ajustarArquivoMarca, arquivoDaMarca, arquivoFisicoDaMarca} from '../server/platform/marca.mjs';
 
 if (!process.argv.includes('--gravar')) {
-  console.error('Altera public/ no lugar. Use só na cópia do pacote: SILSEC_MARCA=tes node scripts/materializar-marca.mjs --gravar');
+  console.error('Altera www/ no lugar. Use só na cópia do pacote: SILSEC_MARCA=tes node scripts/materializar-marca.mjs --gravar');
   process.exit(2);
 }
-if (BRAND.id === 'silsec') { console.log('Marca SilSec: nada a gravar (os arquivos do disco já são os da SilSec).'); process.exit(0); }
-
-const PUBLIC = fileURLToPath(new URL('../public/', import.meta.url));
+const PUBLIC = fileURLToPath(new URL('../www/', import.meta.url));
+// SilSec (19r): os demais arquivos do disco já são os da SilSec; só brand.js é gravado, com o perfil SilSec apenas
+// (o pacote da SilSec não leva os dados da TES).
+if (BRAND.id === 'silsec') {
+  await writeFile(join(PUBLIC, 'brand.js'), ajustarArquivoMarca('brand.js', await readFile(join(PUBLIC, 'brand.js'))));
+  console.log(JSON.stringify({trocados: [], ajustados: ['brand.js'], removidos: []}, null, 1));
+  process.exit(0);
+}
 async function listar(dir, base = '') {
   const out = [];
   for (const e of await readdir(join(dir, base), {withFileTypes: true})) {

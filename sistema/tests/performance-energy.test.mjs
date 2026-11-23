@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultStudy,recalculatePopulationAndStudies,calculateGroup,validateStudy} from '../public/engine.js';
-import {switchTrafficModel} from '../public/models.js';
-import {normalizeStudy,decodeImport} from '../public/state.js';
-import {defaultOperation,PROFILE_IMAGE,FLOW_KEYS,calculatePerformance,parseMeasurementCsv,resizeMeasurements,validateOperation} from '../public/performance.js';
-import {defaultEnergy,calculateEnergy,validateEnergy} from '../public/energy.js';
-import {allStudyCharts} from '../public/analysis-charts.js';
-import {performanceSection,energySection} from '../public/analysis-view.js';
-import {travelCurvesSection} from '../public/travel-curves-view.js';
+import {defaultStudy,recalculatePopulationAndStudies,calculateGroup,validateStudy} from '../www/engine.js';
+import {switchTrafficModel} from '../www/models.js';
+import {normalizeStudy,decodeImport} from '../www/state.js';
+import {defaultOperation,PROFILE_IMAGE,FLOW_KEYS,calculatePerformance,parseMeasurementCsv,resizeMeasurements,validateOperation} from '../www/performance.js';
+import {defaultEnergy,calculateEnergy,validateEnergy} from '../www/energy.js';
+import {allStudyCharts} from '../www/analysis-charts.js';
+import {performanceSection,energySection} from '../www/analysis-view.js';
+import {travelCurvesSection} from '../www/travel-curves-view.js';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-7*Math.max(1,Math.abs(b)),`${a} ≠ ${b}`);
 function measuredStudy(){const s=defaultStudy();s.operation={...defaultOperation(),profile:'measured',measurementDate:'2026-10-14',observer:'Técnico',measurementNotes:'Contagem no acesso',measurements:Array.from({length:12},(_,i)=>({entry:i===0?200:10,lunchIn:80,lunchOut:40,exit:20}))};return s;}
 test('atendimento: perfis da imagem preservam os quatro fluxos e a unidade escolhida',()=>{

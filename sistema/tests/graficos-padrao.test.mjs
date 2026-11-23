@@ -2,10 +2,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {defaultStudy, recalculatePopulationAndStudies} from '../public/engine.js';
-import {allStudyCharts, chartHtml, energyCharts} from '../public/analysis-charts.js';
+import {defaultStudy, recalculatePopulationAndStudies} from '../www/engine.js';
+import {allStudyCharts, chartHtml, energyCharts} from '../www/analysis-charts.js';
 
-const css = readFileSync(new URL('../public/styles.css', import.meta.url), 'utf8');
+const css = readFileSync(new URL('../www/styles.css', import.meta.url), 'utf8');
 
 test('gráficos: barras, pico em destaque, linha principal e referência tracejada por papel (9.5.7)', () => {
   const bar = chartHtml({id: 'b', title: 'Teste', type: 'bar', labels: ['A', 'B', 'C'], yLabel: 'kWh / ano', series: [{name: 'Consumo', values: [5, 9, 2], color: '087E79'}]});

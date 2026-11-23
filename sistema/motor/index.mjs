@@ -1,6 +1,6 @@
-// Traffic Estimator System (TES) · motor de cálculo compartilhado.
-// A TES (site, sistema e versão offline) e a SilSec Engenharia (avaliação do estudo de tráfego) chamam o cálculo por aqui.
-// Os arquivos desta pasta não importam nada de tela (public/); public/<arquivo>.js só reexporta o cálculo daqui.
+// Motor de cálculo de tráfego de elevadores, compartilhado pelas duas marcas.
+// O site, o sistema e a versão offline chamam o cálculo por aqui.
+// Os arquivos desta pasta não importam nada de tela (www/); www/<arquivo>.js só reexporta o cálculo daqui.
 // Nenhuma fórmula foi alterada: tests/motor-compartilhado.test.mjs compara os números com os de antes da separação.
 export {
   ENGINE_VERSION, USES, DOORS, MAX_GROUPS, SPEED_OPTIONS,

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {homePage} from '../server/site/pages.mjs';
-import {BRAND} from '../public/brand.js';
+import {BRAND} from '../www/brand.js';
 
 // 9.5.7 · 19l (Fabio, 20/11/2026): "Veja em vídeo" mostra o vídeo y_fxuLWYFJk do canal SilSec Engenharia,
 // pelo youtube-nocookie.com, responsivo e sem autoplay; o vídeo antigo e o mp4 próprio saem do site.

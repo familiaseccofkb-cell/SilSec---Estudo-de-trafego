@@ -1,4 +1,4 @@
-// TES · motor de cálculo: parte de cálculo de building-floors.js (a parte de tela ficou em public/building-floors.js).
+// Motor de cálculo: parte de cálculo de building-floors.js (a parte de tela ficou em www/building-floors.js).
 import {accessRowIndex} from './building-access.js';
 import {defaultPopulationRow} from './population.js';
 export const copy=x=>structuredClone(x);

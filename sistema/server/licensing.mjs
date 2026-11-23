@@ -1,4 +1,4 @@
-import {PLANS,cpfDigits,addCalendarMonths,resolveLicenses,studyModule} from '../public/licensing.js';
+import {PLANS,cpfDigits,addCalendarMonths,resolveLicenses,studyModule} from '../www/licensing.js';
 import {audit} from './collaboration.mjs';
 const q=(db,sql,args=[])=>db.prepare(sql).bind(...args),first=(db,s,a)=>q(db,s,a).first(),rows=async(db,s,a)=>(await q(db,s,a).all()).results,run=(db,s,a)=>q(db,s,a).run();
 const fail=(status,message)=>{throw Object.assign(Error(message),{status});},now=()=>new Date().toISOString(),id=()=>crypto.randomUUID();

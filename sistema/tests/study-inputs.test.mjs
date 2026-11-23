@@ -1,9 +1,9 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {defaultStudy,recalculatePopulationAndStudies} from '../public/engine.js';
-import {normalizeStudy,initialState,restoreState} from '../public/state.js';
-import {newStudy,resizeStudyGroups,probableStops,inputReadiness,manufacturerMirror} from '../public/study-inputs.js';
-import {setBuildingMark,setBuildingAccess,applyFloorDistance,ensureFloorCompositions,resizeFloorTable,floorGeometry,buildingMark,floorTableHtml} from '../public/building-floors.js';
-import {calculatePopulation,defaultPopulationRow} from '../public/population.js';
+import {defaultStudy,recalculatePopulationAndStudies} from '../www/engine.js';
+import {normalizeStudy,initialState,restoreState} from '../www/state.js';
+import {newStudy,resizeStudyGroups,probableStops,inputReadiness,manufacturerMirror} from '../www/study-inputs.js';
+import {setBuildingMark,setBuildingAccess,applyFloorDistance,ensureFloorCompositions,resizeFloorTable,floorGeometry,buildingMark,floorTableHtml} from '../www/building-floors.js';
+import {calculatePopulation,defaultPopulationRow} from '../www/population.js';
 const e=String,f=(n)=>String(n);
 test('entrada: novos grupos começam vazios e redução preserva o arquivo dos grupos removidos',()=>{let s=newStudy();s.groups[0].capacity=10;s=resizeStudyGroups(s,3);assert.equal(s.groups.length,3);for(const k of ['speed','capacity','count','acceleration','jerk','open','close'])assert.equal(s.groups[2][k],null);assert.equal(s.groups[0].capacity,10);s=resizeStudyGroups(s,1);assert.equal(s.retiredGroups.length,2);assert.equal(s.groups[0].capacity,10);});
 test('entrada: faltas são descritas e paradas prováveis calculam sem exigir velocidade ou tempos',()=>{const s=newStudy(),g=s.groups[0];assert.equal(probableStops(g).available,false);assert.match(inputReadiness(s).flatMap(x=>x.missing).join(' '),/Lotação|Paradas|área|quantidade/);g.stops=11;g.capacity=6;const r=probableStops(g);assert.ok(r.available);assert.ok(Math.abs(r.value-(11-10*.9**6))<1e-12);g.stops=2.5;assert.equal(probableStops(g).available,false);assert.throws(()=>recalculatePopulationAndStudies(s),/área|quantidade|preencher|informar/);});

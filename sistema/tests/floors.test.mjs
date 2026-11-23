@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {normalizeStudy,decodeImport,restoreState,initialState} from '../public/state.js';
-import {defaultStudy,populationComponent,clone,recalculatePopulationAndStudies,calculateStudy,validateStudy} from '../public/engine.js';
-import {populationStatus} from '../public/population.js';
-import {parseFloorMark,nextFloorMark,setFloorMark,setServedFloor,copyFloorComposition,moveFloorComposition,appendFloorComposition,removeFloorComposition,setStreetAccess,validateFloorConfiguration,floorMarkWarning} from '../public/floors.js';
+import {normalizeStudy,decodeImport,restoreState,initialState} from '../www/state.js';
+import {defaultStudy,populationComponent,clone,recalculatePopulationAndStudies,calculateStudy,validateStudy} from '../www/engine.js';
+import {populationStatus} from '../www/population.js';
+import {parseFloorMark,nextFloorMark,setFloorMark,setServedFloor,copyFloorComposition,moveFloorComposition,appendFloorComposition,removeFloorComposition,setStreetAccess,validateFloorConfiguration,floorMarkWarning} from '../www/floors.js';
 function study(count=4){const s=normalizeStudy(defaultStudy());s.populationCalc.rows[0].amount=70;for(let i=1;i<count;i++){s.populationCalc=appendFloorComposition(s.populationCalc,{...clone(s.populationCalc.rows[0]),label:'Pavimento '+(i+1)});}return s;}
 const marks=pc=>pc.rows.map(row=>row.floorMark);
 test('marcações: negativos, zero, números e letras limitados a dois caracteres',()=>{for(const mark of ['-9','-1','0','9','99','A','SS','ZZ'])assert.equal(parseFloorMark(mark),mark);assert.equal(parseFloorMark('ss'),'SS');assert.equal(parseFloorMark('−1'),'-1');for(const mark of ['100','-10','AAA','T1','','!','1.5'])assert.throws(()=>parseFloorMark(mark),/2 caracteres/);assert.equal(nextFloorMark('-1'),'0');assert.equal(nextFloorMark('Z'),'AA');assert.equal(nextFloorMark('AZ'),'BA');assert.throws(()=>nextFloorMark('ZZ'));});

@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultStudy,defaultGroup,recalculatePopulationAndStudies} from '../public/engine.js';
-import {normalizeStudy} from '../public/state.js';
-import {meanFlight} from '../public/starts.js';
-import {defaultDestinationControl,calculateDestinationGroup,validateDestinationControl,destinationReport} from '../public/destination-control.js';
-import {newOffer,evaluateOffer,procurementCharts} from '../public/procurement.js';
+import {defaultStudy,defaultGroup,recalculatePopulationAndStudies} from '../www/engine.js';
+import {normalizeStudy} from '../www/state.js';
+import {meanFlight} from '../www/starts.js';
+import {defaultDestinationControl,calculateDestinationGroup,validateDestinationControl,destinationReport} from '../www/destination-control.js';
+import {newOffer,evaluateOffer,procurementCharts} from '../www/procurement.js';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-7*Math.max(1,Math.abs(b)),`${a} != ${b}`);
 function sample(){const s=normalizeStudy(defaultStudy());s.groups=[{...defaultGroup(),count:3,capacity:10,stops:11,travel:30,open:1,close:1,passenger:1,startsLimit:500,destinationControl:{...defaultDestinationControl(),enabled:true}}];return s;}
 test('destino: ocupação padrão 80%, exata e independente da lotação normativa',()=>{const s=sample(),o=newOffer(s);assert.equal(o.groups[0].destinationControl.occupancy,80);assert.equal(o.groups[0].destinationControl.enabled,false);s.groups[0].capacity=6;const d=calculateDestinationGroup(s,s.groups[0],{});near(d.passengers,4.8);near(d.capacity,300*4.8*3/d.cycle);assert.equal(s.groups[0].capacity,6);s.groups[0].destinationControl.occupancy=1;near(calculateDestinationGroup(s,s.groups[0],{}).passengers,.06);});

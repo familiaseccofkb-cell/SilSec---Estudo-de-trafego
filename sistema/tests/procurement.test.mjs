@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {D1,R2} from './helpers/sqlite-d1.mjs';
 import {handleApi} from '../server/api.mjs';
-import {defaultStudy,recalculatePopulationAndStudies,calculateGroup} from '../public/engine.js';
-import {newOffer,rankOffers,productKey,procurementCharts} from '../public/procurement.js';
-import {allStudyCharts} from '../public/analysis-charts.js';
-import {validateSchedule} from '../public/schedule.js';
+import {defaultStudy,recalculatePopulationAndStudies,calculateGroup} from '../www/engine.js';
+import {newOffer,rankOffers,productKey,procurementCharts} from '../www/procurement.js';
+import {allStudyCharts} from '../www/analysis-charts.js';
+import {validateSchedule} from '../www/schedule.js';
 import {analyzeInvoice} from '../server/invoice-ai.mjs';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-7*Math.max(1,Math.abs(b)),`${a} != ${b}`);
 async function fixture(){const env={DB:new D1(),BUCKET:new R2(),SITE_OWNER_EMAIL:'owner@test.dev'},owner={id:'o',email:'owner@test.dev'};async function call(path,method='GET',data,user=owner){const h={'content-type':'application/json'};if(user){h['oai-authenticated-user-id']=user.id;h['oai-authenticated-user-email']=user.email;}const r=await handleApi(new Request('https://traffic.test/api/'+path,{method,headers:h,body:data===undefined?undefined:JSON.stringify(data)}),env);return {status:r.status,data:await r.json()};}await call('session');const project=(await call('projects','PUT',{study:defaultStudy(),calculate:true})).data;async function invite(email,company,kind='supplier'){const r=await call('projects/'+project.id+'/access','POST',{email,company,kind,name:company});assert.equal(r.status,201,JSON.stringify(r.data));const user={id:email,email,memberId:r.data.memberId};await call('session','GET',undefined,user);return user;}return {env,call,project,owner,invite};}

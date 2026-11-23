@@ -1,5 +1,5 @@
-import {reusableCatalogData} from '../public/dimensions.js';
-import {fullAccess,productKey} from '../public/procurement.js';
+import {reusableCatalogData} from '../www/dimensions.js';
+import {fullAccess,productKey} from '../www/procurement.js';
 const sql=(db,q,a=[])=>db.prepare(q).bind(...a),rows=async(db,q,a)=>(await sql(db,q,a).all()).results;
 const reject=(status,message,extra)=>{const e=Error(message);e.status=status;e.extra=extra;throw e;};
 export async function dimensionalCatalogApi(ctx){const {request,db,user,parts,method,resource,json}=ctx;if(parts[0]!=='dimensional-catalog')return null;if(method!=='GET')reject(405,'Cadastre produtos pela proposta autorizada.');const {organizationFor,isSupplier,isClient}=await import('./tenant.mjs'),org=await organizationFor(db,user),q=Object.fromEntries(new URL(request.url).searchParams),where=["json_extract(data_json,'$.product.dimensions.version')=1"],args=[];

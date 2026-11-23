@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {populationTypes,populationSnapshot,populationStatus,calculatePopulation,populationOptions} from '../public/population.js';
-import {defaultEscalators,layoutEscalators} from '../public/escalators.js';
-import {USES,clone,defaultStudy,defaultAuxiliary,populationComponent,recalculatePopulationAndStudies,calculateStudy,validateStudy} from '../public/engine.js';
-import {normalizeStudy,decodeImport,restoreState,initialState,saveScenario} from '../public/state.js';
+import {populationTypes,populationSnapshot,populationStatus,calculatePopulation,populationOptions} from '../www/population.js';
+import {defaultEscalators,layoutEscalators} from '../www/escalators.js';
+import {USES,clone,defaultStudy,defaultAuxiliary,populationComponent,recalculatePopulationAndStudies,calculateStudy,validateStudy} from '../www/engine.js';
+import {normalizeStudy,decodeImport,restoreState,initialState,saveScenario} from '../www/state.js';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-8,`${a} != ${b}`);
 function mixed(){const s=defaultStudy();s.populationCalc.rows[0].amount=700;s.populationCalc.rows.push({...populationComponent('offices','garage'),mode:'external',amount:100,conditionsConfirmed:true},{...populationComponent('offices','restaurant'),mode:'external',amount:150},{...populationComponent('offices','auditorium'),amount:300,auditoriumDemandPercent:40,auditoriumInterval:30},{...populationComponent('offices','garage'),amount:100});return s;}
 function network(){const n=defaultEscalators();Object.assign(n,{enabled:true,capacityBasis:'manufacturer',aboveCount:2,belowCount:0,capacityConfirmed:true});layoutEscalators(n,0);n.links.forEach(link=>Object.assign(link,{served:true,upPresent:true,downPresent:true,pairConfirmed:true,geometryConfirmed:true,capacityUpHourly:4500,capacityDownHourly:4500,capacitySource:'Ficha técnica de teste',widthUp:600,widthDown:600}));return n;}

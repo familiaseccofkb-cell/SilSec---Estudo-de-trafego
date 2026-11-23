@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultStudy,recalculatePopulationAndStudies,validateStudy} from '../public/engine.js';
-import {normalizeStudy} from '../public/state.js';
-import {syncDimensionalDoor,copySiteDimensions} from '../public/silsec-dimensions.js';
-import {fleetCars} from '../public/fleet.js';
-import {doorTotal,carTimingTable} from '../public/car-controls.js';
+import {defaultStudy,recalculatePopulationAndStudies,validateStudy} from '../www/engine.js';
+import {normalizeStudy} from '../www/state.js';
+import {syncDimensionalDoor,copySiteDimensions} from '../www/silsec-dimensions.js';
+import {fleetCars} from '../www/fleet.js';
+import {doorTotal,carTimingTable} from '../www/car-controls.js';
 
 test('revisão: editar largura dimensional em estudo legado mantém cálculo e população disponíveis',()=>{
  const s=normalizeStudy(defaultStudy()),before=recalculatePopulationAndStudies(s);

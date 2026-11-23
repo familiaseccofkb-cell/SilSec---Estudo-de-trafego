@@ -1,8 +1,8 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {parseShaftReference} from '../scripts/import-shaft-reference.mjs';
-import {SHAFT_REFERENCE_DATA as data,lookupShaftReference,shaftReferenceStatus,applyShaftReference} from '../public/shaft-reference.js';
-import {applyDimensionReference,confirmManufacturerDimension,referenceForCars} from '../public/dimension-reference.js';
-import {emptyProductDimensions} from '../public/dimensions.js';import {defaultStudy,recalculatePopulationAndStudies} from '../public/engine.js';import {normalizeStudy} from '../public/state.js';import {fleetCars,projectFleet} from '../public/fleet.js';
+import {SHAFT_REFERENCE_DATA as data,lookupShaftReference,shaftReferenceStatus,applyShaftReference} from '../www/shaft-reference.js';
+import {applyDimensionReference,confirmManufacturerDimension,referenceForCars} from '../www/dimension-reference.js';
+import {emptyProductDimensions} from '../www/dimensions.js';import {defaultStudy,recalculatePopulationAndStudies} from '../www/engine.js';import {normalizeStudy} from '../www/state.js';import {fleetCars,projectFleet} from '../www/fleet.js';
 const query=()=>({capacity:6,speed:1,travel:30,machineRoom:'mrl',fabrication:'standard',cabinType:'conventional',door:'lateral',width:800,doorArrangement:'same'});
 const group=()=>({...query(),dimensionReference:{machineRoom:'mrl',fabrication:'standard',cabinType:'conventional',doorArrangement:'same',cabinHeight:2300,doorHeight:2100},product:{dimensions:emptyProductDimensions()},siteDimensions:{shaftWidth:1300,shaftDepth:1500}});
 test('caixa/cabina: 660 registros únicos, 42 inconsistentes preservados e observação para eixo vertical',()=>{assert.equal(data.originalDataRows,660);assert.equal(data.uniqueRows,660);assert.equal(data.duplicatesRemoved,0);assert.equal(data.invalidRows,42);assert.equal(data.records.filter(r=>r.usable).length,618);assert.equal(new Set(data.records.map(r=>JSON.stringify(r.values))).size,660);assert.equal(data.notes[0].door,'EIXO VERTICAL');assert.match(data.notes[0].text,/CONSULTAR/);});

@@ -1,8 +1,8 @@
-// Marca do servidor (SILSEC_MARCA = silsec | tes): ajusta, ao entregar, os arquivos estáticos que não leem public/brand.js.
+// Marca do servidor (SILSEC_MARCA = silsec | tes): ajusta, ao entregar, os arquivos estáticos que não leem www/brand.js.
 // Na marca SilSec só brand.js muda (sai apenas com o perfil SilSec); os demais saem iguais ao disco.
-import {BRAND, MARCAS} from '../../public/brand.js';
+import {BRAND, MARCAS} from '../../www/brand.js';
 
-// No pacote TES, public/brand.js já vem gravado só com o perfil TES (scripts/materializar-marca.mjs); aí as trocas dos
+// No pacote TES, www/brand.js já vem gravado só com o perfil TES (scripts/materializar-marca.mjs); aí as trocas dos
 // manuais não acham nada para trocar, e basta o e-mail/telefone de origem dos manuais gerados.
 const SILSEC = MARCAS.silsec || {email: 'contato@silsec-engenharia.com.br', phone: BRAND.phone};
 // Manuais gerados de help.js (scripts/generate-help.mjs) com a marca SilSec: na TES saem sem nenhuma referência à SilSec.
@@ -60,11 +60,11 @@ const TROCAS = {
 
 export const marcaAtiva = () => BRAND.id;
 
-// rel = caminho relativo dentro de public/ (ex.: 'brand.js'); body = Buffer do disco.
+// rel = caminho relativo dentro de www/ (ex.: 'brand.js'); body = Buffer do disco.
 // O navegador recebe brand.js só com o perfil da marca ativa: a TES não carrega dados da SilSec, nem a SilSec os da TES.
 export function brandJsDaMarca(marca = BRAND) {
   return [
-    `// ${marca.name} · identidade (gerado pelo servidor a partir de public/brand.js).`,
+    `// ${marca.name} · identidade (gerado pelo servidor a partir de www/brand.js).`,
     `export const BRAND = Object.freeze(${JSON.stringify(marca)});`,
     `export const MARCAS = Object.freeze({${marca.id}: BRAND});`,
     'export const contactLine = () => BRAND.phone + " · " + BRAND.email;',

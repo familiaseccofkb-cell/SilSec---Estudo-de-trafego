@@ -1,8 +1,8 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {defaultEscalatorBank,calculateEscalatorNetwork} from '../public/escalator-network.js';
-import {defaultEscalators,calculateEscalators} from '../public/escalators.js';
-import {defaultStudy,recalculatePopulationAndStudies} from '../public/engine.js';import {normalizeStudy} from '../public/state.js';
-import {prepareEscalatorStudy,hasSelectedEscalatorFloor,escalatorTabAvailable,selectEscalatorFloor} from '../public/transport-config.js';import {remodelEscalators} from '../public/escalator-editor.js';
+import {defaultEscalatorBank,calculateEscalatorNetwork} from '../www/escalator-network.js';
+import {defaultEscalators,calculateEscalators} from '../www/escalators.js';
+import {defaultStudy,recalculatePopulationAndStudies} from '../www/engine.js';import {normalizeStudy} from '../www/state.js';
+import {prepareEscalatorStudy,hasSelectedEscalatorFloor,escalatorTabAvailable,selectEscalatorFloor} from '../www/transport-config.js';import {remodelEscalators} from '../www/escalator-editor.js';
 const lines=[{floor:1,beforeEscalator:100,escalatorRequested:true}],config=()=>({...defaultEscalators(),enabled:true,graphVersion:2,confirmationPolicy:'parameters-only-v1',allowedFloors:[0,1],accessSelected:true,links:[{from:0,floor:1,served:true,rise:3,banks:[defaultEscalatorBank()]}]});
 test('escadas: capacidade válida dispensa todas as confirmações manuais',()=>{const c=config();assert.equal(c.capacityConfirmed,false);assert.equal(c.links[0].banks[0].pairConfirmed,false);assert.equal(c.links[0].banks[0].geometryConfirmed,false);delete c.links[0].banks[0].capacitySource;delete c.links[0].banks[0].pairConfirmed;delete c.links[0].banks[0].geometryConfirmed;const r=calculateEscalatorNetwork(c,0,lines);assert.equal(r.excludedPopulation,100);assert.equal(r.floors[1].remainingPopulation,0);assert.equal(r.capacityConfirmed,false);assert.equal(r.confirmationPolicy,'parameters-only-v1');});
 test('escadas: documento é opcional, capacidade numérica do fabricante continua necessária',()=>{const c=config();c.capacityBasis='manufacturer';Object.assign(c.links[0].banks[0],{capacityUpHourly:6000,capacityDownHourly:6000,capacitySource:''});assert.equal(calculateEscalatorNetwork(c,0,lines).excludedPopulation,100);c.links[0].banks[0].capacityUpHourly=0;assert.equal(calculateEscalatorNetwork(c,0,lines).excludedPopulation,0);});

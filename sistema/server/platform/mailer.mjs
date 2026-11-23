@@ -1,4 +1,4 @@
-import {BRAND} from '../../public/brand.js';
+import {BRAND} from '../../www/brand.js';
 // Envio de e-mails transacionais (confirmação de cadastro, recuperação de senha, chaves de acesso, contato) via SMTP.
 // Na Hostinger: smtp.hostinger.com, porta 465, caixa contato@silsec-engenharia.com.br (padrão) — basta definir SMTP_PASSWORD.
 // Sem SMTP configurado, o link é registrado no log do servidor (hPanel → Node.js → Logs) para o administrador.
@@ -52,11 +52,12 @@ export function createMailer(smtp, log = console, {createTransport} = {}) {
     status() {
       return {configured: !!smtp, host: smtp?.host || '', port: smtp?.port || null, secure: !!smtp?.secure, user: smtp?.user || '', from: smtp?.from || '', lastError, lastDeliveredAt};
     },
-    async send({to, subject, text, html, replyTo}) {
+    // logText: versão do texto que pode ir para o log quando o e-mail não sai (ex.: sem a senha temporária).
+    async send({to, subject, text, html, replyTo, logText}) {
       let t;
-      try { t = await getTransport(); } catch (error) { return failure(error, to, subject, text); }
+      try { t = await getTransport(); } catch (error) { return failure(error, to, subject, logText ?? text); }
       if (!t) {
-        log.warn(`[e-mail não enviado: SMTP não configurado] Para: ${to} · Assunto: ${subject}\n${text}`);
+        log.warn(`[e-mail não enviado: SMTP não configurado] Para: ${to} · Assunto: ${subject}\n${logText ?? text}`);
         return {delivered: false, configured: false, reason: 'Envio de e-mail não configurado neste servidor (defina SMTP_PASSWORD nas variáveis de ambiente).'};
       }
       try {
@@ -65,7 +66,7 @@ export function createMailer(smtp, log = console, {createTransport} = {}) {
         return {delivered: true, configured: true, messageId: info?.messageId || null};
       } catch (error) {
         // Senha errada ou servidor fora do ar não derrubam a tela; o motivo e o link ficam no log e na tela do administrador.
-        return failure(error, to, subject, text);
+        return failure(error, to, subject, logText ?? text);
       }
     },
     // Envio de teste pelo painel do administrador.

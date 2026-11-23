@@ -1,10 +1,10 @@
 // Marca configurável (pedido de 21/11/2026): o mesmo código mostra SilSec Engenharia ou Traffic Estimator System (TES).
-// A marca é lida de SILSEC_MARCA quando public/brand.js é carregado; por isso a TES é conferida num processo separado.
+// A marca é lida de SILSEC_MARCA quando www/brand.js é carregado; por isso a TES é conferida num processo separado.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {BRAND, MARCAS} from '../public/brand.js';
+import {BRAND, MARCAS} from '../www/brand.js';
 import {ajustarArquivoMarca, arquivoDaMarca, arquivoFisicoDaMarca} from '../server/platform/marca.mjs';
 import {readFileSync} from 'node:fs';
 import {montarAmbiente} from '../rede-local.mjs';
@@ -35,20 +35,20 @@ test('perfil TES: contato, site e logo próprios; da SilSec só a menção de pr
 
 test('arquivos estáticos na marca TES: brand.js, título, manifesto, manuais e aviso offline sem SilSec', () => {
   const t = MARCAS.tes, aj = (rel, s) => ajustarArquivoMarca(rel, Buffer.from(s), t).toString();
-  const bj = aj('brand.js', readFileSync(new URL('../public/brand.js', import.meta.url), 'utf8'));
+  const bj = aj('brand.js', readFileSync(new URL('../www/brand.js', import.meta.url), 'utf8'));
   assert.match(bj, /"id":"tes"/);
   assert.doesNotMatch(semProduto(bj), /silsec/i, 'brand.js da TES não leva o perfil SilSec');
   assert.doesNotMatch(ajustarArquivoMarca('brand.js', Buffer.from(''), MARCAS.silsec).toString(), /trafficestimator|"TES"/i, 'brand.js da SilSec não leva o perfil TES');
-  assert.doesNotMatch(aj('sw.js', readFileSync(new URL('../public/sw.js', import.meta.url), 'utf8')), /silsec/i);
-  assert.doesNotMatch(aj('styles.css', readFileSync(new URL('../public/styles.css', import.meta.url), 'utf8')), /SilSec/);
+  assert.doesNotMatch(aj('sw.js', readFileSync(new URL('../www/sw.js', import.meta.url), 'utf8')), /silsec/i);
+  assert.doesNotMatch(aj('styles.css', readFileSync(new URL('../www/styles.css', import.meta.url), 'utf8')), /SilSec/);
   assert.equal(aj('index.html', '<title>SilSec Engenharia | Estudos de tráfego</title>'), '<title>Traffic Estimator System | Estudos de tráfego</title>');
   assert.match(aj('manifest.webmanifest', '"short_name": "SilSec"'), /"short_name": "TES"/);
-  const manifesto = aj('manifest.webmanifest', readFileSync(new URL('../public/manifest.webmanifest', import.meta.url), 'utf8'));
+  const manifesto = aj('manifest.webmanifest', readFileSync(new URL('../www/manifest.webmanifest', import.meta.url), 'utf8'));
   assert.doesNotMatch(manifesto, /vistoria|silsec/i, 'app instalado da TES sem atalho de vistorias');
   assert.doesNotThrow(() => JSON.parse(manifesto), 'manifesto continua JSON válido');
   assert.match(aj('sw.js', '<title>Sem conexão · SilSec</title>'), /Sem conexão · TES/);
   for (const m of ['manual-do-usuario.html', 'explicacao-dos-calculos.html']) {
-    const out = aj(m, readFileSync(new URL('../public/' + m, import.meta.url), 'utf8'));
+    const out = aj(m, readFileSync(new URL('../www/' + m, import.meta.url), 'utf8'));
     assert.doesNotMatch(out.replace(/(id|href)="#?help-silsec\d+"/g, ''), /SilSec|silsec-engenharia/, m);
     assert.match(out, /contato@trafficestimatorsystem\.com/, m);
   }
@@ -64,12 +64,12 @@ test('arquivos de uma marca não são entregues na outra', () => {
   for (const [rel, tes] of [['favicon.svg', 'marca/tes/favicon.svg'], ['apple-touch-icon.png', 'marca/tes/apple-touch-icon.png'], ['icones/icone-192.png', 'marca/tes/icone-192.png'], ['icones/icone-512.png', 'marca/tes/icone-512.png'], ['icones/icone-maskable-512.png', 'marca/tes/icone-maskable-512.png']]) {
     assert.equal(arquivoFisicoDaMarca(rel, MARCAS.tes), tes);
     assert.equal(arquivoFisicoDaMarca(rel, MARCAS.silsec), rel);
-    assert.ok(readFileSync(new URL('../public/' + tes, import.meta.url)).length > 1000, tes);
+    assert.ok(readFileSync(new URL('../www/' + tes, import.meta.url)).length > 1000, tes);
   }
 });
 
 test('site na marca TES: página do sistema com logo TES; da SilSec só "Produto da SilSec Engenharia" no rodapé', () => {
-  const out = emTes(`import {modulesPage} from './server/site/pages.mjs';import {BRAND} from './public/brand.js';import {salePlans} from './server/platform/plans.mjs';
+  const out = emTes(`import {modulesPage} from './server/site/pages.mjs';import {BRAND} from './www/brand.js';import {salePlans} from './server/platform/plans.mjs';
     const h = modulesPage({plans: salePlans({}), session: null}); console.log(JSON.stringify({id: BRAND.id, h}));`);
   const {id, h} = JSON.parse(out);
   assert.equal(id, 'tes');

@@ -1,13 +1,13 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {defaultStudy,calculateGroup,recalculatePopulationAndStudies,validateStudy} from '../public/engine.js';
-import {normalizeStudy,decodeImport} from '../public/state.js';
-import {changeCar,projectFleet,fleetCars,fleetTable,resizeFleet} from '../public/fleet.js';
-import {transportOptions,escalatorFloorNotice,transportQuestion,transportReport} from '../public/transport-config.js';
-import {synchronizeFloorTable,floorTableHtml,resizeFloorTable,ensureFloorCompositions} from '../public/building-floors.js';
-import {remodelEscalators} from '../public/escalator-editor.js';
-import {inputReadiness,readinessHtml,newStudy} from '../public/study-inputs.js';
-import {switchTrafficModel} from '../public/models.js';
-import {allStudyCharts} from '../public/analysis-charts.js';
+import {defaultStudy,calculateGroup,recalculatePopulationAndStudies,validateStudy} from '../www/engine.js';
+import {normalizeStudy,decodeImport} from '../www/state.js';
+import {changeCar,projectFleet,fleetCars,fleetTable,resizeFleet} from '../www/fleet.js';
+import {transportOptions,escalatorFloorNotice,transportQuestion,transportReport} from '../www/transport-config.js';
+import {synchronizeFloorTable,floorTableHtml,resizeFloorTable,ensureFloorCompositions} from '../www/building-floors.js';
+import {remodelEscalators} from '../www/escalator-editor.js';
+import {inputReadiness,readinessHtml,newStudy} from '../www/study-inputs.js';
+import {switchTrafficModel} from '../www/models.js';
+import {allStudyCharts} from '../www/analysis-charts.js';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-7,`${a} != ${b}`),h={esc:String,f:String,button:(a,l,c,i,attrs='')=>`<button data-action="${a}" ${attrs}>${l}</button>`};
 function sample(){const s=normalizeStudy(defaultStudy());s.groups[0].count=2;s.groups[1].count=1;return s;}
 test('equipamentos: pergunta inicial não libera abas nem descarta confirmação antiga',()=>{let s=sample();assert.equal(transportOptions(s).escalators,null);assert.match(transportQuestion(s,h),/Confirmar utilização/);s.populationCalc.escalators.enabled=true;assert.equal(transportOptions(s).escalators,true);s.transportEquipment={version:1,escalators:false,walkways:true};assert.equal(transportOptions(s).escalators,false);assert.equal(transportOptions(s).walkways,true);const fresh=newStudy();assert.ok(inputReadiness(fresh).find(x=>x.title==='Equipamentos previstos').missing.length===1);});

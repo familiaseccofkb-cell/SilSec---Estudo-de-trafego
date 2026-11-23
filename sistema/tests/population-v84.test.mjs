@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {calculatePopulation,defaultPopulationRow,populationOptions} from '../public/population.js';
-import {defaultStudy,recalculatePopulationAndStudies} from '../public/engine.js';
-import {compositionName} from '../public/population-names.js';
-import {defaultEscalatorBank} from '../public/escalator-network.js';
-import {copyPopulationToFloors,selectPopulationCopyFields,populationCopySections} from '../public/population-copy.js';
-import {allocateEscalatorPopulation} from '../public/escalator-allocation.js';
-import {normalizeStudy} from '../public/state.js';
-import {ensureFloorCompositions,resizeFloorTable} from '../public/building-floors.js';
+import {calculatePopulation,defaultPopulationRow,populationOptions} from '../www/population.js';
+import {defaultStudy,recalculatePopulationAndStudies} from '../www/engine.js';
+import {compositionName} from '../www/population-names.js';
+import {defaultEscalatorBank} from '../www/escalator-network.js';
+import {copyPopulationToFloors,selectPopulationCopyFields,populationCopySections} from '../www/population-copy.js';
+import {allocateEscalatorPopulation} from '../www/escalator-allocation.js';
+import {normalizeStudy} from '../www/state.js';
+import {ensureFloorCompositions,resizeFloorTable} from '../www/building-floors.js';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-7,`${a} != ${b}`);
 const row=(floor,population,extra={})=>({...defaultPopulationRow(),label:'Ambiente '+floor,floor,floorMark:String(floor),servedFloorMark:String(floor),servedFloorLevel:floor,amount:population*7,...extra});
 function network(links=[{from:0,floor:1},{from:1,floor:2}]){return {enabled:true,graphVersion:2,allowedFloors:[0,1,2],capacityBasis:'manufacturer',periodMinutes:5,demandPercent:100,utilizationPercent:100,capacityConfirmed:true,links:links.map(l=>({...l,served:true,rise:3,banks:[{...defaultEscalatorBank(),capacityUpHourly:1200,capacityDownHourly:1200,capacitySource:'Fabricante · ficha técnica',geometryConfirmed:true,pairConfirmed:true}]}))};}
@@ -31,6 +31,6 @@ test('cópia seletiva mantém apenas escolhas, nunca confirmações locais, aces
  const optional=copyPopulationToFloors(s,index,['2'],['component','quantities','discounts','escalators']).populationCalc.rows.find(r=>r.servedFloorMark==='2');assert.equal(optional.discount,'adjacent50');assert.equal(optional.servedByEscalator,true);assert.equal(optional.conditionsConfirmed,false);assert.equal(optional.isStreetAccess,false);assert.equal(optional.declaredPopulation,0);assert.throws(()=>copyPopulationToFloors(s,index,['2'],[]),/pelo menos/);assert.throws(()=>selectPopulationCopyFields({}, {}, 'offices',['unknown']),/válido/);assert.match(populationCopySections(['declared']),/data-population-copy-section="declared" checked/);
 });
 test('recálculo completo usa residual e conserva memória exibível',()=>{const s=normalizeStudy(defaultStudy());s.populationCalc.rows=[row(1,160,{servedByEscalator:true})];s.populationCalc.escalators=network([{from:0,floor:1}]);const r=recalculatePopulationAndStudies(s);assert.equal(r.study.population,60);near(r.results.required,7.2);assert.equal(r.results.population.lines[0].calculatedNet,160);near(r.results.population.escalators.excludedPopulation,100);assert.equal(calculatePopulation(s.use,s.populationCalc.rows,populationOptions(s)).value,60);});
-test('ISO: atendimento parcial preserva cálculo físico e arredondamento não reintroduz ambiente excluído',async()=>{const {switchTrafficModel}=await import('../public/models.js');const s=switchTrafficModel(defaultStudy(),'iso8100'),base=s.populationCalc.rows[0];Object.assign(base,{amount:1120,floor:1,servedFloorMark:'1',floorMark:'1',servedFloorLevel:1,servedByEscalator:true});s.populationCalc.rows=[base];s.populationCalc.escalators=network([{from:0,floor:1}]);const noNetwork=calculatePopulation(s.use,s.populationCalc.rows,{...populationOptions(s),escalators:{enabled:false}}),partial=calculatePopulation(s.use,s.populationCalc.rows,populationOptions(s));assert.equal(partial.value,Math.ceil(noNetwork.value-100-1e-8));assert.equal(partial.lines[0].calculatedNet,noNetwork.lines[0].calculatedNet);assert.doesNotMatch(partial.lines[0].escalatorReason,/NBR 5665/);
+test('ISO: atendimento parcial preserva cálculo físico e arredondamento não reintroduz ambiente excluído',async()=>{const {switchTrafficModel}=await import('../www/models.js');const s=switchTrafficModel(defaultStudy(),'iso8100'),base=s.populationCalc.rows[0];Object.assign(base,{amount:1120,floor:1,servedFloorMark:'1',floorMark:'1',servedFloorLevel:1,servedByEscalator:true});s.populationCalc.rows=[base];s.populationCalc.escalators=network([{from:0,floor:1}]);const noNetwork=calculatePopulation(s.use,s.populationCalc.rows,{...populationOptions(s),escalators:{enabled:false}}),partial=calculatePopulation(s.use,s.populationCalc.rows,populationOptions(s));assert.equal(partial.value,Math.ceil(noNetwork.value-100-1e-8));assert.equal(partial.lines[0].calculatedNet,noNetwork.lines[0].calculatedNet);assert.doesNotMatch(partial.lines[0].escalatorReason,/NBR 5665/);
  s.populationCalc.escalators.enabled=false;base.amount=101;s.populationCalc.rows.push({...base,amount:70,floorMark:'2',participationVersion:1,participation:'exclude'});const result=calculatePopulation(s.use,s.populationCalc.rows,populationOptions(s));assert.equal(result.lines[1].net,0);assert.ok(result.lines[1].calculatedNet>0);assert.ok(result.lines[0].floorRounding>0);near(result.floors[0].recorded-result.floors[0].notComputed,result.floors[0].adopted);
 });

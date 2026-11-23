@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {annexPages} from '../public/report.js';
-import {defaultStudy,recalculatePopulationAndStudies} from '../public/engine.js';
-import {normalizeStudy} from '../public/state.js';
-import {changeCar,fleetCars} from '../public/fleet.js';
-import {carWarnings,autoFillCar} from '../public/car-controls.js';
+import {annexPages} from '../www/report.js';
+import {defaultStudy,recalculatePopulationAndStudies} from '../www/engine.js';
+import {normalizeStudy} from '../www/state.js';
+import {changeCar,fleetCars} from '../www/fleet.js';
+import {carWarnings,autoFillCar} from '../www/car-controls.js';
 
 // 9.5.7 (Fabio, 20/11/2026): a NBR usa a porta e o vão do projeto; o fabricante informa os dele em campos próprios.
 // Divergências geram aviso e um resumo de cálculo logo abaixo do Anexo A · Fabricante.

@@ -1,4 +1,4 @@
-// TES · motor de cálculo: parte de cálculo de traffic-performance.js (a parte de tela ficou em public/traffic-performance.js).
+// Motor de cálculo: parte de cálculo de traffic-performance.js (a parte de tela ficou em www/traffic-performance.js).
 import {nominalCapacity} from './cabin-occupancy.js';
 import {simulateUpPeak,simulateTraffic} from './traffic-simulation.js';
 import {DOORS,trafficRate,calculateGroup} from './engine.js';

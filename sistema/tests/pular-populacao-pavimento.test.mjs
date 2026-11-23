@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {calculatePopulation,defaultPopulationCalc,setRowSkipPopulation} from '../public/population.js';
+import {calculatePopulation,defaultPopulationCalc,setRowSkipPopulation} from '../www/population.js';
 
 test('pavimento marcado para não calcular população não soma nada e remove a coleta',()=>{
   const pc=defaultPopulationCalc('offices');
@@ -31,7 +31,7 @@ test('marcação não afeta os demais pavimentos',()=>{
   assert.equal(out.lines[1].net>0,true);
 });
 
-import {discountAllowed} from '../public/population.js';
+import {discountAllowed} from '../www/population.js';
 
 test('desconto de 50% só vale no pavimento imediatamente acima ou abaixo com até 5 m',()=>{
   assert.equal(discountAllowed({floor:1,distance:3},0),true);

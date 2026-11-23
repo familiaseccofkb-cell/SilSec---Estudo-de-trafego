@@ -7,7 +7,7 @@ import {readConfig} from '../server/platform/config.mjs';
 import {createApp} from '../server/platform/app.mjs';
 import {openMysql, openSqlite} from '../server/platform/database.mjs';
 import {newAccessCode, normalizeCode, verifyMercadoPagoSignature, maskEmail} from '../server/platform/commerce.mjs';
-import {BRAND} from '../public/brand.js';
+import {BRAND} from '../www/brand.js';
 
 const OWNER = 'dono@silsec.test';
 

@@ -2,9 +2,9 @@
 // This does not replace browser rendering or a manual accessibility review.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {fieldStep} from '../public/workflow.js';
-import {STORAGE_KEY,normalizeStudy as normalizeStudyFn} from '../public/state.js';
-import {SPEED_OPTIONS,MAX_GROUPS,defaultStudy} from '../public/engine.js';
+import {fieldStep} from '../www/workflow.js';
+import {STORAGE_KEY,normalizeStudy as normalizeStudyFn} from '../www/state.js';
+import {SPEED_OPTIONS,MAX_GROUPS,defaultStudy} from '../www/engine.js';
 class Element{
  constructor(){this.innerHTML='';this.textContent='';this.dataset={};this.listeners={};this.classes=new Set();this.attrs={};this.classList={add:(c)=>this.classes.add(c),remove:(c)=>this.classes.delete(c),toggle:(c,on)=>on?this.classes.add(c):this.classes.delete(c)};this.value='';this.hidden=false;}
  setAttribute(k,v){this.attrs[k]=v;}
@@ -22,7 +22,7 @@ globalThis.localStorage={getItem:k=>stored.get(k)||null,setItem:(k,v)=>stored.se
 globalThis.fetch=async()=>({ok:false});
 globalThis.setTimeout=()=>1;globalThis.clearTimeout=()=>{};
 URL.createObjectURL=blob=>{blobs.push(blob);return 'blob:contract-check';};URL.revokeObjectURL=()=>{};
-await import('../public/app.js');
+await import('../www/app.js');
 function click(action,data={}){if(['group','add-group','remove-group','motion-step','add-auxiliary-group','remove-auxiliary-group','auxiliary-motion-step'].includes(action)&&state()?.view!=='parameters')click('workflow-step',{view:'parameters'});if(['add-population-row','copy-population-row','move-population-row','remove-population-row','layout-escalators'].includes(action)&&state()?.view!=='population')click('workflow-step',{view:'population'});const button={dataset:{action,...data},disabled:false};events.click({target:{closest:()=>button}});}
 function input(path,value,type='number'){const view=fieldStep(path);if(state()?.view!==view)click('workflow-step',{view});if(view==='performance'){const tab=path.startsWith('operation.')?'operation':'energy';if(state()?.analysisTab!==tab)click('analysis-tab',{tab});}const el={dataset:{path},value:type==='checkbox'?'on':String(value),type,checked:!!value,matches:()=>true};events.input({target:el});}
 function copyDestination(target,checked=true){events.change({target:{dataset:{groupCopyDestination:String(target)},checked,disabled:false,matches:()=>false}});}

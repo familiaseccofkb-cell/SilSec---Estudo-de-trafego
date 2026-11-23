@@ -1,5 +1,5 @@
 // Site institucional da SilSec Engenharia e páginas de ativação, assinatura e painel.
-import {BRAND} from '../../public/brand.js';
+import {BRAND} from '../../www/brand.js';
 import {brl, perMonth} from '../platform/plans.mjs';
 
 export const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));

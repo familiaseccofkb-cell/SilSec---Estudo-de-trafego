@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {motionProfile,motionAt,calculateGroupTravel} from '../public/travel-curves.js';
-import {travelGroupPanels,travelCurvesSection} from '../public/travel-curves-view.js';
-import {defaultStudy,defaultGroup,calculateGroup,recalculatePopulationAndStudies,populationComponent} from '../public/engine.js';
-import {appendFloorComposition} from '../public/floors.js';
-import {normalizeStudy} from '../public/state.js';
-import {switchTrafficModel} from '../public/models.js';
-import {meanFlight} from '../public/starts.js';
+import {motionProfile,motionAt,calculateGroupTravel} from '../www/travel-curves.js';
+import {travelGroupPanels,travelCurvesSection} from '../www/travel-curves-view.js';
+import {defaultStudy,defaultGroup,calculateGroup,recalculatePopulationAndStudies,populationComponent} from '../www/engine.js';
+import {appendFloorComposition} from '../www/floors.js';
+import {normalizeStudy} from '../www/state.js';
+import {switchTrafficModel} from '../www/models.js';
+import {meanFlight} from '../www/starts.js';
 const near=(actual,expected,tolerance=1e-8)=>assert.ok(Math.abs(actual-expected)<=tolerance*Math.max(1,Math.abs(expected)),`${actual} ≠ ${expected}`);
 
 test('curvas: trajetória analítica conhecida conserva distância, velocidade e tempos',()=>{

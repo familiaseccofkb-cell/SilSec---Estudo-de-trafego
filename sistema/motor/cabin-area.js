@@ -1,4 +1,4 @@
-// TES · motor de cálculo: parte de cálculo de cabin-area.js (a parte de tela ficou em public/cabin-area.js).
+// Motor de cálculo: parte de cálculo de cabin-area.js (a parte de tela ficou em www/cabin-area.js).
 import {fleetCars} from './fleet.js';
 export const CABIN_AREA_REFERENCE='Tabela e fórmulas de área interna fornecidas pelo usuário · revisão 17/10/2026';
 export const BASE_ROWS=[[4,.79,.9],[5,.98,1.1],[6,1.17,1.3],[7,1.31,1.45],[8,1.45,1.6],[9,1.59,1.75],[10,1.73,1.9],[11,1.87,2.05],[12,2.01,2.2],[13,2.15,2.4],[14,2.29,2.5],[15,2.43,2.65],[16,2.57,2.8],[17,2.71,2.95],[18,2.85,3.1],[19,2.99,3.25],[20,3.13,3.4]];

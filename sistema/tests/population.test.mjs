@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultPopulationRow,calculatePopulation,populationStatus,populationWarnings} from '../public/population.js';
-import {defaultStudy,defaultGroup,calculateStudy,minimumElevators,clone,validateStudy} from '../public/engine.js';
-import {restoreState,initialState,saveScenario,decodeImport} from '../public/state.js';
-import {REFERENCE_SECTIONS,CABIN_TABLE} from '../public/reference.js';
+import {defaultPopulationRow,calculatePopulation,populationStatus,populationWarnings} from '../www/population.js';
+import {defaultStudy,defaultGroup,calculateStudy,minimumElevators,clone,validateStudy} from '../www/engine.js';
+import {restoreState,initialState,saveScenario,decodeImport} from '../www/state.js';
+import {REFERENCE_SECTIONS,CABIN_TABLE} from '../www/reference.js';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-8,`${a} != ${b}`);
 const row=(use,amount,extra={})=>({...defaultPopulationRow(use),amount,...extra});
 test('população: áreas dos dois exemplos do anexo B',()=>{assert.equal(calculatePopulation('offices',[row('offices',9800)]).value,1400);assert.equal(calculatePopulation('offices',[row('offices',8400)]).value,1200);});

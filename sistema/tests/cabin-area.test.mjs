@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {cabinAreaLimits,cabinAreaCheck,cabinAreaHtml,CABIN_AREA_ROWS} from '../public/cabin-area.js';
-import {defaultStudy} from '../public/engine.js';
-import {normalizeStudy} from '../public/state.js';
-import {dimensionsReport} from '../public/dimensions.js';
+import {cabinAreaLimits,cabinAreaCheck,cabinAreaHtml,CABIN_AREA_ROWS} from '../www/cabin-area.js';
+import {defaultStudy} from '../www/engine.js';
+import {normalizeStudy} from '../www/state.js';
+import {dimensionsReport} from '../www/dimensions.js';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-10,`${a} ≠ ${b}`);
 
 test('área máxima: valores esperados de todas as expressões de 21 a 33',()=>{

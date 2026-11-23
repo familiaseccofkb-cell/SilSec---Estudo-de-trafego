@@ -1,4 +1,4 @@
-// TES · motor de cálculo: parte de cálculo de fleet.js (a parte de tela ficou em public/fleet.js).
+// Motor de cálculo: parte de cálculo de fleet.js (a parte de tela ficou em www/fleet.js).
 import {validCabinOccupancy,nominalCapacity} from './cabin-occupancy.js';
 import {effectiveIsoGroup} from './iso-engine.js';
 export const FLEET_HELP={'Capacidade (pessoas)':'car.capacity','Massa adotada por pessoa (kg/pessoa)':'car.personMassKg','Capacidade estimada em kg':'car.capacityKg','Velocidade (m/s)':'car.speed','Velocidade (m/min)':'car.speedMpm','Abertura livre da porta (mm)':'car.width','Tipo de porta':'car.door','Paradas prováveis':'car.probableStops','Tempos de abertura e fechamento de portas':'car.doorTimes','Tempo de aceleração e retardamento':'car.accelerationTime','Paradas (incluindo acesso)':'car.stops'};

@@ -1,8 +1,8 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {parseReference} from '../scripts/import-dimensional-reference.mjs';
-import {DIMENSION_REFERENCE_DATA as data,lookupDimensionReference,dimensionReferenceStatus,applyDimensionReference,confirmManufacturerDimension,referenceForCars,dimensionReferenceReport} from '../public/dimension-reference.js';
-import {defaultGroup,defaultStudy,recalculatePopulationAndStudies} from '../public/engine.js';
-import {normalizeStudy} from '../public/state.js';import {emptyProductDimensions} from '../public/dimensions.js';
+import {DIMENSION_REFERENCE_DATA as data,lookupDimensionReference,dimensionReferenceStatus,applyDimensionReference,confirmManufacturerDimension,referenceForCars,dimensionReferenceReport} from '../www/dimension-reference.js';
+import {defaultGroup,defaultStudy,recalculatePopulationAndStudies} from '../www/engine.js';
+import {normalizeStudy} from '../www/state.js';import {emptyProductDimensions} from '../www/dimensions.js';
 const config=()=>({capacity:8,speed:1,travel:30,machineRoom:'mrl',fabrication:'standard',doorHeight:2100,cabinHeight:2300});
 function group(){return {...defaultGroup(),capacity:8,dimensionReference:config(),siteDimensions:{headroom:3200,pit:900},product:{model:'Teste',document:'Ficha do fabricante',dimensions:{...emptyProductDimensions(),doorHeight:2100,cabinHeight:2300}}};}
 test('base dimensional: remove somente duplicatas, mantém origem e oito configurações divergentes',()=>{assert.equal(data.originalRows,2741);assert.equal(data.uniqueRows,2706);assert.equal(data.duplicatesRemoved,35);assert.equal(data.conflictingConfigurations.length,8);assert.equal(new Set(data.records.map(r=>JSON.stringify(r.values))).size,2706);assert.equal(new Set(data.records.map(r=>r.id)).size,2706);assert.equal(data.records.reduce((n,r)=>n+r.sourceLines.length,0),2741);assert.ok(data.records.every(r=>r.values.slice(0,7).every(Number.isFinite)));});

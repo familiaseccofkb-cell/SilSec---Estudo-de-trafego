@@ -1,7 +1,7 @@
 // Site, chaves de acesso de clientes, assinatura anual (Mercado Pago), painel do administrador e contato.
 import {randomBytes, createHash, createHmac, randomUUID, timingSafeEqual} from 'node:crypto';
-import {BRAND} from '../../public/brand.js';
-import {resolveLicenses, addCalendarMonths} from '../../public/licensing.js';
+import {BRAND} from '../../www/brand.js';
+import {resolveLicenses, addCalendarMonths} from '../../www/licensing.js';
 import {homePage, servicesPage, modulesPage, quotePage, consolePage, notice, esc, fmtDate, fmtDateTime, brl, perMonth} from '../site/pages.mjs';
 import {APP_HOME} from './auth.mjs';
 

@@ -7,7 +7,7 @@ import {createServer} from 'node:http';
 import {readConfig} from '../server/platform/config.mjs';
 import {createApp} from '../server/platform/app.mjs';
 import {openSqlite} from '../server/platform/database.mjs';
-import {BRAND} from '../public/brand.js';
+import {BRAND} from '../www/brand.js';
 
 const TES = 'https://trafficestimatorsystem.com';
 const VENDA = /m[óo]dulos? de software|Detalhes do m[óo]dulo|Sistema de estudo de tráfego (Básico|Completo)|R\$\s?\d|assinatura anual|30 dias|teste grátis|Testar 30|Acesso educacional|plataforma|href="\/modulos|href="\/experimentar/i;

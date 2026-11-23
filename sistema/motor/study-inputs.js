@@ -1,4 +1,4 @@
-// TES · motor de cálculo: parte de cálculo de study-inputs.js (a parte de tela ficou em public/study-inputs.js).
+// Motor de cálculo: parte de cálculo de study-inputs.js (a parte de tela ficou em www/study-inputs.js).
 import {resolvePending} from './pending-targets.js';
 import {hasFleet,projectFleet} from './fleet.js';
 import {transportOptions,WALKWAY_FIELDS} from './transport-config.js';

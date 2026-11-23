@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultStudy,defaultGroup,recalculatePopulationAndStudies} from '../public/engine.js';
-import {normalizeStudy} from '../public/state.js';
-import {switchTrafficModel} from '../public/models.js';
-import {calculateIsoGroup} from '../public/iso-engine.js';
-import {defaultIsoGroup,isoCriteria,applyIsoEdition} from '../public/iso-data.js';
-import {iso2020CarSelection,iso2020Door,iso2020Motion,iso2020ComplexityTriggers,iso2020SpeedRange} from '../public/iso2020.js';
-import {simulateUppeak,evaluateSimulation,runIsoSimulation} from '../public/iso-simulation.js';
-import {destinationEstimate,destinationEstimateNbr} from '../public/destination-estimate.js';
+import {defaultStudy,defaultGroup,recalculatePopulationAndStudies} from '../www/engine.js';
+import {normalizeStudy} from '../www/state.js';
+import {switchTrafficModel} from '../www/models.js';
+import {calculateIsoGroup} from '../www/iso-engine.js';
+import {defaultIsoGroup,isoCriteria,applyIsoEdition} from '../www/iso-data.js';
+import {iso2020CarSelection,iso2020Door,iso2020Motion,iso2020ComplexityTriggers,iso2020SpeedRange} from '../www/iso2020.js';
+import {simulateUppeak,evaluateSimulation,runIsoSimulation} from '../www/iso-simulation.js';
+import {destinationEstimate,destinationEstimateNbr} from '../www/destination-estimate.js';
 const close=(x,y,rel=.005)=>assert.ok(Math.abs(x-y)<=Math.abs(y)*rel,`${x} != ${y}`);
 const annexD={...defaultGroup(),count:6,capacity:21,stops:14,width:1100,door:'central',iso:{...defaultIsoGroup(),source:'table',edition:'iso2020'}};
 

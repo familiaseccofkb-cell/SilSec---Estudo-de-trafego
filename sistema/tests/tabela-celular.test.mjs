@@ -3,10 +3,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {defaultStudy, recalculatePopulationAndStudies} from '../public/engine.js';
-import {energySection} from '../public/analysis-view.js';
+import {defaultStudy, recalculatePopulationAndStudies} from '../www/engine.js';
+import {energySection} from '../www/analysis-view.js';
 
-const css = readFileSync(new URL('../public/styles.css', import.meta.url), 'utf8');
+const css = readFileSync(new URL('../www/styles.css', import.meta.url), 'utf8');
 // Separa as regras de tela das regras dentro de @media print.
 function split(text) {
   const screen = [], print = [];

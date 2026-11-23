@@ -1,9 +1,9 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {defaultStudy} from '../public/engine.js';import {normalizeStudy} from '../public/state.js';
-import {synchronizeFloorTable,setBuildingAccess,resizeFloorTable,ensureFloorCompositions} from '../public/building-floors.js';
-import {remodelEscalators,setEscalatorEndpoint,escalatorNetworkEditor} from '../public/escalator-editor.js';
-import {defaultEscalatorBank,calculateEscalatorNetwork,validateEscalatorNetwork,escalatorPath} from '../public/escalator-network.js';
-import {calculatePopulation,populationOptions} from '../public/population.js';
+import {defaultStudy} from '../www/engine.js';import {normalizeStudy} from '../www/state.js';
+import {synchronizeFloorTable,setBuildingAccess,resizeFloorTable,ensureFloorCompositions} from '../www/building-floors.js';
+import {remodelEscalators,setEscalatorEndpoint,escalatorNetworkEditor} from '../www/escalator-editor.js';
+import {defaultEscalatorBank,calculateEscalatorNetwork,validateEscalatorNetwork,escalatorPath} from '../www/escalator-network.js';
+import {calculatePopulation,populationOptions} from '../www/population.js';
 function fixture(){let s=normalizeStudy(defaultStudy());s.groups.forEach(g=>Object.assign(g,{stops:4,travel:9}));delete s.floorTable;s=normalizeStudy(s);s.floorTable.enabled=true;s=ensureFloorCompositions(s);s=remodelEscalators(s,{all:true});const c=s.populationCalc.escalators;Object.assign(c,{enabled:true,capacityBasis:'provided-table',capacityConfirmed:true});for(const l of c.links){l.served=true;l.banks.forEach(b=>Object.assign(b,{served:true,countUp:1,countDown:1,pairConfirmed:true,geometryConfirmed:true}));}return s;}
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-8,`${a} != ${b}`);
 test('escadas v2: múltiplos conjuntos e quantidades somam capacidade por sentido',()=>{const s=fixture(),c=s.populationCalc.escalators;const a=c.links[0].banks[0];Object.assign(a,{widthUp:600,widthDown:600,countUp:2,countDown:1});c.links[0].banks.push({...defaultEscalatorBank(),countUp:1,countDown:2,pairConfirmed:true,geometryConfirmed:true});const r=calculateEscalatorNetwork(c,0,[{floor:1,beforeEscalator:100,escalatorRequested:true},{floor:2,beforeEscalator:100,escalatorRequested:true}]);near(r.segments[0].hourlyUp,15750);near(r.segments[0].hourlyDown,18000);near(r.segments[0].capacityUp,1312.5);near(r.segments[0].capacityDown,1500);assert.equal(r.excludedPopulation,200);});

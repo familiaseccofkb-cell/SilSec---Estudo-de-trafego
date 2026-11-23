@@ -1,10 +1,10 @@
 // Console do desenvolvedor (/admin): gestão central de usuários, acessos, pagamentos, projetos, manutenção e cópias de
 // segurança. Todos os aplicativos (site, computador, Android e iOS) usam este mesmo banco, então tudo é controlado daqui.
 // Só administradores ativos entram; toda ação fica registrada na auditoria.
-import {BRAND} from '../../public/brand.js';
+import {BRAND} from '../../www/brand.js';
 import {randomUUID} from 'node:crypto';
-import {resolveLicenses, addCalendarMonths} from '../../public/licensing.js';
-import {ROLES} from '../../public/procurement.js';
+import {resolveLicenses, addCalendarMonths} from '../../www/licensing.js';
+import {ROLES} from '../../www/procurement.js';
 import {consolePage, esc, notice, fmtDate, fmtDateTime, brl} from '../site/pages.mjs';
 // Contas da administração com acesso permanente (lista em config.ownerEmails).
 const isOwnerEmail = (config, email) => { const e = String(email || '').trim().toLowerCase(); return !!e && (config.ownerEmails ? config.ownerEmails.has(e) : e === config.ownerEmail); };
@@ -17,7 +17,7 @@ const SETTINGS_SQL = {
   sqlite: 'INSERT INTO system_settings (name,value,updated_at) VALUES (?,?,?) ON CONFLICT(name) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at',
   mysql: 'INSERT INTO system_settings (name,value,updated_at) VALUES (?,?,?) ON DUPLICATE KEY UPDATE value=VALUES(value),updated_at=VALUES(updated_at)',
 };
-const BACKUP_TABLES = ['auth_users', 'members', 'module_grants', 'access_keys', 'payments', 'projects', 'clients', 'profiles', 'shares', 'project_access', 'delegations', 'offers', 'invoices', 'supplier_catalog', 'acquisition_requests', 'education_requests', 'billing_identities', 'silsec_organizations', 'silsec_memberships', 'silsec_registrations', 'silsec_invitations', 'silsec_commercial', 'silsec_documents', 'contact_messages', 'inspection_templates', 'inspections', 'system_settings', 'audit_log'];
+const BACKUP_TABLES = ['auth_users', 'members', 'module_grants', 'access_keys', 'payments', 'projects', 'clients', 'profiles', 'shares', 'project_access', 'delegations', 'offers', 'invoices', 'supplier_catalog', 'acquisition_requests', 'education_requests', 'billing_identities', 'silsec_organizations', 'silsec_memberships', 'silsec_registrations', 'silsec_invitations', 'silsec_commercial', 'silsec_documents', 'contact_messages', 'inspection_templates', 'inspections', 'system_settings', 'owner_data','audit_log'];
 
 export function createDevConsole({db, auth, config, commerce, log = console}) {
   const q = (sql, ...a) => db.prepare(sql).bind(...a);
@@ -105,7 +105,7 @@ export function createDevConsole({db, auth, config, commerce, log = console}) {
     });
     const body = `<div class="panel"><form method="get" action="${ADMIN_BASE}/usuarios" class="row2"><label class="field">Buscar por nome ou e-mail<input name="q" value="${esc(term)}"></label><div style="align-self:end"><button class="button small" type="submit">Buscar</button></div></form></div>
 <div class="panel"><h2>Usuários (${emails.length}) <a class="button ghost small" href="${ADMIN_BASE}/usuarios.csv" style="float:right">Baixar CSV (Excel)</a></h2><div class="table-wrap"><table class="data"><thead><tr><th>Usuário</th><th>Papel</th><th>Acesso</th><th>Conta</th><th>Último uso</th></tr></thead><tbody>${rows.join('') || '<tr><td colspan="5">Nenhum usuário.</td></tr>'}</tbody></table></div></div>
-<div class="panel"><h2>Cadastrar usuário</h2><p class="muted">Cria o cadastro, define o papel e envia o link para a pessoa criar a senha.</p><form class="stack" method="post" action="${ADMIN_BASE}/usuarios/novo"><div class="row2"><label class="field">Nome<input name="nome" required maxlength="200"></label><label class="field">E-mail<input name="email" type="email" required maxlength="254"></label></div><div class="row2"><label class="field">Papel<select name="papel">${Object.entries(ROLES).filter(([k]) => k !== 'member').map(([k, l]) => `<option value="${k}"${k === 'client_manager' ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></label><label class="field">Acesso inicial<select name="modulo"><option value="">Nenhum</option><option value="advanced">Completo</option><option value="basic">Básico</option></select></label></div><label class="field">Dias de acesso (0 = permanente)<input name="dias" type="number" min="0" max="3650" value="30"></label><div><button class="button teal" type="submit">Cadastrar e enviar link</button></div></form></div>`;
+<div class="panel"><h2>Cadastrar usuário</h2><p class="muted">Cria o cadastro, define o papel e envia por e-mail o link para a pessoa criar a senha ou uma senha temporária, que ela troca obrigatoriamente no primeiro acesso.</p><form class="stack" method="post" action="${ADMIN_BASE}/usuarios/novo"><div class="row2"><label class="field">Nome<input name="nome" required maxlength="200"></label><label class="field">E-mail<input name="email" type="email" required maxlength="254"></label></div><div class="row2"><label class="field">Papel<select name="papel">${Object.entries(ROLES).filter(([k]) => k !== 'member').map(([k, l]) => `<option value="${k}"${k === 'client_manager' ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></label><label class="field">Acesso inicial<select name="modulo"><option value="">Nenhum</option><option value="advanced">Completo</option><option value="basic">Básico</option></select></label></div><label class="field">Dias de acesso (0 = permanente)<input name="dias" type="number" min="0" max="3650" value="30"></label><div class="row2"><label class="field">Como a pessoa entra<select name="acesso"><option value="link">Link por e-mail para criar a senha</option><option value="temporaria">Senha temporária por e-mail (troca obrigatória no 1º acesso)</option></select></label><label class="field">Senha temporária (opcional; em branco o sistema gera)<input name="senha_temporaria" type="text" minlength="10" maxlength="200" autocomplete="off"></label></div><div><button class="button teal" type="submit">Cadastrar e enviar</button></div></form></div>`;
     return page(session, 'Usuários', '/usuarios', body, message);
   }
 
@@ -134,11 +134,11 @@ export function createDevConsole({db, auth, config, commerce, log = console}) {
     const sourceName = {trial: 'teste', mercadopago: 'anuidade paga', concession: 'concessão', key: 'chave', education: 'educacional', manual: 'pagamento manual'};
     const body = `<p><a href="${ADMIN_BASE}/usuarios">← Usuários</a></p><h2>${esc(u?.name || m?.name || '')} · ${esc(email)}</h2>
 <div class="panel"><h3>Situação</h3><table class="data"><tbody>
-<tr><th>Conta de acesso</th><td>${u ? `criada em ${fmtDate(u.created_at)} · ${u.email_verified_at ? 'e-mail confirmado' : '<strong>e-mail não confirmado</strong>'} · ${u.failed_logins} tentativa(s) errada(s)${u.locked_until && u.locked_until > now() ? ' · <strong>bloqueada até ' + fmtDateTime(u.locked_until) + '</strong>' : ''}` : 'não criou senha ainda'}</td></tr>
+<tr><th>Conta de acesso</th><td>${u ? `criada em ${fmtDate(u.created_at)} · ${u.email_verified_at ? 'e-mail confirmado' : '<strong>e-mail não confirmado</strong>'} · ${u.failed_logins} tentativa(s) errada(s)${Number(u.must_change_password) ? ` · <strong>senha temporária${u.temp_password_expires_at && u.temp_password_expires_at > now() ? ' até ' + fmtDateTime(u.temp_password_expires_at) : ' vencida'}: troca obrigatória no próximo acesso</strong>` : ''}${u.locked_until && u.locked_until > now() ? ' · <strong>bloqueada até ' + fmtDateTime(u.locked_until) + '</strong>' : ''}` : 'não criou senha ainda'}</td></tr>
 <tr><th>Cadastro de membro</th><td>${m ? `${esc(ROLES[m.role] || m.role)} · ${m.active ? 'ativo' : '<strong>inativo</strong>'}${m.is_owner ? ' · proprietário' : ''}` : 'não existe'}</td></tr>
 <tr><th>Acesso aos módulos</th><td>${e ? `Completo: ${e.advanced.active ? (e.advanced.permanent ? 'permanente' : 'até ' + fmtDate(e.advanced.endsAt)) : 'não'} · Básico: ${e.basic.active ? (e.basic.permanent ? 'permanente' : 'até ' + fmtDate(e.basic.endsAt)) : 'não'}` : '—'}</td></tr>
 </tbody></table>
-<div class="row-actions" style="margin-top:14px">${u ? btn(base + '/senha', 'Enviar link de nova senha') + btn(base + '/desbloquear', 'Desbloquear conta') + (u.email_verified_at ? '' : btn(base + '/confirmar', 'Confirmar e-mail manualmente')) + btn(base + '/sessoes', 'Encerrar sessões em todos os aparelhos', {}, 'ghost small', 'Encerrar todas as sessões deste usuário?') : ''}${m ? btn(base + '/ativo', m.active ? 'Desativar membro' : 'Reativar membro', {ativo: m.active ? '0' : '1'}, 'ghost small', m.active ? 'Desativar este usuário? Ele perde o acesso em todos os aparelhos.' : '') : ''}</div></div>
+<div class="row-actions" style="margin-top:14px">${u ? btn(base + '/senha', 'Enviar link de nova senha') + btn(base + '/temporaria', 'Gerar senha temporária e enviar', {}, 'ghost small', 'Gerar uma senha temporária, encerrar as sessões e enviar a senha por e-mail? A pessoa troca a senha no próximo acesso.') + btn(base + '/desbloquear', 'Desbloquear conta') + (u.email_verified_at ? '' : btn(base + '/confirmar', 'Confirmar e-mail manualmente')) + btn(base + '/sessoes', 'Encerrar sessões em todos os aparelhos', {}, 'ghost small', 'Encerrar todas as sessões deste usuário?') : ''}${m ? btn(base + '/ativo', m.active ? 'Desativar membro' : 'Reativar membro', {ativo: m.active ? '0' : '1'}, 'ghost small', m.active ? 'Desativar este usuário? Ele perde o acesso em todos os aparelhos.' : '') : ''}</div></div>
 ${m ? `<div class="panel"><h3>Papel</h3><form method="post" action="${base}/papel" class="row2"><label class="field">Papel<select name="papel">${Object.entries(ROLES).filter(([k]) => k !== 'member').map(([k, l]) => `<option value="${k}"${m.role === k ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></label><div style="align-self:end"><button class="button small" type="submit">Salvar papel</button></div></form></div>` : ''}
 <div class="panel"><h3>Conceder acesso</h3><form method="post" action="${base}/conceder" class="row2"><label class="field">Módulo<select name="modulo"><option value="advanced">Completo</option><option value="basic">Básico</option></select></label><label class="field">Dias (0 = permanente)<input name="dias" type="number" min="0" max="3650" value="365"></label><label class="field">Motivo<input name="motivo" maxlength="200" placeholder="Ex.: Pix recebido, cortesia, turma"></label><div style="align-self:end"><button class="button teal small" type="submit">Conceder</button></div></form>
 ${grants.length ? `<div class="table-wrap"><table class="data mini"><thead><tr><th>Módulo</th><th>Origem</th><th>Início</th><th>Fim</th><th>Situação</th><th></th></tr></thead><tbody>${grants.map(g => `<tr><td>${MODULES[g.module] || esc(g.module)}</td><td>${esc(sourceName[g.source] || g.source)}</td><td>${fmtDate(g.starts_at)}</td><td>${g.ends_at ? fmtDate(g.ends_at) : 'permanente'}</td><td>${g.revoked ? 'revogada' : g.ends_at && g.ends_at <= now() ? 'vencida' : 'ativa'}</td><td>${g.revoked ? '' : btn(base + '/revogar', 'Revogar', {grant: g.id}, 'ghost small', 'Revogar este acesso?')}</td></tr>`).join('')}</tbody></table></div>` : ''}</div>
@@ -162,6 +162,7 @@ ${grants.length ? `<div class="table-wrap"><table class="data mini"><thead><tr><
     const u = await q('SELECT * FROM auth_users WHERE email = ?', email).first(), m = await q('SELECT * FROM members WHERE email = ?', email).first();
     const done = text => userPage(session, email, {kind: 'ok', text}), fail = text => userPage(session, email, {kind: 'error', text});
     if (action === 'senha' && u) { await auth.sendPasswordLink(request, {email, name: u.name, next: '/sistema', reset: true}); await audit(admin, 'password-link', {email}); return done('Link de nova senha enviado.'); }
+    if (action === 'temporaria' && u) return temporaryPassword(request, session, admin, {email, name: u.name});
     if (action === 'desbloquear' && u) { await q('UPDATE auth_users SET failed_logins = 0, locked_until = NULL, updated_at = ? WHERE id = ?', now(), u.id).run(); await audit(admin, 'unlock', {email}); return done('Conta desbloqueada.'); }
     if (action === 'confirmar' && u) { await q('UPDATE auth_users SET email_verified_at = ?, updated_at = ? WHERE id = ? AND email_verified_at IS NULL', now(), now(), u.id).run(); await audit(admin, 'verify-email', {email}); return done('E-mail confirmado manualmente. A pessoa ainda precisa de uma senha: envie o link de nova senha.'); }
     if (action === 'sessoes' && u) { await q('DELETE FROM auth_sessions WHERE user_id = ?', u.id).run(); await audit(admin, 'end-sessions', {email}); return done('Sessões encerradas em todos os aparelhos.'); }
@@ -195,9 +196,21 @@ ${grants.length ? `<div class="table-wrap"><table class="data mini"><thead><tr><
     if (!m) { const id = randomUUID(); await q('INSERT INTO members (id,email,name,role,active,is_owner,created_at) VALUES (?,?,?,?,1,0,?)', id, email, name, role, now()).run(); m = await q('SELECT * FROM members WHERE id = ?', id).first(); }
     const module = MODULES[f.get('modulo')] ? String(f.get('modulo')) : null, days = Math.max(0, Math.min(3650, Number(f.get('dias')) || 0));
     if (module) await grantAccess(admin, m, module, days, 'cadastro pelo console');
+    if (f.get('acesso') === 'temporaria') { await audit(admin, 'create-user', {email, role, module, days, temporary: true}); return temporaryPassword(request, session, admin, {email, name, password: String(f.get('senha_temporaria') || '').trim()}); }
     const r = await auth.sendPasswordLink(request, {email, name, next: '/sistema'});
     await audit(admin, 'create-user', {email, role, module, days});
     return redirect(`${ADMIN_BASE}/usuarios/${encodeURIComponent(email)}?ok=${r.existing ? 'existente' : r.failure ? 'falha' : 'criado'}`);
+  }
+
+  // Senha temporária: grava, encerra sessões, envia por e-mail e mostra uma única vez nesta tela (para o caso de o e-mail não chegar).
+  async function temporaryPassword(request, session, admin, {email, name, password}) {
+    if (password && password.length < 10) return userPage(session, email, {kind: 'error', text: 'A senha temporária precisa ter pelo menos 10 caracteres (ou deixe em branco para o sistema gerar).'});
+    let r;
+    try { r = await auth.sendTemporaryPassword(request, {email, name, password: password || undefined}); }
+    catch (error) { return userPage(session, email, {kind: 'error', text: String(error.message || error)}); }
+    await audit(admin, 'temporary-password', {email, delivered: r.delivered, created: r.created});
+    const sent = r.delivered ? 'Enviada por e-mail.' : r.configured ? 'O e-mail NÃO saiu: entregue a senha à pessoa por outro meio.' : 'Envio de e-mail não configurado: entregue a senha à pessoa por outro meio.';
+    return userPage(session, email, {kind: r.delivered ? 'ok' : 'error', text: `Senha temporária: ${r.password} · vale 72 horas; no primeiro acesso a pessoa cria uma senha nova. ${sent} Esta senha não aparece de novo.`});
   }
 
   async function paymentsPage(session, message) {

@@ -1,5 +1,5 @@
 import {digest,requireProjectLicense,requireModule} from './licensing.mjs';
-import {studyModule} from '../public/licensing.js';
+import {studyModule} from '../www/licensing.js';
 import {projectGrant,audit} from './collaboration.mjs';
 const fail=(status,message)=>{throw Object.assign(Error(message),{status});};
 // Untrusted client-rendered HTML is only served as an isolated document, never inserted into the app DOM.

@@ -2,9 +2,9 @@
 // Sem a opção: só a chamada convencional, sem coluna ADS, sem comparação e sem o texto do método. A caixa continua visível. O cálculo não muda.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultStudy, recalculatePopulationAndStudies} from '../public/engine.js';
-import {adsComparisonHtml, adsComparison, adsComparisonValues} from '../public/ads-comparison.js';
-import {destinationPanel} from '../public/destination-view.js';
+import {defaultStudy, recalculatePopulationAndStudies} from '../www/engine.js';
+import {adsComparisonHtml, adsComparison, adsComparisonValues} from '../www/ads-comparison.js';
+import {destinationPanel} from '../www/destination-view.js';
 
 const h = {checkField: (label, path) => `<input type="checkbox" data-path="${path}"><span>${label}</span>`, field: (label, path) => `<input data-path="${path}">`};
 const run = on => { const s = defaultStudy(); s.destination = {...(s.destination || {}), enabled: on, sectors: 0}; return recalculatePopulationAndStudies(s); };

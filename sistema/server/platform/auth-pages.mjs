@@ -1,4 +1,4 @@
-import {BRAND} from '../../public/brand.js';
+import {BRAND} from '../../www/brand.js';
 // Páginas de acesso (HTML renderizado no servidor, sem JavaScript).
 export const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 
@@ -98,7 +98,19 @@ ${field('Nova senha', 'senha', 'password', 'autocomplete="new-password" required
 <div class="auth-links"><a href="/">Voltar ao programa</a><a href="/sair">Sair</a></div>`,
 });
 
-export const infoPage = ({title, heading, text, link = '/entrar', linkText = 'Ir para entrar', kind = 'ok'}) => page({
+// Primeiro acesso com senha temporária: a pessoa só usa o sistema depois de criar a própria senha.
+export const changePasswordPage = ({user, next = '/', message}) => page({
+  title: 'Crie sua senha', heading: 'Crie sua senha', message,
+  lead: `${esc(user.name)} · ${esc(user.email)}<br>Você entrou com uma senha temporária. Para continuar, crie uma senha nova, só sua.`,
+  body: `<form method="post" action="/trocar-senha">${hidden('volta', next)}
+${field('Nova senha', 'senha', 'password', 'autocomplete="new-password" required minlength="10" maxlength="200"')}
+${field('Repita a nova senha', 'senha2', 'password', 'autocomplete="new-password" required minlength="10" maxlength="200"')}
+<p class="auth-hint">Mínimo de 10 caracteres, diferente da senha temporária.</p>
+<button class="btn primary" type="submit">Salvar senha e entrar</button></form>
+<div class="auth-links"><a href="/sair">Sair</a></div>`,
+});
+
+export const infoPage =({title, heading, text, link = '/entrar', linkText = 'Ir para entrar', kind = 'ok'}) => page({
   title, heading, message: {kind, text},
   body: `<a class="btn" href="${esc(link)}">${esc(linkText)}</a>`,
 });

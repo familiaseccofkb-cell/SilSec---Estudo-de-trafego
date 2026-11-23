@@ -49,7 +49,7 @@ server/platform/
   plans.mjs                 planos e preços da anuidade
 server/site/pages.mjs       páginas do site e da área do cliente (HTML gerado no servidor)
   config.mjs, http.mjs      variáveis de ambiente e ponte Node ↔ Request/Response
-public/                     aplicação no navegador (HTML, JS, CSS, imagens)
+www/                     aplicação no navegador (HTML, JS, CSS, imagens)
 db/mysql, db/sqlite         migrações de banco
 scripts/criar-usuario.mjs   cria/redefine uma conta confirmada pelo terminal
 tests/                      testes automatizados
@@ -93,4 +93,4 @@ O teste de PowerPoint usa o pacote `pptxgenjs` (`npm install pptxgenjs --no-save
 
 ## Identidade
 
-Nome, telefone, e-mail e logomarca exibidos no programa, nas telas de acesso, nos e-mails e nos relatórios ficam em `public/brand.js` e `public/marca/silsec-engenharia.svg`. Depois de alterar, rode `npm run gerar-ajuda` para atualizar o manual.
+Nome, telefone, e-mail e logomarca exibidos no programa, nas telas de acesso, nos e-mails e nos relatórios ficam em `www/brand.js` e `www/marca/silsec-engenharia.svg`. Depois de alterar, rode `npm run gerar-ajuda` para atualizar o manual.

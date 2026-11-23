@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultStudy,recalculatePopulationAndStudies,validateStudy} from '../public/engine.js';
-import {normalizeStudy,decodeImport} from '../public/state.js';
-import {switchTrafficModel} from '../public/models.js';
-import {makeFloorTable,setBuildingMark,synchronizeFloorTable,validateBuildingFloors,resizeFloorTable,floorGeometry} from '../public/building-floors.js';
-import {copyFloorComposition,appendFloorComposition} from '../public/floors.js';
-import {defaultEscalators,defaultEscalatorLink,calculateEscalators} from '../public/escalators.js';
-import {calculatePopulation} from '../public/population.js';
-import {allStudyCharts} from '../public/analysis-charts.js';
-import {annexPages} from '../public/report.js';
+import {defaultStudy,recalculatePopulationAndStudies,validateStudy} from '../www/engine.js';
+import {normalizeStudy,decodeImport} from '../www/state.js';
+import {switchTrafficModel} from '../www/models.js';
+import {makeFloorTable,setBuildingMark,synchronizeFloorTable,validateBuildingFloors,resizeFloorTable,floorGeometry} from '../www/building-floors.js';
+import {copyFloorComposition,appendFloorComposition} from '../www/floors.js';
+import {defaultEscalators,defaultEscalatorLink,calculateEscalators} from '../www/escalators.js';
+import {calculatePopulation} from '../www/population.js';
+import {allStudyCharts} from '../www/analysis-charts.js';
+import {annexPages} from '../www/report.js';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-8,`${a} != ${b}`);
 function study(n=5){const s=normalizeStudy(defaultStudy());s.groups.forEach(g=>Object.assign(g,{stops:n,travel:(n-1)*3}));s.floorTable=makeFloorTable(s);s.floorTable.enabled=true;s.populationCalc.rows=[composition(s,1,700,1)];return synchronizeFloorTable(s);}
 function composition(s,floor,amount=700,index=1){return {...structuredClone(s.populationCalc.rows[0]),label:'Ambiente '+index,floor,servedFloorLevel:floor,servedFloorMark:String(floor),floorMark:String(index),isStreetAccess:false,amount};}
@@ -30,4 +30,4 @@ test('JSON e modelos conservam matriz e marcações especiais sem alterar o mode
 test('geometria: distâncias de desconto e desnível das escadas acompanham pavimentos',()=>{let s=study(3);s.populationCalc.rows[0].discount='adjacent50';s.populationCalc.rows[0].conditionsConfirmed=true;s.populationCalc.rows[0].distance=1;s.populationCalc.escalators=network();s.floorTable.rows[1].height=6;s=synchronizeFloorTable(s);assert.equal(s.populationCalc.rows[0].distance,6);assert.equal(s.populationCalc.escalators.links[0].rise,6);/* 9.5.7 (D1 aprovada pelo Fabio em 20/11/2026): 50% e desconto escolar são automáticos pela regra da NBR; fora da regra, não se aplicam (sem erro). A redução de 15% é manual, pelo flag da composição. */assert.equal(calculatePopulation('offices',[s.populationCalc.rows[0]]).value,100,'com 6 m de percurso o 50% não se aplica');});
 test('uma zona: população em pavimento não servido também bloqueia o resultado',()=>{let s=study(5);s.floorTable.rows.forEach((r,i)=>s.groups.forEach(g=>r.served[g.id]=i<3));s.populationCalc.rows[0].servedFloorMark='4';assert.throws(()=>recalculatePopulationAndStudies(s),/sem grupo/);});
 test('importação: estrutura adulterada da tabela desativada é recusada',()=>{const s=study();s.floorTable.enabled=false;s.floorTable.rows[0].height='inválido';assert.throws(()=>decodeImport(JSON.stringify({schemaVersion:1,study:s})),/distâncias positivas/);});
-test('propostas: atendimento é avaliado por zona e continua a exigir PPH do fabricante',async()=>{const {newOffer,evaluateOffer}=await import('../public/procurement.js');const s=zones(),offer=newOffer(s);offer.groups.forEach(g=>{g.startsLimit=10000;g.product.ropeDiameterMm=10;g.product.sheaveDiameterMm=400;});const record={id:'test-offer',company:'Fornecedor Teste',revision:1,data:offer};let evaluated=evaluateOffer(s,record);assert.equal(evaluated.error,undefined);assert.equal(evaluated.trafficPass,true);assert.equal(evaluated.results.zoneSeparated,true);assert.ok(evaluated.annual>0);offer.groups[0].capacity=1;evaluated=evaluateOffer(s,record);assert.equal(evaluated.trafficPass,false);});
+test('propostas: atendimento é avaliado por zona e continua a exigir PPH do fabricante',async()=>{const {newOffer,evaluateOffer}=await import('../www/procurement.js');const s=zones(),offer=newOffer(s);offer.groups.forEach(g=>{g.startsLimit=10000;g.product.ropeDiameterMm=10;g.product.sheaveDiameterMm=400;});const record={id:'test-offer',company:'Fornecedor Teste',revision:1,data:offer};let evaluated=evaluateOffer(s,record);assert.equal(evaluated.error,undefined);assert.equal(evaluated.trafficPass,true);assert.equal(evaluated.results.zoneSeparated,true);assert.ok(evaluated.annual>0);offer.groups[0].capacity=1;evaluated=evaluateOffer(s,record);assert.equal(evaluated.trafficPass,false);});

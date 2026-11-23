@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {meanFlight} from '../public/starts.js';
-import {defaultStudy,defaultGroup,recalculatePopulationAndStudies,calculateStudy,validateStudy,clone} from '../public/engine.js';
-import {normalizeStudy,decodeImport} from '../public/state.js';
-import {setStreetAccess,appendFloorComposition} from '../public/floors.js';
-import {populationComponent} from '../public/engine.js';
-import {startsSection} from '../public/starts-view.js';
+import {meanFlight} from '../www/starts.js';
+import {defaultStudy,defaultGroup,recalculatePopulationAndStudies,calculateStudy,validateStudy,clone} from '../www/engine.js';
+import {normalizeStudy,decodeImport} from '../www/state.js';
+import {setStreetAccess,appendFloorComposition} from '../www/floors.js';
+import {populationComponent} from '../www/engine.js';
+import {startsSection} from '../www/starts-view.js';
 const near=(a,b,tol=1e-8)=>assert.ok(Math.abs(a-b)<=tol,`${a} != ${b}`);
 function example(pop=100){const s=normalizeStudy(defaultStudy());s.populationCalc.rows[0].amount=pop*7;s.groups=[{...defaultGroup(),count:2,capacity:10,stops:2,travel:10,speed:1,acceleration:1,jerk:1,open:1,close:1,passenger:1,start:2}];return s;}
 function integrate(flight,j){const ramp=flight.peakAcceleration/j,hold=Math.max(0,flight.peakSpeed/flight.peakAcceleration-ramp),cruise=flight.cruiseDistance/flight.peakSpeed,phases=[[j,ramp],[0,hold],[-j,ramp],[0,cruise],[-j,ramp],[0,hold],[j,ramp]];let d=0,v=0,a=0,t=0;for(const [jerk,dt] of phases){d+=v*dt+a*dt*dt/2+jerk*dt**3/6;v+=a*dt+jerk*dt*dt/2;a+=jerk*dt;t+=dt;}return {d,v,a,t};}

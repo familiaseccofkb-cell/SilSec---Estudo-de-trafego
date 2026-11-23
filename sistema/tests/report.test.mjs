@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {firstPageIdentification,annexPages,companyBlock,frameReport,standaloneReport} from '../public/report.js';
-import {reportReady,validateBrand} from '../public/records.js';
-import {defaultStudy,defaultGroup,recalculatePopulationAndStudies,populationComponent} from '../public/engine.js';
-import {normalizeStudy} from '../public/state.js';
-import {appendFloorComposition} from '../public/floors.js';
+import {firstPageIdentification,annexPages,companyBlock,frameReport,standaloneReport} from '../www/report.js';
+import {reportReady,validateBrand} from '../www/records.js';
+import {defaultStudy,defaultGroup,recalculatePopulationAndStudies,populationComponent} from '../www/engine.js';
+import {normalizeStudy} from '../www/state.js';
+import {appendFloorComposition} from '../www/floors.js';
 test('relatório: fabricante pendente não apresenta soma parcial ou pré-abertura como zero',()=>{
  // 9.5.7 (D2 aprovada): o Anexo A tem só a coluna NBR de cada grupo; com o fabricante pendente, nenhum valor do fabricante aparece no anexo.
  const s=normalizeStudy(defaultStudy());s.groups[0].open=null;

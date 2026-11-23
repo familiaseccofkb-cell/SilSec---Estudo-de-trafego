@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultStudy} from '../public/engine.js';
-import {applyGroupToAllFloors,floorGeometry,normalizeFloorTable} from '../public/building-floors.js';
+import {defaultStudy} from '../www/engine.js';
+import {applyGroupToAllFloors,floorGeometry,normalizeFloorTable} from '../www/building-floors.js';
 
 test('aplicar a todos: o grupo passa a atender todos os andares e os demais grupos não mudam',()=>{
   const s=defaultStudy();

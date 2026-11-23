@@ -1,4 +1,4 @@
-// Pacote TES com os arquivos estáticos já na marca TES (22/11/2026): na Hostinger, public/ é entregue direto pela CDN,
+// Pacote TES com os arquivos estáticos já na marca TES (22/11/2026): na Hostinger, www/ é entregue direto pela CDN,
 // sem passar pelo Node. O teste grava a marca numa cópia (scripts/materializar-marca.mjs) e confere os arquivos com o
 // servidor DESLIGADO: nenhum "SilSec" visível fora da menção "Produto da SilSec Engenharia".
 import test from 'node:test';
@@ -15,7 +15,7 @@ const TEXTO = /\.(js|mjs|css|html|json|webmanifest|svg|md|txt|xml)$/;
 
 function copia() {
   const dir = mkdtempSync(join(tmpdir(), 'tes-estaticos-'));
-  for (const p of ['public', 'server', 'scripts', 'package.json']) cpSync(join(raiz, p), join(dir, p), {recursive: true});
+  for (const p of ['www', 'server', 'scripts', 'package.json']) cpSync(join(raiz, p), join(dir, p), {recursive: true});
   return dir;
 }
 const roda = (dir, env) => execFileSync(process.execPath, ['scripts/materializar-marca.mjs', '--gravar'], {cwd: dir, env: {...process.env, SILSEC_MARCA: '', ...env}, encoding: 'utf8'});
@@ -28,7 +28,7 @@ test('pacote TES: arquivos estáticos já na marca TES, sem SilSec visível (ser
   const dir = copia();
   try {
     const rel = JSON.parse(roda(dir, {SILSEC_MARCA: 'tes'}));
-    const pub = join(dir, 'public'), ler = f => readFileSync(join(pub, f));
+    const pub = join(dir, 'www'), ler = f => readFileSync(join(pub, f));
     // ícones nos caminhos padrão = os da TES
     for (const [padrao, tes] of [['favicon.svg', 'marca/tes/favicon.svg'], ['apple-touch-icon.png', 'marca/tes/apple-touch-icon.png'], ['icones/apple-touch-icon.png', 'marca/tes/apple-touch-icon.png'], ['icones/icone-192.png', 'marca/tes/icone-192.png'], ['icones/icone-512.png', 'marca/tes/icone-512.png'], ['icones/icone-maskable-512.png', 'marca/tes/icone-maskable-512.png']]) {
       assert.ok(ler(padrao).equals(ler(tes)), padrao);
@@ -65,14 +65,29 @@ test('pacote TES: arquivos estáticos já na marca TES, sem SilSec visível (ser
   } finally { rmSync(dir, {recursive: true, force: true}); }
 });
 
-test('pacote SilSec: o script não muda nada', () => {
+// SilSec 19r: o pacote da SilSec leva brand.js só com o perfil SilSec; os demais arquivos ficam iguais ao disco.
+test('pacote SilSec: só brand.js é gravado, sem o perfil TES', () => {
   const dir = copia();
   try {
-    assert.match(roda(dir, {}), /nada a gravar/);
-    assert.ok(readFileSync(join(dir, 'public/brand.js')).equals(readFileSync(join(raiz, 'public/brand.js'))));
+    assert.deepEqual(JSON.parse(roda(dir, {})), {trocados: [], ajustados: ['brand.js'], removidos: []});
+    const bj = readFileSync(join(dir, 'www/brand.js'), 'utf8');
+    assert.match(bj, /"id":"silsec"/);
+    assert.doesNotMatch(bj, /trafficestimator|Traffic Estimator|"tes"/i);
+    for (const f of ['app.js', 'index.html', 'manifest.webmanifest', 'styles.css', 'favicon.svg'])
+      assert.ok(readFileSync(join(dir, 'www', f)).equals(readFileSync(join(raiz, 'www', f))), f);
+    // o servidor continua carregando na marca SilSec, mesmo com SILSEC_MARCA=tes no ambiente
+    const cfg = execFileSync(process.execPath, ['--input-type=module', '-e', "import {readConfig} from './server/platform/config.mjs'; import './server/platform/marca.mjs'; console.log(readConfig({DB_DRIVER: 'sqlite', SQLITE_FILE: ':memory:'}).marca)"], {cwd: dir, env: {...process.env, SILSEC_MARCA: 'tes'}, encoding: 'utf8'}).trim();
+    assert.equal(cfg, 'silsec');
   } finally { rmSync(dir, {recursive: true, force: true}); }
 });
 
-test('materializar-marca exige --gravar (não altera public/ por engano)', () => {
+test('materializar-marca exige --gravar (não altera www/ por engano)', () => {
   assert.throws(() => execFileSync(process.execPath, ['scripts/materializar-marca.mjs'], {cwd: raiz, env: {...process.env, SILSEC_MARCA: 'tes'}, stdio: 'pipe'}));
+});
+
+// TES 1.0.4 / SilSec 19r: na Hostinger, o servidor web entregava direto a pasta public/ do pacote (sem passar pelo Node:
+// sem login nos manuais, sem os ajustes de marca). Os arquivos do navegador ficam em www/, que só o Node entrega.
+test('não existe pasta public/: tudo do navegador está em www/ e passa pelo Node', () => {
+  assert.equal(existsSync(join(raiz, 'public')), false, 'a pasta public/ voltaria a ser entregue direto pela hospedagem');
+  for (const f of ['index.html', 'app.js', 'brand.js', 'manual-do-usuario.html', 'manifest.webmanifest']) assert.ok(existsSync(join(raiz, 'www', f)), f);
 });

@@ -1,11 +1,11 @@
 // Login próprio do sistema: contas com e-mail e senha, confirmação por e-mail, sessões por cookie e recuperação de senha.
 // A identidade autenticada é entregue à API pelos mesmos cabeçalhos internos usados na versão anterior,
 // que são sempre removidos das requisições externas (ver server.mjs).
-import {randomBytes, scrypt as scryptCb, timingSafeEqual, createHash, randomUUID} from 'node:crypto';
+import {randomBytes, randomInt, scrypt as scryptCb, timingSafeEqual, createHash, randomUUID} from 'node:crypto';
 import {promisify} from 'node:util';
 import {setTimeout as sleep} from 'node:timers/promises';
-import {BRAND} from '../../public/brand.js';
-import {loginPage, signupPage, forgotPage, resetPage, accountPage, infoPage, esc} from './auth-pages.mjs';
+import {BRAND} from '../../www/brand.js';
+import {loginPage, signupPage, forgotPage, resetPage, accountPage, changePasswordPage, infoPage, esc} from './auth-pages.mjs';
 // Contas da administração com acesso permanente (lista em config.ownerEmails).
 const isOwnerEmail = (config, email) => { const e = String(email || '').trim().toLowerCase(); return !!e && (config.ownerEmails ? config.ownerEmails.has(e) : e === config.ownerEmail); };
 
@@ -32,7 +32,16 @@ export async function verifyPassword(password, stored) {
   const key = await scrypt(String(password).normalize('NFKC'), Buffer.from(salt, 'base64'), expected.length, {N: +N, r: +r, p: +p, maxmem: 64 * 1024 * 1024});
   return key.length === expected.length && timingSafeEqual(key, expected);
 }
-const DUMMY_HASH = 'scrypt$16384$8$1$AAAAAAAAAAAAAAAAAAAAAA==$' + Buffer.alloc(64).toString('base64');
+// Senha temporária (cadastro pela administração): vale por TEMP_HOURS e obriga a criar uma senha nova no primeiro acesso.
+export const TEMP_HOURS = 72;
+const TEMP_ALPHABET = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+// Três grupos de quatro caracteres sem letras ou números que se confundem (l/1, O/0): fácil de ditar e de digitar.
+export function generateTemporaryPassword() {
+  let s = '';
+  for (let i = 0; i < 12; i++) s += TEMP_ALPHABET[randomInt(TEMP_ALPHABET.length)] + (i % 4 === 3 && i < 11 ? '-' : '');
+  return s;
+}
+const DUMMY_HASH ='scrypt$16384$8$1$AAAAAAAAAAAAAAAAAAAAAA==$' + Buffer.alloc(64).toString('base64');
 
 export const APP_HOME = '/sistema';
 export function safeNext(value) {
@@ -40,7 +49,7 @@ export function safeNext(value) {
   try {
     const u = new URL(value, 'https://app.local');
     if (u.origin !== 'https://app.local') return APP_HOME;
-    if (['/entrar', '/sair', '/cadastrar', '/verificar', '/esqueci-senha', '/redefinir-senha'].includes(u.pathname)) return APP_HOME;
+    if (['/entrar', '/sair', '/cadastrar', '/verificar', '/esqueci-senha', '/redefinir-senha', '/trocar-senha'].includes(u.pathname)) return APP_HOME;
     return u.pathname + u.search + u.hash;
   } catch { return APP_HOME; }
 }
@@ -95,15 +104,24 @@ export function createAuth({db, config, mailer, log = console}) {
     }
     return localUser;
   }
-  async function sessionUser(request) {
+  // Sessão do cookie, inclusive a de quem ainda precisa trocar a senha temporária (mustChange).
+  async function rawSessionUser(request) {
     if (config.desktop) return desktopUser(request);
     const token = parseCookies(request.headers.get('cookie'))[SESSION_COOKIE];
     if (!token || !/^[a-f0-9]{64}$/.test(token)) return null;
     const hash = sha256(token);
-    const row = await q('SELECT s.token_hash,s.expires_at,s.last_seen_at,u.id,u.email,u.name,u.email_verified_at FROM auth_sessions s JOIN auth_users u ON u.id = s.user_id WHERE s.token_hash = ?', hash).first();
+    const row = await q('SELECT s.token_hash,s.expires_at,s.last_seen_at,u.id,u.email,u.name,u.email_verified_at,u.must_change_password FROM auth_sessions s JOIN auth_users u ON u.id = s.user_id WHERE s.token_hash = ?', hash).first();
     if (!row || row.expires_at <= now() || !row.email_verified_at) return null;
     if (Date.now() - Date.parse(row.last_seen_at) > 3600e3) await q('UPDATE auth_sessions SET last_seen_at = ? WHERE token_hash = ?', now(), hash).run();
-    return {id: row.id, email: row.email, name: row.name, sessionHash: hash};
+    return {id: row.id, email: row.email, name: row.name, sessionHash: hash, mustChange: !!Number(row.must_change_password)};
+  }
+  // Quem entrou com senha temporária e ainda não criou a sua não usa o sistema, a API nem os documentos:
+  // para todo o resto do programa a pessoa não está logada, e /entrar a leva para /trocar-senha.
+  async function sessionUser(request) {
+    const u = await rawSessionUser(request);
+    if (!u || u.mustChange) return null;
+    const {mustChange, ...user} = u;
+    return user;
   }
 
   async function signupAllowed(email) {
@@ -166,7 +184,7 @@ export function createAuth({db, config, mailer, log = console}) {
 
   async function handle(request) {
     const url = new URL(request.url), path = url.pathname, method = request.method;
-    const routes = ['/entrar', '/cadastrar', '/verificar', '/esqueci-senha', '/redefinir-senha', '/sair', '/conta', '/signin-with-chatgpt', '/signout-with-chatgpt'];
+    const routes = ['/entrar', '/cadastrar', '/verificar', '/esqueci-senha', '/redefinir-senha', '/sair', '/conta', '/trocar-senha', '/signin-with-chatgpt', '/signout-with-chatgpt'];
     if (config.desktop && routes.includes(new URL(request.url).pathname)) return new Response(null, {status: 303, headers: {Location: APP_HOME, 'Cache-Control': 'no-store'}});
     if (!routes.includes(path)) return null;
     if (path === '/signin-with-chatgpt') return redirect('/entrar?volta=' + encodeURIComponent(safeNext(url.searchParams.get('return_to') || APP_HOME)));
@@ -180,14 +198,16 @@ export function createAuth({db, config, mailer, log = console}) {
     const next = safeNext(url.searchParams.get('volta') || APP_HOME);
 
     if (path === '/sair') {
-      const current = await sessionUser(request);
+      const current = await rawSessionUser(request);
       if (current) await q('DELETE FROM auth_sessions WHERE token_hash = ?', current.sessionHash).run();
       return redirect('/entrar', {'Set-Cookie': cookie(request, '', 0)});
     }
 
     if (path === '/entrar') {
       if (method !== 'POST') {
-        if (await sessionUser(request)) return redirect(next);
+        const current = await rawSessionUser(request);
+        if (current?.mustChange) return redirect('/trocar-senha?volta=' + encodeURIComponent(next));
+        if (current) return redirect(next);
         return html(loginPage({next, signup: signupAllowedMode !== 'fechado'}));
       }
       const f = await form(request), email = String(f.get('email') || '').trim().toLowerCase(), password = String(f.get('senha') || ''), back = safeNext(f.get('volta') || APP_HOME);
@@ -201,8 +221,13 @@ export function createAuth({db, config, mailer, log = console}) {
         return invalid();
       }
       if (!user.email_verified_at) return invalid();
+      const mustChange = !!Number(user.must_change_password);
+      // Senha temporária vencida não abre sessão: a pessoa pede outra à administração ou usa "Esqueci minha senha".
+      if (mustChange && (!user.temp_password_expires_at || user.temp_password_expires_at <= now())) return html(loginPage({email, next: back, signup: signupAllowedMode !== 'fechado', message: {kind: 'erro', text: `A senha temporária venceu (vale ${TEMP_HOURS} horas). Peça uma nova à administração ou use "Esqueci minha senha".`}}), 401);
       await q('UPDATE auth_users SET failed_logins = 0, locked_until = NULL, updated_at = ? WHERE id = ?', now(), user.id).run();
-      return redirect(back, {'Set-Cookie': await createSession(request, user.id)});
+      const sessionCookie = await createSession(request, user.id);
+      if (mustChange) return redirect('/trocar-senha?volta=' + encodeURIComponent(back), {'Set-Cookie': sessionCookie});
+      return redirect(back, {'Set-Cookie': sessionCookie});
     }
 
     if (path === '/cadastrar') {
@@ -241,7 +266,7 @@ export function createAuth({db, config, mailer, log = console}) {
       if (password.length < MIN_PASSWORD || password.length > 200) return html(resetPage({token: posted, action: '/verificar', next: back, heading: 'Crie sua senha', message: {kind: 'erro', text: `A senha precisa ter de ${MIN_PASSWORD} a 200 caracteres.`}}), 400);
       const userId = await consumeToken(posted, 'verify');
       if (!userId) return html(infoPage({title: 'Link inválido', heading: 'Link inválido ou expirado', text: 'Peça um novo link em Criar conta.', kind: 'erro', link: '/cadastrar', linkText: 'Criar conta'}), 400);
-      await q('UPDATE auth_users SET password_hash = ?, email_verified_at = COALESCE(email_verified_at, ?), failed_logins = 0, locked_until = NULL, updated_at = ? WHERE id = ?', await hashPassword(password), now(), now(), userId).run();
+      await q('UPDATE auth_users SET password_hash = ?, email_verified_at = COALESCE(email_verified_at, ?), failed_logins = 0, locked_until = NULL, must_change_password = 0, temp_password_expires_at = NULL, updated_at = ? WHERE id = ?', await hashPassword(password), now(), now(), userId).run();
       await q('DELETE FROM auth_sessions WHERE user_id = ?', userId).run();
       await q("UPDATE auth_tokens SET used_at = ? WHERE user_id = ? AND used_at IS NULL", now(), userId).run();
       return redirect(back, {'Set-Cookie': await createSession(request, userId)});
@@ -275,10 +300,28 @@ export function createAuth({db, config, mailer, log = console}) {
       if (password.length < MIN_PASSWORD || password.length > 200) return html(resetPage({token, message: {kind: 'erro', text: `A senha precisa ter de ${MIN_PASSWORD} a 200 caracteres.`}}), 400);
       const userId = await consumeToken(token, 'reset');
       if (!userId) return html(infoPage({title: 'Link inválido', heading: 'Link inválido ou expirado', text: 'Peça um novo link de recuperação.', kind: 'erro', link: '/esqueci-senha', linkText: 'Recuperar senha'}), 400);
-      await q('UPDATE auth_users SET password_hash = ?, email_verified_at = COALESCE(email_verified_at, ?), failed_logins = 0, locked_until = NULL, updated_at = ? WHERE id = ?', await hashPassword(password), now(), now(), userId).run();
+      await q('UPDATE auth_users SET password_hash = ?, email_verified_at = COALESCE(email_verified_at, ?), failed_logins = 0, locked_until = NULL, must_change_password = 0, temp_password_expires_at = NULL, updated_at = ? WHERE id = ?', await hashPassword(password), now(), now(), userId).run();
       await q('DELETE FROM auth_sessions WHERE user_id = ?', userId).run();
       await q("UPDATE auth_tokens SET used_at = ? WHERE user_id = ? AND used_at IS NULL", now(), userId).run();
       return redirect(APP_HOME, {'Set-Cookie': await createSession(request, userId)});
+    }
+
+    // Troca obrigatória da senha temporária (primeiro acesso de conta cadastrada pela administração).
+    if (path === '/trocar-senha') {
+      const current = await rawSessionUser(request);
+      if (!current) return redirect('/entrar?volta=' + encodeURIComponent(next));
+      if (!current.mustChange) return redirect(method === 'POST' ? APP_HOME : next);
+      if (method !== 'POST') return html(changePasswordPage({user: current, next}));
+      const f = await form(request), password = String(f.get('senha') || ''), confirm = String(f.get('senha2') || ''), back = safeNext(f.get('volta') || APP_HOME);
+      const again = text => html(changePasswordPage({user: current, next: back, message: {kind: 'erro', text}}), 400);
+      if (password.length < MIN_PASSWORD || password.length > 200) return again(`A nova senha precisa ter de ${MIN_PASSWORD} a 200 caracteres.`);
+      if (password !== confirm) return again('A confirmação não é igual à nova senha.');
+      const row = await q('SELECT password_hash FROM auth_users WHERE id = ?', current.id).first();
+      if (await verifyPassword(password, row.password_hash)) return again('A nova senha precisa ser diferente da senha temporária.');
+      await q('UPDATE auth_users SET password_hash = ?, must_change_password = 0, temp_password_expires_at = NULL, failed_logins = 0, locked_until = NULL, updated_at = ? WHERE id = ?', await hashPassword(password), now(), current.id).run();
+      await q('DELETE FROM auth_sessions WHERE user_id = ? AND token_hash <> ?', current.id, current.sessionHash).run();
+      await q("UPDATE auth_tokens SET used_at = ? WHERE user_id = ? AND used_at IS NULL", now(), current.id).run();
+      return redirect(back);
     }
 
     if (path === '/conta') {
@@ -289,7 +332,7 @@ export function createAuth({db, config, mailer, log = console}) {
       const row = await q('SELECT password_hash FROM auth_users WHERE id = ?', current.id).first();
       if (!await verifyPassword(old, row.password_hash)) return html(accountPage({user: current, message: {kind: 'erro', text: 'Senha atual incorreta.'}}), 400);
       if (password.length < MIN_PASSWORD || password.length > 200) return html(accountPage({user: current, message: {kind: 'erro', text: `A nova senha precisa ter de ${MIN_PASSWORD} a 200 caracteres.`}}), 400);
-      await q('UPDATE auth_users SET password_hash = ?, updated_at = ? WHERE id = ?', await hashPassword(password), now(), current.id).run();
+      await q('UPDATE auth_users SET password_hash = ?, must_change_password = 0, temp_password_expires_at = NULL, updated_at = ? WHERE id = ?', await hashPassword(password), now(), current.id).run();
       await q('DELETE FROM auth_sessions WHERE user_id = ? AND token_hash <> ?', current.id, current.sessionHash).run();
       return html(accountPage({user: current, message: {kind: 'ok', text: 'Senha alterada. As sessões em outros aparelhos foram encerradas.'}}));
     }
@@ -316,7 +359,62 @@ export function createAuth({db, config, mailer, log = console}) {
     return {existing: false, delivered: r.delivered, failure: failedNote(r)};
   }
 
-  return {handle, sessionUser, cleanup, sendPasswordLink, sameOrigin, baseUrl, mailConfigured: () => mailer.configured, mailer};
+  // Administração: cria a conta (ou redefine a de quem já tem) com senha temporária e envia a senha por e-mail.
+  // No primeiro acesso a pessoa é obrigada a criar uma senha nova; a temporária vence em TEMP_HOURS.
+  async function sendTemporaryPassword(request, {email, name, password}) {
+    email = String(email).trim().toLowerCase();
+    if (!validEmail(email)) throw new Error('E-mail inválido.');
+    const temp = password ? String(password) : generateTemporaryPassword();
+    if (temp.length < MIN_PASSWORD || temp.length > 200) throw new Error(`A senha temporária precisa ter de ${MIN_PASSWORD} a 200 caracteres.`);
+    const {id, created} = await setTemporaryPassword(db, {email, name, password: temp});
+    await q('DELETE FROM auth_sessions WHERE user_id = ?', id).run();
+    await q('UPDATE auth_tokens SET used_at = ? WHERE user_id = ? AND used_at IS NULL', now(), id).run();
+    const user = await q('SELECT name FROM auth_users WHERE id = ?', id).first(), link = `${baseUrl(request)}/entrar`;
+    const r = await mailer.send({to: email, subject: `Seu acesso · ${BRAND.name}`,
+      // Se o e-mail não sair, o log do servidor fica sem a senha (o administrador a vê na tela).
+      logText: `Senha temporária para ${email} (não registrada no log; mostrada só na tela do administrador).`,
+      text: `Olá, ${user.name}.\n\nSua conta no sistema de estudos de tráfego da ${BRAND.name} está pronta.\n\nE-mail: ${email}\nSenha temporária: ${temp}\n\nEntre em ${link}. No primeiro acesso o sistema pede que você crie uma senha nova, só sua.\nA senha temporária vale por ${TEMP_HOURS} horas.\n\nSe você não esperava este e-mail, ignore-o.\n\n—\n${BRAND.name}\n${BRAND.phone} · ${BRAND.email}`,
+      html: `<p>Olá, ${esc(user.name)}.</p><p>Sua conta no sistema de estudos de tráfego da ${esc(BRAND.name)} está pronta.</p><p>E-mail: <strong>${esc(email)}</strong><br>Senha temporária: <strong style="font-family:monospace;font-size:16px">${esc(temp)}</strong></p><p><a href="${esc(link)}">Entrar no sistema</a></p><p>No primeiro acesso o sistema pede que você crie uma senha nova, só sua. A senha temporária vale por ${TEMP_HOURS} horas.</p><p>Se você não esperava este e-mail, ignore-o.</p><p style="color:#627780;font-size:13px">—<br>${esc(BRAND.name)}<br>${esc(BRAND.phone)} · ${esc(BRAND.email)}</p>`});
+    return {password: temp, created, delivered: r.delivered, failure: failedNote(r), configured: mailer.configured};
+  }
+
+  return {handle, sessionUser, cleanup, sendPasswordLink, sendTemporaryPassword, sameOrigin, baseUrl, mailConfigured: () => mailer.configured, mailer};
+}
+
+// Convite de projeto (TES 1.0.4 / SilSec 19r): link de acesso direto, válido por INVITE_DAYS.
+// Quem ainda não tem senha recebe o link de "Crie sua senha" (/verificar), que confirma o e-mail, cria a senha e já
+// abre o projeto; quem já tem conta recebe o link de entrar. O link vai só no e-mail do convidado: nunca é devolvido a
+// quem convida (senão quem convida poderia criar a senha no lugar do convidado).
+export const INVITE_DAYS = 30;
+export async function inviteAccessLink(db, {email, name, origin, next = APP_HOME}) {
+  email = String(email).trim().toLowerCase();
+  if (!validEmail(email)) throw new Error('E-mail inválido.');
+  const volta = safeNext(next), q = (sql, ...a) => db.prepare(sql).bind(...a);
+  let user = await q('SELECT id, email_verified_at, password_hash FROM auth_users WHERE email = ?', email).first();
+  if (user?.email_verified_at && user.password_hash) return `${origin}/entrar?volta=${encodeURIComponent(volta)}`;
+  if (!user) {
+    user = {id: randomUUID()};
+    await q('INSERT INTO auth_users (id,email,name,password_hash,created_at,updated_at) VALUES (?,?,?,?,?,?)', user.id, email, String(name || email).slice(0, 200), '', now(), now()).run();
+  }
+  const token = newToken();
+  await q('INSERT INTO auth_tokens (token_hash,user_id,kind,expires_at,created_at) VALUES (?,?,?,?,?)', sha256(token), user.id, 'verify', later(INVITE_DAYS * 864e5), now()).run();
+  return `${origin}/verificar?token=${token}&volta=${encodeURIComponent(volta)}`;
+}
+
+// Grava uma senha temporária (conta nova ou existente): e-mail dado como confirmado, troca obrigatória no primeiro acesso.
+export async function setTemporaryPassword(db, {email, name, password}) {
+  email = String(email).trim().toLowerCase();
+  if (!validEmail(email)) throw new Error('E-mail inválido.');
+  if (String(password).length < MIN_PASSWORD) throw new Error(`A senha temporária precisa ter pelo menos ${MIN_PASSWORD} caracteres.`);
+  const hash = await hashPassword(String(password)), t = now(), expires = later(TEMP_HOURS * 3600e3);
+  const existing = await db.prepare('SELECT id FROM auth_users WHERE email = ?').bind(email).first();
+  if (existing) {
+    await db.prepare('UPDATE auth_users SET password_hash = ?, email_verified_at = COALESCE(email_verified_at, ?), failed_logins = 0, locked_until = NULL, must_change_password = 1, temp_password_expires_at = ?, updated_at = ? WHERE id = ?').bind(hash, t, expires, t, existing.id).run();
+    return {id: existing.id, created: false, expiresAt: expires};
+  }
+  const id = randomUUID();
+  await db.prepare('INSERT INTO auth_users (id,email,name,password_hash,email_verified_at,must_change_password,temp_password_expires_at,created_at,updated_at) VALUES (?,?,?,?,?,1,?,?,?)').bind(id, email, name || email, hash, t, expires, t, t).run();
+  return {id, created: true, expiresAt: expires};
 }
 
 // Cria ou redefine uma conta já confirmada (uso administrativo pelo terminal).
@@ -327,7 +425,7 @@ export async function upsertVerifiedUser(db, {email, name, password}) {
   const hash = await hashPassword(password), t = now();
   const existing = await db.prepare('SELECT id FROM auth_users WHERE email = ?').bind(email).first();
   if (existing) {
-    await db.prepare('UPDATE auth_users SET password_hash = ?, name = ?, email_verified_at = COALESCE(email_verified_at, ?), failed_logins = 0, locked_until = NULL, updated_at = ? WHERE id = ?').bind(hash, name || email, t, t, existing.id).run();
+    await db.prepare('UPDATE auth_users SET password_hash = ?, name = ?, email_verified_at = COALESCE(email_verified_at, ?), failed_logins = 0, locked_until = NULL, must_change_password = 0, temp_password_expires_at = NULL, updated_at = ? WHERE id = ?').bind(hash, name || email, t, t, existing.id).run();
     return {id: existing.id, created: false};
   }
   const id = randomUUID();

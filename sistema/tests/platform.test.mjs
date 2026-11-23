@@ -111,7 +111,7 @@ test('plataforma: cadastro, criação de senha pelo link, sessão e API autentic
     r = await t.req('/sistema'); assert.equal(r.status, 200); assert.match(r.text, /app\.js/);
     assert.equal(r.headers.get('cache-control'), 'private, no-store');
     // gravar projeto pela API com origem correta e recusar origem externa
-    const {defaultStudy} = await import('../public/engine.js'); const {normalizeStudy} = await import('../public/state.js');
+    const {defaultStudy} = await import('../www/engine.js'); const {normalizeStudy} = await import('../www/state.js');
     r = await t.req('/api/projects', {method: 'PUT', json: {study: normalizeStudy(defaultStudy()), calculate: true}, headers: {origin: t.base}});
     assert.equal(r.status, 200, r.text);
     r = await t.req('/api/projects', {method: 'PUT', json: {study: normalizeStudy(defaultStudy())}, headers: {origin: 'https://evil.example'}});

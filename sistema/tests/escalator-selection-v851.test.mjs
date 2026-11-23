@@ -1,10 +1,10 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {defaultStudy} from '../public/engine.js';
-import {normalizeStudy} from '../public/state.js';
-import {resizeFloorTable,ensureFloorCompositions,floorTableHtml,setBuildingAccess,setBuildingMark} from '../public/building-floors.js';
-import {selectEscalatorFloor,escalatorFloorNotice,initializeEscalatorSelection} from '../public/transport-config.js';
-import {remodelEscalators} from '../public/escalator-editor.js';
-import {calculatePopulation,populationOptions} from '../public/population.js';
+import {defaultStudy} from '../www/engine.js';
+import {normalizeStudy} from '../www/state.js';
+import {resizeFloorTable,ensureFloorCompositions,floorTableHtml,setBuildingAccess,setBuildingMark} from '../www/building-floors.js';
+import {selectEscalatorFloor,escalatorFloorNotice,initializeEscalatorSelection} from '../www/transport-config.js';
+import {remodelEscalators} from '../www/escalator-editor.js';
+import {calculatePopulation,populationOptions} from '../www/population.js';
 function sample(){let s=normalizeStudy(defaultStudy());s.floorTable.enabled=true;s=ensureFloorCompositions(resizeFloorTable(s,5));s.transportEquipment={version:1,escalators:true,walkways:false};s.floorTable.rows.forEach(r=>r.escalatorServed=false);s.populationCalc.rows.forEach(r=>{r.amount=r.floor===0?0:70;r.declaredPopulation=0;});s.populationCalc.escalators.enabled=true;return s;}
 const marks=s=>s.floorTable.rows.filter(r=>r.escalatorServed).map(r=>r.mark);
 function configured(s){s=remodelEscalators(s);Object.assign(s.populationCalc.escalators,{enabled:true,capacityBasis:'provided-table',capacityConfirmed:true});for(const l of s.populationCalc.escalators.links)for(const b of l.banks)Object.assign(b,{served:true,countUp:1,countDown:1,pairConfirmed:true,geometryConfirmed:true});return s;}

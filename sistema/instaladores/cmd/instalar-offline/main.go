@@ -173,7 +173,7 @@ func main() {
 	}
 	win.KillProcess("SilSec-Offline.exe")
 	// 1. programa (mantém a pasta runtime de uma instalação anterior)
-	for _, sub := range []string{"server", "public", "db", "scripts"} {
+	for _, sub := range []string{"server", "www", "motor", "db", "scripts"} {
 		os.RemoveAll(filepath.Join(dir, sub))
 	}
 	if err := os.MkdirAll(dir, 0o755); err != nil {

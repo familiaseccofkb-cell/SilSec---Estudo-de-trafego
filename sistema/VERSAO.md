@@ -1,3 +1,41 @@
+# TES 1.0.4 / SilSec 19r · simulador etapa 1, arquivos em www/ e marcas separadas · 2026-11-23 (sobre 1875413, Node 24)
+
+- Inclui a TES 1.0.3 (senha temporária com troca obrigatória), que não chegou a ser publicada.
+- Arquivos do navegador: public/ → www/. Na Hostinger, o servidor web entregava direto a pasta public/ do pacote da TES
+  (sem login nos manuais, sem os ajustes de marca). Agora tudo passa pelo Node, nos dois sites. Teste impede a volta de public/.
+- Marcas: comentários "TES · …" do motor e dos reexportadores trocados por "Motor de cálculo · …"; o pacote da SilSec
+  leva www/brand.js só com o perfil SilSec (scripts/materializar-marca.mjs). Nome do motor mantido.
+- Etapa 1 do simulador (Fabio, 23/11: "Aproveitar o convite"):
+  - Convite: o e-mail leva um link pessoal (criar a senha e abrir o projeto), válido por 30 dias. O link nunca volta para
+    quem convida nem vai para o log; sem e-mail configurado, nada muda (o convidado usa "Criar conta").
+  - Proposta do fornecedor: dados para a simulação de operação real (nivelamento, liberação da porta, velocidade da
+    antecipação, permanência na chamada de cabina e de andar, atraso de fechamento, reabertura, nudging, voo e desempenho
+    de um andar medidos, tempo de resposta, transferência por movimento e por largura de porta, área, carga, fator de
+    ocupação, consumo parado com e sem luz, tipo de comando e regras de despacho). Guardados na proposta; o cálculo não muda.
+  - Abertura antecipada: velocidade máxima provisória de 0,8 m/s (EN 81-20, base da NBR 16858; a confirmar no texto da NBR).
+  - Dados do proprietário: o cliente convidado envia horários, ocupação por andar (40+ andares), contagens a cada 5 minutos
+    (entrada, almoço, saída, fila, entre andares) e esperas observadas. Fica "aguardando revisão"; só o responsável pelo
+    estudo aplica (horários e contagens viram o perfil medido) ou recusa. A ocupação por andar fica como referência.
+- Banco: migrações novas mysql 0010_dados_proprietario / sqlite 0012_dados_proprietario (tabela owner_data), aplicadas na
+  partida; owner_data entra no backup do console.
+- Cálculo: nenhuma mudança (números iguais aos da 19q e da 1.0.2).
+
+# TES 1.0.3 · senha temporária com troca obrigatória · 2026-11-22 (sobre 1875413, Node 24)
+
+- Pedido do Fabio (22/11): cadastrar usuário com senha temporária enviada por e-mail; no primeiro acesso a troca é obrigatória.
+  - Console (/admin/usuarios): no "Cadastrar usuário", "Como a pessoa entra": link por e-mail (como antes) ou senha temporária.
+    A senha pode ser informada (mínimo 10 caracteres) ou gerada pelo sistema (3 grupos de 4, sem l/1/O/0).
+  - Na página do usuário: botão "Gerar senha temporária e enviar" (encerra as sessões e invalida links pendentes).
+  - A senha vai por e-mail e aparece uma única vez na tela do administrador (para o caso de o e-mail não sair).
+  - Vale 72 horas. Vencida, o login recusa e orienta pedir outra ou usar "Esqueci minha senha".
+  - Com a temporária a pessoa entra em /trocar-senha (nova senha + confirmação, diferente da temporária). Até trocar,
+    sistema, API, documentos e console tratam como não logado. "Esqueci minha senha", /verificar e /conta também encerram a pendência.
+  - Terminal: node scripts/criar-usuario.mjs --temporaria email "Nome" ["senha"] (sem e-mail; mostra a senha gerada uma vez).
+- Banco: migração nova (mysql 0009_senha_temporaria, sqlite 0011_senha_temporaria): auth_users.must_change_password e
+  temp_password_expires_at. Aplicada sozinha na partida; conferida no MariaDB de teste local.
+- Cálculo: nenhuma mudança. Telas do site: nenhuma mudança.
+- O mesmo código vale para a SilSec; entra no próximo pacote da SilSec (a 19q, aguardando aprovação, não tem).
+
 # SilSec 19q · o site da SilSec não vende mais o sistema · 2026-11-22 (sobre 0f0467a, Node 24)
 
 - Decisão do Fabio (22/11, "seguir recomendações"): o sistema de estudo de tráfego é vendido só na TES (trafficestimatorsystem.com).

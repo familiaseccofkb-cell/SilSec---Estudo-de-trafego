@@ -1,4 +1,4 @@
-// TES · motor de cálculo: parte de cálculo de dimensions.js (a parte de tela ficou em public/dimensions.js).
+// Motor de cálculo: parte de cálculo de dimensions.js (a parte de tela ficou em www/dimensions.js).
 import {fleetCars,changeCar} from './fleet.js';
 import {linkedCarIndex,heightWarnings,syncDimensionalDoor} from './silsec-dimensions.js';
 import {emptyDimensionReference,applyDimensionReference} from './dimension-reference.js';

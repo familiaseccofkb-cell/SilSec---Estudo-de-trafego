@@ -1,4 +1,4 @@
-// TES · motor de cálculo: parte de cálculo de models.js (a parte de tela ficou em public/models.js).
+// Motor de cálculo: parte de cálculo de models.js (a parte de tela ficou em www/models.js).
 import {defaultIsoConfig,defaultIsoRow,defaultIsoGroup,ISO_MOTION,ISO_WIDTHS,applyIsoEdition} from './iso-data.js';
 export const copy=x=>structuredClone(x);
 export const MODEL_LABELS={nbr5665:'NBR 5665 · preferencial',iso8100:'ISO 8100-32'};
